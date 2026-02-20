@@ -1,7 +1,8 @@
 import React from 'react';
 
 export default function CardName({ card, showSpoilers }) {
-  const spoilerClass = card.spoiler && !showSpoilers ? 'mc-spoiler' : '';
+  const isEncounter = card.faction_code === 'encounter';
+  const spoilerClass = card.spoiler && !showSpoilers && !isEncounter ? 'mc-spoiler' : '';
 
   return (
     <div>
@@ -20,7 +21,7 @@ export default function CardName({ card, showSpoilers }) {
           !card.is_unique &&
           card.type_code !== 'villain' &&
           card.type_code !== 'main_scheme' && (
-            <span className="tw-opacity-70 tw-text-sm tw-ml-1">
+            <span className="tw-opacity-70 tw-text-base tw-font-semibold tw-ml-1">
               (x{card.quantity || 1})
             </span>
           )}

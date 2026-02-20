@@ -69,10 +69,33 @@
   padding-bottom: 15px;
 }
 
+.panel-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 25px;
+  border-bottom: 2px solid rgba(255,255,255,0.05);
+  padding-bottom: 15px;
+}
+.panel-title-row .panel-title {
+  margin: 0;
+  border: none;
+  padding: 0;
+}
+
 /* Profile Specific */
-.profile-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 25px; }
+.profile-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 25px; flex-wrap: wrap; gap: 10px; }
+.profile-name-row { display: flex; align-items: center; gap: 10px; }
 .user-name { font-size: 1.8rem; margin: 0; color: var(--primary-blue); }
 .donation-badge { background: rgba(0, 210, 255, 0.1); color: var(--accent-cyan); padding: 4px 10px; border-radius: 20px; font-size: 0.8rem; border: 1px solid var(--accent-cyan); }
+
+/* Reputation medal */
+.rep-badge { display: inline-flex; align-items: center; gap: 5px; padding: 3px 9px 3px 4px; border-radius: 20px; font-size: 0.82rem; font-weight: 700; }
+.rep-badge--bronze { background: rgba(205,127,50,0.12); border: 1px solid #cd7f32; color: #cd7f32; }
+.rep-badge--silver { background: rgba(192,192,192,0.12); border: 1px solid #a0a0a0; color: #c8c8c8; }
+.rep-badge--gold   { background: rgba(255,215,0,0.12);   border: 1px solid #ffd700; color: #ffd700; }
+.rep-medal { width: 22px; height: 22px; flex-shrink: 0; }
+.rep-score { line-height: 1; }
 
 .info-list { display: flex; flex-direction: column; gap: 15px; }
 .info-item { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.03); padding-bottom: 10px; }
@@ -152,10 +175,38 @@
 /* Status */
 .db-status { text-align: center; padding: 40px; color: var(--text-muted); font-size: 1.2rem; }
 
-/* Responsive */
+/* Collection interactive */
+.collection-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; border-bottom: 2px solid rgba(255,255,255,0.05); padding-bottom: 15px; }
+.collection-header .panel-title { margin: 0; border: none; padding: 0; }
+.collection-counter { background: rgba(0,210,255,0.1); color: var(--accent-cyan); border: 1px solid var(--accent-cyan); font-size: 0.85rem; font-weight: 700; padding: 3px 12px; border-radius: 20px; }
+
+.collection-actions { display: flex; justify-content: flex-end; margin-bottom: 16px; }
+.btn-save-packs { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15); color: var(--text-muted); padding: 6px 18px; border-radius: 8px; font-size: 0.85rem; cursor: pointer; transition: all 0.2s; }
+.btn-save-packs--dirty { background: var(--primary-blue); border-color: var(--primary-blue); color: #fff; font-weight: 600; }
+.btn-save-packs--dirty:hover { filter: brightness(1.15); }
+.btn-save-packs--saved { background: rgba(46,204,113,0.2); border-color: var(--success); color: var(--success); }
+.btn-save-packs:disabled { cursor: default; }
+
+/* Pack badges interactifs */
+.pack-badge--toggle { cursor: pointer; background: none; font-family: inherit; display: inline-flex; align-items: center; gap: 5px; transition: all 0.18s; }
+.pack-badge--owned { background: rgba(46,204,113,0.15); border-color: var(--success); color: var(--success); }
+.pack-badge--owned:hover { background: rgba(46,204,113,0.3); }
+.pack-badge--unowned { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); color: var(--text-muted); }
+.pack-badge--unowned:hover { background: rgba(74,144,226,0.15); border-color: var(--primary-blue); color: var(--white); }
+.pack-check { font-size: 0.75rem; }
+
+/* Toggle de groupe */
+.pack-group-header { display: flex; align-items: center; gap: 8px; }
+.pack-group-left { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+.pack-type-title { flex: 1; text-align: center; font-size: 0.9rem; color: var(--primary-blue); text-transform: uppercase; margin: 0; font-weight: 700; }
+.pack-group-toggle { background: none; border: 1px solid rgba(255,255,255,0.15); color: var(--text-muted); width: 22px; height: 22px; border-radius: 4px; cursor: pointer; font-size: 0.9rem; display: inline-flex; align-items: center; justify-content: center; padding: 0; flex-shrink: 0; transition: all 0.18s; }
+.pack-group-toggle--all { border-color: var(--success); color: var(--success); background: rgba(46,204,113,0.1); }
+.pack-group-toggle:hover { border-color: var(--primary-blue); color: var(--white); }
+.pack-group-all-label { font-size: 0.78rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; flex-shrink: 0; }
+
 @media (max-width: 1024px) {
   .db-grid { grid-template-columns: 1fr 1fr; }
-  .collection-panel { grid-column: 1 / -1; order: 3; } /* Met la collection en bas sur tablette */
+  .collection-panel { grid-column: 1 / -1; order: 3; }
 }
 
 @media (max-width: 768px) {

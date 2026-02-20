@@ -3,14 +3,27 @@ import { getBorderClass } from '../utils/factionUtils.js';
 
 export default function CardText({ card, showSpoilers }) {
   if (!card.text) return null;
-  const spoilerClass = card.spoiler && !showSpoilers ? 'mc-spoiler' : '';
+  const isEncounter = card.faction_code === 'encounter';
+  const spoilerClass = card.spoiler && !showSpoilers && !isEncounter ? 'mc-spoiler' : '';
   function formatText(raw) {
     if (!raw) return '';
     let text = raw;
+    // Normalize <br> variants to \n so all line-break handling is uniform
+    text = text.replace(/<br\s*\/?>/gi, '\n');
+    // Bold trigger keywords only when NOT already inside an HTML tag
+    text = text.replace(
+      /(^|\n)((?:Forced |Hero |Alter-Ego |Villain )?(?:Interrupt|Response|Action|When Revealed|When Defeated|When Completed|Special|Setup|Permanent|Constant|Passive|Triggered|Reaction))(?=[\s:(])/g,
+      (match, prefix, keyword, offset, str) => {
+        // Skip if keyword is already wrapped in a bold/strong tag
+        const before = str.slice(Math.max(0, offset - 5), offset + prefix.length);
+        if (/<[bs]>$/i.test(before)) return match;
+        return `${prefix}<strong>${keyword}</strong>`;
+      }
+    );
     text = text.replace(/\[\[([^\]]+)\]\]/g, '<b class="card-traits"><i>$1</i></b>');
     text = text.replace(/\[(\w+)\]/g, '<span title="$1" class="icon icon-$1"></span>');
-    text = text.split('\n').join('</p><p>');
-    return '<p>' + text + '</p>';
+    text = text.split('\n').map(l => `<p>${l}</p>`).join('');
+    return text;
   }
 
   const html = formatText(card.text || card.real_text || '');

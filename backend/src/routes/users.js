@@ -90,4 +90,25 @@ router.put('/user/:id/settings', async (req, res) => {
   }
 });
 
+// ==========================================
+// PUT : Mettre à jour les packs possédés
+// ==========================================
+router.put('/user/:id/packs', async (req, res) => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    if (!id) return res.status(400).json({ error: 'Invalid id' });
+
+    const { owned_packs } = req.body; // array of integers
+    if (!Array.isArray(owned_packs)) return res.status(400).json({ error: 'owned_packs must be an array' });
+
+    const packed = owned_packs.filter(n => Number.isInteger(n) && n > 0).join(',');
+    await db('user').where('id', id).update({ owned_packs: packed, date_update: new Date() });
+
+    return res.json({ ok: true, owned_packs: packed });
+  } catch (err) {
+    console.error('PUT /user/:id/packs error', err && err.message ? err.message : err);
+    return res.status(500).json({ error: 'Internal error' });
+  }
+});
+
 module.exports = router;

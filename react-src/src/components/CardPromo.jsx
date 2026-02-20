@@ -12,7 +12,7 @@ export default function CardPromo({ card, locale }) {
   const [loadingDirs, setLoadingDirs] = useState({});
   const [hiddenDirs, setHiddenDirs] = useState({});
 
-  const imagesrc = card.imagesrc;
+  const imagesrc = card.imagesrc || card.backimagesrc;
   if (!imagesrc) return null;
 
   const pathParts = imagesrc.split('/');

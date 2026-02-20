@@ -2,11 +2,13 @@ import React from 'react';
 import { createRoot } from 'react-dom/client';
 import CardFront from './CardFront';
 import CardBack from './CardBack';
+import PackNav from './components/PackNav';
 import '@css/mc4db.css';
 import LoginMenu from './components/LoginMenu';
 import Menu from './components/Menu';
 import Landing from './components/Landing';
 import Dashboard from './pages/Dashboard';
+import CardPage from './pages/CardPage';
 
 function mountAllCards() {
   document.querySelectorAll('[data-react-component="CardFront"]').forEach((container) => {
@@ -38,6 +40,16 @@ function mountAllCards() {
       );
     } catch (e) {
       console.error('Failed to mount CardBack:', e);
+    }
+  });
+
+  document.querySelectorAll('[data-react-component="PackNav"]').forEach((container) => {
+    try {
+      const card = JSON.parse(container.getAttribute('data-card'));
+      const root = createRoot(container);
+      root.render(<PackNav card={card} />);
+    } catch (e) {
+      console.error('Failed to mount PackNav:', e);
     }
   });
 
@@ -84,5 +96,6 @@ try{
     const path = window.location.pathname || '/';
     if (path === '/' || path === '/index.html') appRoot.render(<Landing />);
     else if (path.startsWith('/dashboard')) appRoot.render(<Dashboard />);
+    else if (path.startsWith('/card')) appRoot.render(<CardPage />);
   }
 }catch(e){ console.error('Failed to mount app container', e); }

@@ -8,13 +8,15 @@ import CardInfo from './components/CardInfo';
 import CardIllustrator from './components/CardIllustrator';
 import CardPack from './components/CardPack';
 import CardPromo from './components/CardPromo';
+import { Terminal, FileText, Package, Paintbrush, AlertCircle, Fingerprint } from 'lucide-react';
 
 export default function CardBack({ card, showSpoilers, preferWebpOnly, locale, inline=false }) {
   console.log('[mc4db] CardBack render', card, 'inline=', inline);
   if (!card || (!card.double_sided && !inline)) return null;
 
 
-  const spoilerClass = card.spoiler && !showSpoilers ? 'mc-spoiler' : '';
+  const isEncounter = card.faction_code === 'encounter';
+  const spoilerClass = card.spoiler && !showSpoilers && !isEncounter ? 'mc-spoiler' : '';
   const borderClass = getBorderClass(card.faction_code);
   const headerClass = getHeaderClass(card.faction_code, card.type_code);
 
@@ -50,106 +52,94 @@ export default function CardBack({ card, showSpoilers, preferWebpOnly, locale, i
   const headerTextColor = readableTextColor(factionColor);
 
   const inner = (
-    <div className="tw-flex tw-flex-col lg:tw-flex-row">
-      <div className="tw-flex-1 tw-p-8 tw-border-r tw-border-slate-800/50">
-        <div className="tw-mb-10">
-          <div className="tw-flex tw-justify-between tw-items-start">
+    <div className="card-frame__body">
+      <div className="card-frame__left">
+        <header className="card-frame__title-area">
+          <div className="card-frame__title-row">
             <div>
-              <h1 className="tw-text-3xl tw-font-black tw-text-white tw-uppercase tw-tracking-tighter">
+              <h1 className="card-frame__name">
                 <CardName card={card} showSpoilers={showSpoilers} />
               </h1>
-              <div className="tw-mt-2 tw-flex tw-items-center tw-gap-3">
-                <span className="tw-text-[10px] tw-font-bold tw-px-2 tw-py-0.5 tw-rounded tw-bg-white/5 tw-border tw-border-white/10 tw-text-slate-400">
-                  TYPE: {card.type_name}
-                </span>
-              </div>
+              <div className="card-frame__type-badge">TYPE: {card.type_name}</div>
             </div>
-            {card.cost !== null && (
-              <div className="tw-flex tw-flex-col tw-items-end">
-                <span className="tw-text-[9px] tw-font-mono tw-text-slate-500 tw-mb-1 uppercase">Cost</span>
-                <div className="tw-text-4xl tw-font-black tw-text-white tw-bg-slate-800 tw-w-14 tw-h-14 tw-flex tw-items-center tw-justify-center tw-rounded-lg tw-border-b-4 tw-border-slate-700">
-                  {card.cost}
-                </div>
+            {card.cost !== null && !['hero', 'alter_ego'].includes(card.type_code) && (
+              <div className="card-frame__cost">
+                <span className="card-frame__cost-label">Cost</span>
+                <div className="card-frame__cost-value">{card.cost}</div>
               </div>
             )}
           </div>
-        </div>
+        </header>
 
-        <div className="tw-space-y-8">
+        <div className="card-frame__sections">
           <section>
-            <div className="tw-flex tw-items-center tw-gap-2 tw-mb-3">
-              <h3 className="tw-text-[10px] tw-font-mono tw-font-bold tw-text-slate-500 tw-uppercase tw-tracking-widest">Characteristics</h3>
+            <div className="card-frame__section-label">
+              <Terminal size={13} />
+              <h3>Characteristics</h3>
             </div>
-            <div className="tw-bg-slate-900/30 tw-rounded-lg tw-p-4 tw-border tw-border-slate-800/50">
+            <div className="card-frame__section-box">
               <CardInfo card={card} showSpoilers={showSpoilers} showType={false} />
             </div>
           </section>
 
           <section>
-            <div className="tw-flex tw-items-center tw-gap-2 tw-mb-3">
-              <h3 className="tw-text-[10px] tw-font-mono tw-font-bold tw-text-slate-500 tw-uppercase tw-tracking-widest">Description</h3>
+            <div className="card-frame__section-label">
+              <FileText size={13} />
+              <h3>Description</h3>
             </div>
-            <div className="tw-bg-slate-900/50 tw-rounded-lg tw-p-4 tw-border tw-border-slate-800">
+            <div className="card-frame__section-box">
               <CardText card={card} showSpoilers={showSpoilers} />
             </div>
           </section>
 
-          <section className="tw-flex tw-flex-col tw-gap-2">
+          <section>
             {card.illustrator && (
               <>
-                <div className="tw-flex tw-items-center tw-gap-3 tw-mb-2">
-                  <span className="tw-text-[10px] tw-font-mono tw-text-slate-500 tw-uppercase tw-tracking-wider">Artist Reference</span>
+                <div className="card-frame__section-label">
+                  <Paintbrush size={13} />
+                  <h3>Artist Reference</h3>
                 </div>
-                <div className="tw-p-4 tw-bg-slate-900/50 tw-rounded tw-border tw-border-slate-800 tw-mb-4">
-                  <div className="tw-text-sm tw-font-mono tw-font-bold tw-text-slate-300">
-                    <CardIllustrator card={card} />
-                  </div>
+                <div className="card-frame__section-box card-frame__section-box--mb">
+                  <CardIllustrator card={card} />
                 </div>
               </>
             )}
-            <div>
-              <div className="tw-text-[10px] tw-font-mono tw-text-slate-500 tw-uppercase tw-tracking-wider tw-mb-2">
-                <span>Source Module</span>
-              </div>
-              <div className="tw-p-4 tw-bg-slate-900/50 tw-rounded tw-mb-4">
-                <div className="tw-flex tw-items-center tw-gap-3">
-                  <span className="tw-text-[10px] tw-font-mono tw-font-bold tw-text-slate-300">
-                    <CardPack card={card} />
-                  </span>
-                </div>
-              </div>
+            <div className="card-frame__section-label">
+              <Package size={13} />
+              <h3>Source Module</h3>
+            </div>
+            <div className="card-frame__section-box">
+              <CardPack card={card} />
             </div>
           </section>
 
           {card.errata && (
-            <div className="tw-bg-red-500/5 tw-border tw-border-red-500/20 tw-p-4 tw-rounded-lg tw-flex tw-gap-3">
-              <p className="tw-text-xs tw-text-red-300/70"><strong>ERRATA:</strong> {card.errata}</p>
+            <div className="card-frame__errata">
+              <AlertCircle size={15} />
+              <p><strong>ERRATA:</strong> {card.errata}</p>
             </div>
           )}
         </div>
       </div>
-      <div className={`lg:tw-w-[400px] tw-p-8 tw-flex tw-flex-col ${spoilerClass}`}>
-        <div className="tw-flex tw-items-center tw-gap-2 tw-mb-3">
-          <div className="tw-text-[10px] tw-font-mono tw-font-bold tw-text-slate-500 tw-uppercase tw-tracking-widest">Visual Reference</div>
+
+      <div className={`card-frame__right ${spoilerClass}`}>
+        <div className="card-frame__section-label">
+          <Fingerprint size={14} />
+          <h3>Visual Reference</h3>
         </div>
-
-        <div className="tw-relative tw-mb-8">
-          <div className="tw-absolute -tw-inset-2 tw-border tw-border-slate-800 tw-rounded-3xl" />
-          <div className="tw-relative tw-rounded-3xl tw-overflow-hidden tw-border tw-border-slate-700 shadow-2xl">
-            {(card.backimagesrc || card.imagesrc) && (
-              <ImageWithWebp
-                id={`card-image-${card.id}-back`}
-                src={card.backimagesrc || card.imagesrc}
-                alt={card.name}
-                className="tw-w-full tw-h-auto"
-                preferWebpOnly={preferWebpOnly}
-              />
-            )}
-          </div>
-
-          <div className="tw-mt-auto">
-            <CardPromo card={card} locale={locale} />
-          </div>
+        <div className="card-frame__image-wrap">
+          {(card.backimagesrc || card.imagesrc) && (
+            <ImageWithWebp
+              id={`card-image-${card.id}-back`}
+              src={card.backimagesrc || card.imagesrc}
+              alt={card.name}
+              className="tw-w-full tw-h-auto"
+              preferWebpOnly={preferWebpOnly}
+            />
+          )}
+        </div>
+        <div className="card-frame__promo">
+          <CardPromo card={card} locale={locale} />
         </div>
       </div>
     </div>
@@ -161,7 +151,8 @@ export default function CardBack({ card, showSpoilers, preferWebpOnly, locale, i
 }
 
 function CardBackName({ card, showSpoilers }) {
-  const spoilerClass = card.spoiler && !showSpoilers ? 'mc-spoiler' : '';
+  const isEncounter = card.faction_code === 'encounter';
+  const spoilerClass = card.spoiler && !showSpoilers && !isEncounter ? 'mc-spoiler' : '';
 
   return (
     <div>

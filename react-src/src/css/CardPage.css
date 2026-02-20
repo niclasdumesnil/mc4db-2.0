@@ -1,0 +1,582 @@
+/* ==========================================
+   CARD PAGE — Layout
+   ========================================== */
+
+.card-page {
+  min-height: 100vh;
+  background-color: #0b1220;
+  color: #dbeafa;
+  font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  padding: 80px 20px 60px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Navigation bar */
+.card-page-nav {
+  width: 100%;
+  max-width: 900px;
+  margin-bottom: 24px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 12px;
+  padding: 8px 16px;
+}
+
+/* Card body */
+.card-page-body {
+  width: 100%;
+  max-width: 900px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.card-page-linked {
+  opacity: 0.95;
+}
+
+/* Loading / error */
+.card-page-status {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  min-height: 300px;
+  font-size: 1.1rem;
+  color: #8a99af;
+}
+
+.card-page-error {
+  color: #e74c3c;
+}
+
+/* Spinner */
+@keyframes cp-spin { to { transform: rotate(360deg); } }
+.card-page-spinner {
+  width: 28px;
+  height: 28px;
+  border: 3px solid rgba(255,255,255,0.1);
+  border-top-color: #4a90e2;
+  border-radius: 50%;
+  animation: cp-spin .8s linear infinite;
+  flex-shrink: 0;
+}
+
+/* Make pack-nav buttons work as buttons too */
+.pack-nav-btn[type="button"], button.pack-nav-btn {
+  cursor: pointer;
+  border: 1px solid rgba(255,255,255,.15);
+  background: rgba(255,255,255,.04);
+}
+button.pack-nav-btn:hover {
+  background: rgba(255,255,255,.1);
+  border-color: rgba(255,255,255,.35);
+  color: #fff;
+}
+
+/* Card names are always white in the card page */
+.card-page .card-name,
+.card-page a.card-name,
+.card-page a.card-preview {
+  color: #fff;
+  text-decoration: none;
+}
+.card-page a.card-name:hover,
+.card-page a.card-preview:hover {
+  color: #93c5fd;
+}
+
+
+/* ==========================================
+   CARD FRAME — Shell / chrome
+   ========================================== */
+
+.card-frame {
+  width: 100%;
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,0.12);
+  overflow: hidden;
+  background: #111827;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.55);
+}
+
+/* Header bar */
+.card-frame__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 20px;
+  border-bottom: 1px solid rgba(0,0,0,0.25);
+}
+.card-frame__header-left   { display: flex; align-items: center; gap: 8px; }
+.card-frame__header-dot    { width: 8px; height: 8px; border-radius: 50%; }
+.card-frame__header-system { font-size: 13px; font-family: monospace; font-weight: 700; text-transform: uppercase; letter-spacing: .12em; }
+.card-frame__header-right  { display: flex; align-items: center; gap: 10px; }
+.card-frame__header-creator{ font-size: 13px; font-family: monospace; text-transform: uppercase; letter-spacing: .1em; }
+.card-frame__header-code   { padding: 2px 8px; background: #1e293b; border-radius: 4px; font-size: 13px; font-family: monospace; color: #94a3b8; }
+
+/* Body columns */
+.card-frame__body {
+  display: flex;
+  flex-direction: column;
+}
+@media (min-width: 1024px) {
+  .card-frame__body { flex-direction: row; }
+}
+
+.card-frame__left {
+  flex: 1;
+  padding: 28px 28px 24px;
+  border-right: 1px solid rgba(255,255,255,0.06);
+}
+.card-frame__right {
+  width: 100%;
+  padding: 28px;
+  display: flex;
+  flex-direction: column;
+}
+@media (min-width: 1024px) {
+  .card-frame__right { width: 400px; }
+}
+
+/* Title area */
+.card-frame__title-area  { margin-bottom: 28px; }
+.card-frame__title-row   { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.card-frame__name        { font-size: 1.7rem; font-weight: 900; color: #fff; text-transform: uppercase; letter-spacing: -.02em; margin: 0 0 6px; }
+.card-frame__type-badge  { display: inline-block; font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 4px; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.1); color: #94a3b8; }
+.card-frame__cost        { display: flex; flex-direction: column; align-items: flex-end; flex-shrink: 0; }
+.card-frame__cost-label  { font-size: 11px; font-family: monospace; color: #64748b; text-transform: uppercase; margin-bottom: 4px; }
+.card-frame__cost-value  { font-size: 2.2rem; font-weight: 900; color: #fff; background: #1e293b; width: 52px; height: 52px; display: flex; align-items: center; justify-content: center; border-radius: 8px; border-bottom: 3px solid #334155; }
+
+/* Sections */
+.card-frame__sections      { display: flex; flex-direction: column; gap: 24px; }
+.card-frame__section-label { display: flex; align-items: center; gap: 7px; margin-bottom: 8px; color: #64748b; }
+.card-frame__section-label h3 {
+  font-size: 14px;
+  font-family: monospace;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .12em;
+  margin: 0;
+  color: #94a3b8;
+}
+.card-frame__section-label svg {
+  width: 16px;
+  height: 16px;
+}
+.card-frame__section-box {
+  background: #070e1a;
+  border: 1px solid rgba(255,255,255,.09);
+  border-radius: 8px;
+  padding: 16px;
+  font-size: 16px;
+  color: #cbd5e1;
+  line-height: 1.7;
+}
+.card-frame__section-box--mb { margin-bottom: 16px; }
+.card-frame__section-box p   { margin: 0 0 8px; }
+.card-frame__section-box p:last-child { margin-bottom: 0; }
+
+/* Errata */
+.card-frame__errata {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  background: rgba(239,68,68,.05);
+  border: 1px solid rgba(239,68,68,.2);
+  border-radius: 8px;
+  padding: 14px;
+  color: #fca5a5;
+  font-size: 0.95rem;
+}
+
+/* Image & promo */
+.card-frame__image-wrap { border-radius: 24px; overflow: hidden; border: 1px solid #334155; box-shadow: 0 4px 20px rgba(0,0,0,.4); margin-bottom: 16px; }
+.card-frame__promo      { margin-top: auto; }
+
+/* Back panel */
+.card-frame__back-panel { border-top: 2px solid rgba(255,255,255,.08); }
+.card-frame__back-label { padding: 10px 28px 0; font-size: 13px; font-family: monospace; text-transform: uppercase; letter-spacing: .12em; color: #475569; font-weight: 700; }
+
+
+/* ==========================================
+   CARD COMPONENTS — .mc-* classes
+   (sole source of truth for card styling)
+   ========================================== */
+
+/* ── Panel container ── */
+.mc-card-panel {
+  overflow: hidden;
+  border-radius: .5rem;
+  border: 1px solid rgb(70 76 92);
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / .1), 0 4px 6px -4px rgb(0 0 0 / .1);
+  background-color: #1e293b;
+  color: #fff;
+}
+/* Remove border/shadow on card page (card-frame is the shell) */
+.card-page .mc-card-panel {
+  border: none;
+  box-shadow: none;
+  border-radius: 0;
+  background: transparent;
+}
+
+/* ── Card header (old panel style) ── */
+.mc-card-header {
+  display: flex;
+  align-items: flex-end;
+  padding: .75rem 1rem;
+  font-size: 1.6rem;
+  line-height: 2rem;
+  font-weight: 700;
+}
+.mc-card-type-header {
+  font-size: 1.15rem;
+  line-height: 1.6rem;
+  font-weight: 600;
+  opacity: .9;
+  text-align: right;
+  margin-left: auto;
+}
+
+/* ── Card body ── */
+.mc-card-body {
+  padding: 1rem;
+}
+
+/* ── Faction badge ── */
+.mc-faction-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: .25rem;
+  font-size: 1rem;
+  line-height: 1.4rem;
+}
+
+/* ── Card type ── */
+.mc-card-type {
+  font-size: 16px !important;
+  line-height: 1.6;
+  font-weight: 600;
+}
+
+/* ── Card text (description) ── */
+.mc-card-text {
+  margin-top: .5rem;
+  margin-bottom: .5rem;
+  border-left-width: 3px;
+  border-style: solid;
+  padding-left: .75rem;
+  font-size: 16px !important;
+  line-height: 1.7;
+  color: #cbd5e1;
+}
+.mc-card-text p {
+  font-size: 16px !important;
+  line-height: 1.7;
+  margin: .15rem 0;
+}
+/* Remove left-border inside card-frame */
+.card-frame .mc-card-text {
+  border-left: none;
+  padding-left: 0;
+}
+
+/* ── Card flavor ── */
+.mc-card-flavor {
+  margin-top: .5rem;
+  margin-bottom: .5rem;
+  font-size: 15px !important;
+  line-height: 1.6;
+  font-style: italic;
+  opacity: .8;
+}
+
+/* ── Traits ── */
+.mc-card-traits {
+  margin-top: .25rem;
+  margin-bottom: .25rem;
+  font-weight: 700;
+  font-style: italic;
+  font-size: 14px !important;
+}
+
+/* ── Properties (stats line) ── */
+.mc-card-props {
+  margin-top: .25rem;
+  margin-bottom: .25rem;
+  font-size: 16px !important;
+  line-height: 1.7;
+}
+
+/* ── Spoiler blur ── */
+.mc-spoiler {
+  cursor: pointer;
+  filter: blur(4px);
+  transition: all .15s cubic-bezier(.4,0,.2,1);
+}
+.mc-spoiler:hover {
+  filter: none;
+}
+
+/* ── Boost row ── */
+.mc-boost-row {
+  margin-top: .35rem;
+  display: flex;
+  align-items: center;
+  gap: .35rem;
+  font-size: 0.95rem;
+}
+.mc-boost-row .icon {
+  width: 20px;
+  height: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  font-size: 12px;
+  box-shadow: 0 1px 3px rgba(0,0,0,.35);
+  background: #f59e0b;
+  color: #1f1f1f;
+  border: 1px solid rgba(0,0,0,.12);
+}
+.mc-boost-row .icon-star {
+  background: #dc2626;
+  color: #fff;
+}
+
+/* ── Resource bar ── */
+.mc-resource-bar {
+  margin-top: .25rem;
+  display: inline-flex;
+  align-items: center;
+  gap: .25rem;
+  border-left-width: 3px;
+  padding-left: .5rem;
+  font-size: 15px !important;
+}
+/* Remove left-border inside card-frame */
+.card-frame .mc-resource-bar {
+  border-left: none;
+  padding-left: 0;
+}
+.mc-resource-bar .icon {
+  width: 22px;
+  height: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  color: #fff;
+  box-shadow: 0 1px 3px rgba(0,0,0,.35);
+  font-size: 13px;
+  background: transparent;
+  border: none;
+}
+.mc-resource-bar .icon-mental   { background: #0056b3; }
+.mc-resource-bar .icon-physical { background: #b21f2d; }
+.mc-resource-bar .icon-energy   { background: #ffc107; color: #000; }
+.mc-resource-bar .icon-wild     { background: #197f3a; }
+.mc-resource-bar .icon:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0,0,0,.45);
+}
+
+
+/* ==========================================
+   TAGS / BADGES
+   ========================================== */
+
+.mc-tag {
+  margin-left: .25rem;
+  display: inline-block;
+  border-radius: .25rem;
+  padding: .15rem .55rem;
+  font-size: .85rem;
+  line-height: 1.15rem;
+  font-weight: 600;
+}
+.mc-tag-ffg {
+  background-color: rgb(31 41 55);
+  padding: .25rem .75rem;
+  font-size: .9rem;
+  line-height: 1.3rem;
+  color: #fff;
+}
+.mc-tag-current {
+  background-color: rgb(209 213 219);
+  padding: .25rem .75rem;
+  font-size: .9rem;
+  line-height: 1.3rem;
+  color: #000;
+}
+.mc-tag-creator {
+  background-color: rgb(37 99 235);
+  color: #fff;
+}
+.mc-tag-status {
+  background-color: rgb(202 138 4);
+  padding: .25rem .75rem;
+  font-size: .9rem;
+  line-height: 1.3rem;
+  color: #fff;
+}
+.mc-tag-status-green {
+  background-color: rgb(4 120 87);
+  padding: .25rem .75rem;
+  font-size: .9rem;
+  line-height: 1.3rem;
+  color: #fff;
+  border: 1px solid rgba(4,92,37,.9);
+}
+
+
+/* ==========================================
+   PROMO BUTTONS
+   ========================================== */
+
+.mc-promo-btn {
+  cursor: pointer;
+  border-radius: .25rem;
+  padding: .3rem .8rem;
+  font-size: .9rem;
+  line-height: 1.3rem;
+  font-weight: 500;
+  transition: color .15s, background-color .15s, border-color .15s;
+  background: #2b80c5;
+  color: #fff;
+  border: none;
+}
+.mc-promo-btn:hover {
+  background: #1a6aaa;
+}
+.mc-promo-btn.active {
+  background: #1a5a90;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,.3);
+}
+
+
+/* ==========================================
+   PACK INFO
+   ========================================== */
+
+.mc-card-pack {
+  margin-top: .5rem;
+  padding-top: .5rem;
+  border-top: none;
+  font-size: 14px !important;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+}
+.mc-card-pack .mc-pack-name {
+  color: #e2e8f0;
+}
+.mc-card-pack .mc-pack-num {
+  background: transparent;
+  color: #e2e8f0;
+  padding: 0;
+  border-radius: 0;
+  font-weight: 700;
+  margin-left: .4rem;
+  font-size: 14px !important;
+}
+
+.mc-card-illustrator-name {
+  font-size: 14px !important;
+  font-style: italic;
+  color: #94a3b8;
+}
+
+.mc-pack-badges {
+  display: inline-flex;
+  gap: .4rem;
+  align-items: center;
+  margin-left: .6rem;
+}
+.mc-pack-badge {
+  background: #1278d8;
+  color: #fff;
+  font-size: .85rem;
+  padding: 3px 10px;
+  border-radius: 4px;
+  display: inline-block;
+}
+.mc-pack-range {
+  background: #000;
+  color: #fff;
+  font-size: .85rem;
+  padding: 3px 10px;
+  border-radius: 4px;
+  display: inline-block;
+}
+
+.mc-pack-official {
+  color: #111;
+  background: transparent;
+  padding: 0;
+  font-weight: 400;
+}
+.mc-pack-fanmade {
+  color: #1278d8;
+  background: transparent;
+  padding: 0;
+  font-weight: 400;
+}
+
+/* Pack type colour variants */
+.mc-pack-badge.mc-pack-type-hero,
+.mc-pack-range.mc-pack-type-hero {
+  background: #1278d8;
+  color: #fff;
+  padding: 3px 10px;
+  border-radius: 4px;
+}
+.mc-pack-badge.mc-pack-type-encounter,
+.mc-pack-range.mc-pack-type-encounter {
+  background: #9b6007;
+  color: #fff;
+  padding: 3px 10px;
+  border-radius: 4px;
+}
+.mc-pack-badge.mc-pack-type-scenario,
+.mc-pack-range.mc-pack-type-scenario {
+  background: #493f64;
+  color: #fff;
+  padding: 3px 10px;
+  border-radius: 4px;
+}
+.mc-pack-badge.mc-pack-type-resource,
+.mc-pack-range.mc-pack-type-resource {
+  background: #28a745;
+  color: #fff;
+  padding: 3px 10px;
+  border-radius: 4px;
+}
+.mc-pack-badge.mc-pack-type-default,
+.mc-pack-range.mc-pack-type-default,
+.mc-pack-badge.mc-pack-type-unknown,
+.mc-pack-range.mc-pack-type-unknown {
+  background: #6b7280;
+  color: #fff;
+  padding: 3px 10px;
+  border-radius: 4px;
+}
+.mc-pack-badge.mc-pack-fanmade,
+.mc-pack-range.mc-pack-fanmade {
+  background: #1278d8;
+  color: #fff;
+  padding: 3px 10px;
+  border-radius: 4px;
+}
+.mc-pack-badge.mc-pack-official,
+.mc-pack-range.mc-pack-official {
+  background: #111;
+  color: #fff;
+  padding: 3px 10px;
+  border-radius: 4px;
+  border: none;
+}

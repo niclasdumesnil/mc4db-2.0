@@ -20,6 +20,7 @@ const PACK_COLUMNS = [
   'p.language',
   'p.environment',
   'pt.code as pack_type',
+  'pt.name as pack_type_name',
 ];
 
 function baseQuery() {

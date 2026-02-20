@@ -2,7 +2,8 @@ import React from 'react';
 import FormattedValue from './FormattedValue';
 
 export default function CardInfo({ card, showSpoilers, showType = true }) {
-  const spoilerClass = card.spoiler && !showSpoilers ? 'mc-spoiler' : '';
+  const isEncounter = card.faction_code === 'encounter';
+  const spoilerClass = card.spoiler && !showSpoilers && !isEncounter ? 'mc-spoiler' : '';
 
   return (
     <div className={spoilerClass}>

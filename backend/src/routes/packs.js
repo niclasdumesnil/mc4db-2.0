@@ -28,6 +28,7 @@ router.get('/packs/', async (req, res, next) => {
       url: `${process.env.BASE_URL || ''}/search?q=e%3A${row.code}`,
       id: row.id,
       pack_type: row.pack_type || '',
+      pack_type_name: row.pack_type_name || row.pack_type || '',
       status: row.status || 'Official',
       creator: row.creator || 'FFG',
       theme: row.theme || 'Marvel',
