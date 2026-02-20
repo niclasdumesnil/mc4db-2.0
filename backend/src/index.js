@@ -220,25 +220,7 @@ app.get(['/card/:code.html', '/card/:code'], async (req, res, next) => {
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>${card.name ? card.name + ' — MarvelCDB' : 'Card ' + card.code}</title>
-    <link rel="stylesheet" href="/css/app_bootstrap_1.css">
-    <link rel="stylesheet" href="/bundles/app/css/merlinsdb.css">
-    <link rel="stylesheet" href="/css/app_style_2.css">
-    <link rel="stylesheet" href="/css/app_icons_3.css">
-    <link rel="stylesheet" href="/css/app_languages_4.css">
     <link rel="stylesheet" href="/react/css/card.css?v=${assetVersion}">
-    <style>
-      /* Inline critical overrides to ensure readable card section text immediately */
-      .card-frame__section-box .mc-card-text,
-      .card-frame__section-box .mc-card-text p,
-      .card-frame__section-box .mc-card-flavor,
-      .card-frame__section-box .mc-card-type,
-      .card-frame__section-box .mc-card-props {
-        font-size: 1.18rem !important;
-        line-height: 1.7 !important;
-        color: #cbd5e1 !important;
-      }
-      .card-frame__section-label h3 { font-size: 13px !important; }
-    </style>
   </head>
   <body>
     ${renderSharedHeader()}

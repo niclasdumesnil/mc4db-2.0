@@ -15,7 +15,7 @@ export default function CardInfo({ card, showSpoilers, showType = true }) {
       )}
 
       {card.traits && (
-        <div className="mc-card-traits" style={{ fontWeight: 700, textTransform: 'uppercase', marginTop: '0.4rem' }}>
+        <div className="mc-card-traits">
           {card.traits}
         </div>
       )}
@@ -209,7 +209,6 @@ function ResourceIcons({ card }) {
                 key={i}
                 title={r.key.charAt(0).toUpperCase() + r.key.slice(1)}
                 className={`icon icon-${r.key} color-${r.key}`}
-                style={{ margin: '0 2px' }}
               />
             ))}
           </span>
