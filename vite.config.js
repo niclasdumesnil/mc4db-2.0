@@ -4,19 +4,20 @@ import path from 'path';
 
 export default defineConfig({
   plugins: [react()],
+  root: path.resolve(__dirname, 'react-src'),
   resolve: {
     alias: {
-      '@css': path.resolve(__dirname, 'src', 'css'),
-      '@components': path.resolve(__dirname, 'src', 'components'),
-      '@utils': path.resolve(__dirname, 'src', 'utils')
+      '@css': path.resolve(__dirname, 'react-src', 'src', 'css'),
+      '@components': path.resolve(__dirname, 'react-src', 'src', 'components'),
+      '@utils': path.resolve(__dirname, 'react-src', 'src', 'utils')
     }
   },
   build: {
-    outDir: path.resolve(__dirname, '..', 'react'),
+    outDir: path.resolve(__dirname, 'react'),
     emptyOutDir: true,
     rollupOptions: {
       input: {
-        card: path.resolve(__dirname, 'src', 'index.jsx')
+        card: path.resolve(__dirname, 'react-src', 'src', 'index.jsx')
       },
       output: {
         entryFileNames: 'js/[name].js',
@@ -30,7 +31,4 @@ export default defineConfig({
       }
     }
   },
-  css: {
-    postcss: path.resolve(__dirname, '..', 'postcss.config.js')
-  }
 });

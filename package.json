@@ -6,7 +6,7 @@
   "scripts": {
     "api": "node backend/src/index.js",
     "api:dev": "npx nodemon backend/src/index.js",
-    "build:react": "cd react-src && npm install --no-audit --no-fund && npm run build",
+    "build:react": "vite build",
     "build": "npm run build:react"
   },
   "dependencies": {
@@ -15,12 +15,14 @@
     "dotenv": "^16.6.1",
     "express": "^4.22.1",
     "knex": "^2.5.1",
+    "lucide-react": "^0.469.0",
     "morgan": "^1.10.1",
     "mysql2": "^3.17.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   },
   "devDependencies": {
+    "@vitejs/plugin-react": "^4.7.0",
     "nodemon": "^2.0.22",
     "vite": "^5.0.0"
   }
