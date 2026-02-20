@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import CardFront from '../CardFront';
 import PackNav from '../components/PackNav';
+import PackSearch from '../components/PackSearch';
 import '../css/CardPage.css';
 
 // Extract card code from URL: /card/12345 or /card/12345.html
@@ -101,6 +102,15 @@ export default function CardPage() {
       )}
       {!loading && !error && card && (
         <>
+          <div className="card-page-pack-search">
+            <PackSearch
+              currentPackCode={card.pack_code}
+              onNavigate={(code) => {
+                navigateTo(code);
+                setCurrentCode(code);
+              }}
+            />
+          </div>
           <div className="card-page-nav">
             <PackNav card={card} onNavigate={(code) => {
               navigateTo(code);
