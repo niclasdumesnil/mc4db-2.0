@@ -1,0 +1,164 @@
+/* ==========================================
+   DASHBOARD - GLOBAL STYLES
+   ========================================== */
+
+:root {
+  --bg-dark: #0b1220;
+  --panel-bg: rgba(255, 255, 255, 0.03);
+  --panel-border: rgba(255, 255, 255, 0.1);
+  --primary-blue: #4a90e2;
+  --accent-cyan: #00d2ff;
+  --text-main: #dbeafa;
+  --text-muted: #8a99af;
+  --white: #ffffff;
+  --success: #2ecc71;
+  --danger: #e74c3c;
+}
+
+.db-container {
+  min-height: 100vh;
+  background-color: var(--bg-dark);
+  padding: 80px 20px 40px 20px;
+  display: flex;
+  justify-content: center;
+  color: var(--text-main);
+  font-family: 'Inter', sans-serif;
+}
+
+/* Élargi pour supporter 3 colonnes */
+.db-wrapper {
+  width: 100%;
+  max-width: 1400px; 
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+.db-header { margin-bottom: 10px; }
+.db-title { font-size: 2.2rem; font-weight: 800; color: var(--white); margin: 0; }
+.db-subtitle { color: var(--text-muted); font-size: 1.1rem; margin-top: 8px; }
+
+/* ==========================================
+   GRID SYSTEM (3 COLUMNS)
+   ========================================== */
+.db-grid {
+  display: grid;
+  /* 1fr (Profile) | 2fr (Collection is wider) | 1fr (Parameters) */
+  grid-template-columns: 320px 1fr 320px; 
+  gap: 25px;
+  align-items: start;
+}
+
+/* ==========================================
+   PANEL STYLES (Shared across components)
+   ========================================== */
+.db-panel {
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: 16px;
+  padding: 25px;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+.panel-title {
+  color: var(--white);
+  font-size: 1.4rem;
+  margin: 0 0 25px 0;
+  border-bottom: 2px solid rgba(255,255,255,0.05);
+  padding-bottom: 15px;
+}
+
+/* Profile Specific */
+.profile-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 25px; }
+.user-name { font-size: 1.8rem; margin: 0; color: var(--primary-blue); }
+.donation-badge { background: rgba(0, 210, 255, 0.1); color: var(--accent-cyan); padding: 4px 10px; border-radius: 20px; font-size: 0.8rem; border: 1px solid var(--accent-cyan); }
+
+.info-list { display: flex; flex-direction: column; gap: 15px; }
+.info-item { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.03); padding-bottom: 10px; }
+.label { color: var(--text-muted); font-size: 0.8rem; text-transform: uppercase; font-weight: 600; }
+.value { font-size: 1rem; color: var(--white); }
+.value.highlight { color: var(--accent-cyan); font-weight: 700; }
+
+.resume-section { margin-top: 25px; }
+.resume-content { margin-top: 10px; line-height: 1.6; color: #cedae8; font-style: italic; font-size: 0.95rem; }
+
+/* Collection Specific */
+.pack-group { margin-bottom: 20px; background: rgba(0,0,0,0.2); padding: 15px; border-radius: 12px; }
+.pack-group-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+.pack-type-title { font-size: 0.9rem; color: var(--primary-blue); text-transform: uppercase; margin: 0; font-weight: 700; }
+.pack-count-badge { background: var(--primary-blue); color: var(--white); font-size: 0.75rem; padding: 2px 8px; border-radius: 10px; }
+.packs-container { display: flex; flex-wrap: wrap; gap: 8px; }
+.pack-badge { background: rgba(74, 144, 226, 0.1); border: 1px solid rgba(74, 144, 226, 0.2); padding: 5px 12px; border-radius: 6px; font-size: 0.8rem; transition: 0.2s; }
+.pack-badge:hover { background: rgba(74, 144, 226, 0.3); border-color: var(--primary-blue); color: var(--white); }
+
+/* Parameters Specific */
+.settings-group { margin-bottom: 20px; }
+.settings-subtitle { color: var(--text-muted); font-size: 0.85rem; text-transform: uppercase; margin: 0 0 15px 0; letter-spacing: 1px; }
+.setting-item { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+.setting-label { font-size: 0.95rem; color: #cedae8; }
+.status-indicator { font-size: 0.75rem; padding: 4px 10px; border-radius: 20px; font-weight: 700; text-transform: uppercase; }
+.status-indicator.active { background: rgba(46, 204, 113, 0.15); color: var(--success); }
+.status-indicator.inactive { background: rgba(231, 76, 60, 0.15); color: var(--danger); }
+.mt-20 { margin-top: 30px; }
+
+/* Update for Parameters Specific */
+.setting-item { 
+  display: flex; 
+  justify-content: space-between; 
+  align-items: flex-start; /* Changed to flex-start for multi-line text */
+  margin-bottom: 20px; 
+  gap: 15px; /* Adds space between text and button */
+}
+
+.setting-text-block {
+  display: flex;
+  flex-direction: column;
+}
+
+.setting-label { 
+  font-size: 0.95rem; 
+  color: var(--white); 
+  font-weight: 500;
+}
+
+.setting-description {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin: 6px 0 0 0;
+  line-height: 1.4;
+}
+
+/* Interactive Toggle Buttons */
+.toggle-btn {
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  outline: none;
+  font-family: inherit;
+  flex-shrink: 0; /* Prevents the button from squishing */
+}
+
+.toggle-btn:hover {
+  filter: brightness(1.2);
+  transform: scale(1.05);
+}
+
+.toggle-btn:active {
+  transform: scale(0.95);
+}
+
+
+/* Status */
+.db-status { text-align: center; padding: 40px; color: var(--text-muted); font-size: 1.2rem; }
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .db-grid { grid-template-columns: 1fr 1fr; }
+  .collection-panel { grid-column: 1 / -1; order: 3; } /* Met la collection en bas sur tablette */
+}
+
+@media (max-width: 768px) {
+  .db-grid { grid-template-columns: 1fr; }
+  .collection-panel { order: unset; }
+}

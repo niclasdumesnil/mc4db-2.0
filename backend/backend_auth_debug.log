@@ -1,0 +1,41 @@
+auth debug startup 2026-02-17T19:28:54.930Z
+[2026-02-17T19:30:50.145Z] BODY {"login":"merlin","password":"zF_ve)ssW]bE"}
+[2026-02-17T19:30:50.154Z] lookup {"table":"user","column":"username"}
+auth debug startup 2026-02-17T19:31:55.468Z
+[2026-02-17T19:33:30.458Z] BODY {"login":"merlin","password":"zF_ve)ssW]bE"}
+[2026-02-17T19:33:30.464Z] lookup {"table":"user","column":"username"}
+auth debug startup 2026-02-17T19:34:30.146Z
+[2026-02-17T19:35:01.844Z] BODY {"login":"merlin","password":"zF_ve)ssW]bE"}
+[2026-02-17T19:35:01.850Z] lookup {"table":"user","column":"username"}
+auth debug startup 2026-02-17T19:36:11.256Z
+[2026-02-17T19:36:29.320Z] BODY {"login":"merlin","password":"zF_ve)ssW]bE"}
+[2026-02-17T19:36:29.328Z] lookup {"table":"user","column":"username"}
+auth debug startup 2026-02-17T19:44:43.725Z
+auth debug startup 2026-02-17T19:45:23.622Z
+auth debug startup 2026-02-17T19:51:46.527Z
+[2026-02-17T19:53:03.365Z] BODY {"login":"merlin","password":"zF_ve)ssW]bE"}
+[2026-02-17T19:53:03.371Z] lookup {"table":"user","column":"username"}
+[2026-02-17T19:53:21.557Z] BODY {"login":"merlin","password":"zF_ve)ssW]bE"}
+[2026-02-17T19:53:21.561Z] lookup {"table":"user","column":"username"}
+[2026-02-17T19:56:59.380Z] BODY {"login":"merlin","password":"zF_ve)ssW]bE"}
+[2026-02-17T19:56:59.383Z] lookup {"table":"user","column":"username"}
+[2026-02-17T20:00:15.672Z] BODY {"login":"merlin","password":"zF_ve)ssW]bE"}
+[2026-02-17T20:00:15.676Z] lookup {"table":"user","column":"username"}
+[2026-02-17T20:03:36.025Z] BODY {"login":"merlin","password":"zF_ve)ssW]bE"}
+[2026-02-17T20:03:36.028Z] lookup {"table":"user","column":"username"}
+[2026-02-17T20:04:02.546Z] BODY {"login":"merlin","password":"zF_ve)ssW]bE"}
+[2026-02-17T20:04:02.550Z] lookup {"table":"user","column":"username"}
+auth debug startup 2026-02-17T20:09:18.727Z
+auth debug startup 2026-02-17T20:10:18.763Z
+auth debug startup 2026-02-17T20:13:40.756Z
+auth debug startup 2026-02-17T20:21:45.901Z
+auth debug startup 2026-02-17T20:22:58.616Z
+auth debug startup 2026-02-17T20:23:27.346Z
+[2026-02-17T20:23:56.019Z] BODY {"login":"merlin","password":"zF_ve)ssW]bE"}
+[2026-02-17T20:23:56.026Z] lookup {"table":"user","column":"username"}
+auth debug startup 2026-02-20T12:45:36.355Z
+[2026-02-20T12:58:54.050Z] BODY {"login":"merlin","password":"zF_ve)ssW]bE"}
+[2026-02-20T12:58:54.061Z] lookup {"table":"user","column":"username"}
+[2026-02-20T13:18:54.482Z] BODY {"login":"merlin","password":"zF_ve)ssW]bE"}
+[2026-02-20T13:18:54.488Z] lookup {"table":"user","column":"username"}
+auth debug startup 2026-02-20T14:00:00.251Z

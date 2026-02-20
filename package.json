@@ -1,0 +1,27 @@
+{
+  "name": "mc4db",
+  "version": "0.1.0",
+  "description": "Standalone copy of MarvelsDB Node backend + React card UI",
+  "main": "backend/src/index.js",
+  "scripts": {
+    "api": "node backend/src/index.js",
+    "api:dev": "npx nodemon backend/src/index.js",
+    "build:react": "cd react-src && npm install --no-audit --no-fund && npm run build",
+    "build": "npm run build:react"
+  },
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "cors": "^2.8.6",
+    "dotenv": "^16.6.1",
+    "express": "^4.22.1",
+    "knex": "^2.5.1",
+    "morgan": "^1.10.1",
+    "mysql2": "^3.17.1",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.22",
+    "vite": "^5.0.0"
+  }
+}
