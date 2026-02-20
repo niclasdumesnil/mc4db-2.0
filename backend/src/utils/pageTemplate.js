@@ -28,7 +28,7 @@ function renderSharedHeader() {
   return `
 <header id="mc-site-header" style="background:#071026;color:#fff;padding:12px 20px;position:fixed;left:0;right:0;top:0;z-index:9000;">
   <nav style="max-width:1100px;margin:0 auto;display:flex;align-items:center;gap:16px;">
-    <a href="/" style="color:#fff;text-decoration:none;font-weight:700;font-size:18px;">MarvelCDB</a>
+    <a href="/" style="color:#fff;text-decoration:none;font-weight:700;font-size:18px;">MC4DB 2.0</a>
     <div style="flex:1"></div>
     <a href="/" style="color:#cfe6ff;text-decoration:none;margin-right:4px;">Home</a>
     <a href="/card/" style="color:#cfe6ff;text-decoration:none;margin-right:4px;">Browse</a>

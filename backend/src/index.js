@@ -68,6 +68,11 @@ const PROJECT_ROOT = path.resolve(__dirname, '../../');
 const reactStaticDir = fs.existsSync(path.join(PROJECT_ROOT, 'web', 'react'))
   ? path.join(PROJECT_ROOT, 'web', 'react')
   : path.join(PROJECT_ROOT, 'react');
+// If the built output didn't include fonts, serve the source public fonts as a fallback
+const reactPublicFonts = path.join(PROJECT_ROOT, 'react-src', 'public', 'fonts');
+if (fs.existsSync(reactPublicFonts)) {
+  app.use('/react/fonts', express.static(reactPublicFonts));
+}
 const cssStaticDir = fs.existsSync(path.join(PROJECT_ROOT, 'web', 'css'))
   ? path.join(PROJECT_ROOT, 'web', 'css')
   : path.join(PROJECT_ROOT, 'css');
@@ -249,7 +254,7 @@ app.get(['/card/:code.html', '/card/:code'], async (req, res, next) => {
 app.get(['/', '/index.html'], async (req, res) => {
   const baseUrl = req.protocol + '://' + req.get('host');
   const url = baseUrl + '/';
-  const title = 'MarvelCDB — Collections et cartes Marvel';
+  const title = 'MC4DB — Collections et cartes Marvel';
   const description = 'Parcourez et recherchez les cartes Marvel Champions — collections, paquets et fiches détaillées.';
   const image = baseUrl + '/react/images/og-default.svg';
 

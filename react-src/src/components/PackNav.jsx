@@ -36,6 +36,7 @@ export default function PackNav({ card, onNavigate }) {
   const prev = currentIndex > 0 ? packCards[currentIndex - 1] : null;
   const next = currentIndex < packCards.length - 1 ? packCards[currentIndex + 1] : null;
   const packName = card.pack_name || card.pack_code || '';
+  const creator = card.pack_creator || '';
 
   function NavBtn({ target, children, className }) {
     if (!target) return null;
@@ -67,7 +68,14 @@ export default function PackNav({ card, onNavigate }) {
       </div>
 
       <div className="pack-nav-center">
-        <span className="pack-nav-pack-name">{packName}</span>
+        <div className="pack-nav-title-row">
+          {creator ? (
+            <span className={`pack-nav-creator ${creator !== 'FFG' ? 'pack-nav-creator--alt' : ''}`}>
+              {creator}
+            </span>
+          ) : null}
+          <span className="pack-nav-pack-name">{packName}</span>
+        </div>
         <span className="pack-nav-position">{currentIndex + 1} / {packCards.length}</span>
       </div>
 

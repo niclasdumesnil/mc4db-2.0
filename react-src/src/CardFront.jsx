@@ -69,7 +69,7 @@ export default function CardFront({ card, showSpoilers, locale, langDir, preferW
 								</h1>
 								<div className="card-frame__type-badge">TYPE: {card.type_name}</div>
 							</div>
-							{card.cost !== null && !['hero', 'alter_ego'].includes(card.type_code) && (
+							{card.cost !== null && !['hero', 'alter_ego'].includes(card.type_code) && card.faction_code !== 'encounter' && (
 								<div className="card-frame__cost">
 									<span className="card-frame__cost-label">Cost</span>
 									<div className="card-frame__cost-value">{card.cost}</div>

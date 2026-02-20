@@ -294,6 +294,11 @@ button.pack-nav-btn:hover {
   opacity: .8;
 }
 
+/* ── Inline [[trait]] references in card text ── */
+.card-traits {
+  text-transform: uppercase;
+}
+
 /* ── Traits ── */
 .mc-card-traits {
   margin-top: .4rem;

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
-export default function CardPromo({ card, locale }) {
+export default function CardPromo({ card, locale, isBack = false }) {
   const promoButtons = [
     { label: 'PROMO-FR', dir: 'promo-FR' },
     { label: 'PROMO-EN', dir: 'promo-EN' },
@@ -73,9 +73,11 @@ export default function CardPromo({ card, locale }) {
   };
 
   const getCardImageElement = () => {
-    // Prefer the back image when present (promo under alter-ego/back should target it)
-    const back = document.getElementById(`card-image-${card.id}-back`);
-    if (back) return back;
+    if (isBack) {
+      const back = document.getElementById(`card-image-${card.id}-back`);
+      if (back) return back;
+      return document.getElementById(`card-image-${card.id}`) || null;
+    }
     const front = document.getElementById(`card-image-${card.id}`);
     if (front) return front;
     const byPanel = document.querySelector(`[data-react-component] ~ .mc-card-panel img, .mc-card-panel img`);

@@ -111,6 +111,7 @@ function serializeCard(row, opts = {}) {
     text: row.text || '',
     real_text: row.real_text || '',
     boost: row.boost ?? null,
+    boost_star: toBool(row.boost_star),
     quantity: row.quantity,
     resource_energy: row.resource_energy ?? null,
     resource_physical: row.resource_physical ?? null,

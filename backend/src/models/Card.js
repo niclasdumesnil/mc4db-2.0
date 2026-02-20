@@ -17,6 +17,7 @@ const BASE_CARD_COLUMNS = [
   'c.text',
   'c.real_text',
   'c.boost',
+  'c.boost_star',
   'c.quantity',
   'c.position',
   'c.set_position',
