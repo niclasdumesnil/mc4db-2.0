@@ -54,6 +54,7 @@ export default function Menu() {
       <div style={{ color:'#fff', fontWeight:700 }}>MarvelCDB</div>
       <div style={{ marginLeft:24, display:'flex', gap:12 }}>
         <a href="/" style={{ color:'#9fb4d8' }}>Home</a>
+        <a href="/decklists" style={{ color:'#9fb4d8' }}>Public Decks</a>
         {user && <a href="/dashboard" style={{ color:'#9fb4d8' }}>Dashboard</a>}
       </div>
       <div style={{ marginLeft:'auto' }}>

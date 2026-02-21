@@ -1,5 +1,5 @@
 import React from 'react';
-import { getBorderClass } from '../utils/factionUtils.js';
+import { getBorderClass } from '../utils/dataUtils.js';
 
 export default function CardText({ card, showSpoilers }) {
   if (!card.text) return null;

@@ -1,5 +1,5 @@
 import React from 'react';
-import { getBorderClass, getHeaderClass, getFactionColor } from './utils/factionUtils.js';
+import { getBorderClass, getHeaderClass, getFactionColor } from './utils/dataUtils.js';
 import ImageWithWebp from './components/ImageWithWebp';
 import CardText from './components/CardText';
 import CardFlavor from './components/CardFlavor';

@@ -55,10 +55,10 @@ function CustomPackSelect({ packs, value, onChange, disabled, showCreator = fals
           <span className="pack-search-trigger-content">
             <span className="pack-search-trigger-name">{selected.name}</span>
             {showCreator && selected.creator && selected.creator.toUpperCase() !== 'FFG' && (
-              <span className="pack-search-creator-badge">{selected.creator}</span>
+              <span className="mc-badge mc-badge-creator">{selected.creator}</span>
             )}
             {selected.environment === 'current' && (
-              <span className="pack-search-current-badge">current</span>
+              <span className="mc-badge mc-badge-current">current</span>
             )}
           </span>
         ) : (
@@ -111,10 +111,10 @@ function CustomPackSelect({ packs, value, onChange, disabled, showCreator = fals
               >
                 <span className="pack-search-option-name">{p.name}</span>
                 {showCreator && p.creator && p.creator.toUpperCase() !== 'FFG' && (
-                  <span className="pack-search-creator-badge">{p.creator}</span>
+                  <span className="mc-badge mc-badge-creator">{p.creator}</span>
                 )}
                 {p.environment === 'current' && (
-                  <span className="pack-search-current-badge">current</span>
+                  <span className="mc-badge mc-badge-current">current</span>
                 )}
               </li>
             ))}

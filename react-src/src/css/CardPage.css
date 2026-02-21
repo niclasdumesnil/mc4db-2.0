@@ -516,95 +516,7 @@ button.pack-nav-btn:hover {
   color: #94a3b8;
 }
 
-.mc-pack-badges {
-  display: inline-flex;
-  gap: .4rem;
-  align-items: center;
-  margin-left: .6rem;
-}
-.mc-pack-badge {
-  background: #1278d8;
-  color: #fff;
-  font-size: .85rem;
-  padding: 3px 10px;
-  border-radius: 4px;
-  display: inline-block;
-}
-.mc-pack-range {
-  background: #000;
-  color: #fff;
-  font-size: .85rem;
-  padding: 3px 10px;
-  border-radius: 4px;
-  display: inline-block;
-}
-
-.mc-pack-official {
-  color: #111;
-  background: transparent;
-  padding: 0;
-  font-weight: 400;
-}
-.mc-pack-fanmade {
-  color: #1278d8;
-  background: transparent;
-  padding: 0;
-  font-weight: 400;
-}
-
-/* Pack type colour variants */
-.mc-pack-badge.mc-pack-type-hero,
-.mc-pack-range.mc-pack-type-hero {
-  background: #1278d8;
-  color: #fff;
-  padding: 3px 10px;
-  border-radius: 4px;
-}
-.mc-pack-badge.mc-pack-type-encounter,
-.mc-pack-range.mc-pack-type-encounter {
-  background: #9b6007;
-  color: #fff;
-  padding: 3px 10px;
-  border-radius: 4px;
-}
-.mc-pack-badge.mc-pack-type-scenario,
-.mc-pack-range.mc-pack-type-scenario {
-  background: #493f64;
-  color: #fff;
-  padding: 3px 10px;
-  border-radius: 4px;
-}
-.mc-pack-badge.mc-pack-type-resource,
-.mc-pack-range.mc-pack-type-resource {
-  background: #28a745;
-  color: #fff;
-  padding: 3px 10px;
-  border-radius: 4px;
-}
-.mc-pack-badge.mc-pack-type-default,
-.mc-pack-range.mc-pack-type-default,
-.mc-pack-badge.mc-pack-type-unknown,
-.mc-pack-range.mc-pack-type-unknown {
-  background: #6b7280;
-  color: #fff;
-  padding: 3px 10px;
-  border-radius: 4px;
-}
-.mc-pack-badge.mc-pack-fanmade,
-.mc-pack-range.mc-pack-fanmade {
-  background: #1278d8;
-  color: #fff;
-  padding: 3px 10px;
-  border-radius: 4px;
-}
-.mc-pack-badge.mc-pack-official,
-.mc-pack-range.mc-pack-official {
-  background: #111;
-  color: #fff;
-  padding: 3px 10px;
-  border-radius: 4px;
-  border: none;
-}
+/* Pack badges → voir mc4db.css */
 
 /* ==========================================
    CARD FOOTER
@@ -961,37 +873,7 @@ button.pack-nav-btn:hover {
   text-overflow: ellipsis;
 }
 
-/* "current" indicator badge — black on grey */
-.pack-search-current-badge {
-  flex-shrink: 0;
-  display: inline-flex;
-  align-items: center;
-  padding: 1px 7px;
-  border-radius: 999px;
-  background-color: rgb(209 213 219);
-  color: #000;
-  font-size: 0.70rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  white-space: nowrap;
-  line-height: 1.5;
-}
-
-/* Creator badge — fan-made blue pill */
-.pack-search-creator-badge {
-  flex-shrink: 0;
-  display: inline-flex;
-  align-items: center;
-  padding: 1px 7px;
-  border-radius: 999px;
-  background-color: #1278d8;
-  color: #e0f0ff;
-  font-size: 0.70rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  white-space: nowrap;
-  line-height: 1.5;
-}
+/* current/creator badges → voir mc4db.css */
 
 /* Inline loading spinner */
 @keyframes ps-spin { to { transform: rotate(360deg); } }

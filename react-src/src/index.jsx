@@ -9,6 +9,7 @@ import Menu from './components/Menu';
 import Landing from './components/Landing';
 import Dashboard from './pages/Dashboard';
 import CardPage from './pages/CardPage';
+import PublicDeckList from './pages/PublicDeckList';
 
 function mountAllCards() {
   document.querySelectorAll('[data-react-component="CardFront"]').forEach((container) => {
@@ -97,5 +98,6 @@ try{
     if (path === '/' || path === '/index.html') appRoot.render(<Landing />);
     else if (path.startsWith('/dashboard')) appRoot.render(<Dashboard />);
     else if (path.startsWith('/card')) appRoot.render(<CardPage />);
+    else if (path.startsWith('/decklists')) appRoot.render(<PublicDeckList />);
   }
 }catch(e){ console.error('Failed to mount app container', e); }

@@ -11,8 +11,8 @@ export default function CardPack({ card }) {
       <span className="mc-pack-name">{card.pack_name} <span className="mc-pack-num">#{card.position}</span></span>
       {card.card_set_code && (
         <span className="mc-pack-badges">
-          <span className={`mc-pack-badge ${setClass} mc-pack-type-${packType}`}>{card.card_set_name || 'FFG'}</span>
-          <span className={`mc-pack-range ${setClass} mc-pack-type-${packType}`}>
+          <span className={`mc-badge mc-pack-badge ${setClass} mc-pack-type-${packType}`}>{card.card_set_name || 'FFG'}</span>
+          <span className={`mc-badge mc-pack-range ${setClass} mc-pack-type-${packType}`}>
             {card.set_position}{card.quantity > 1 ? `-${card.set_position + card.quantity - 1}` : ''}
           </span>
         </span>

@@ -61,6 +61,99 @@
 .pack-nav-creator{display:inline-block;padding:3px 9px;border-radius:9999px;font-size:.85rem;font-weight:700;background:rgba(255,255,255,.04);color:#cbd5e1}
 .pack-nav-creator--alt{background:#2563eb;color:#fff}
 .pack-nav-btn{display:inline-flex;align-items:center;gap:6px;padding:9px 18px;border:1px solid rgba(255,255,255,.15);border-radius:9999px;background:rgba(255,255,255,.04);color:#cbd5e1;font-size:1.05rem;text-decoration:none;transition:background .18s,border-color .18s,color .18s;white-space:nowrap;max-width:280px;overflow:hidden}
+
+/* ── Badges harmonisés (official / current / fan made / creator + pack types) */
+.mc-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  line-height: 1.5;
+  flex-shrink: 0;
+  border: 1px solid;
+}
+.mc-badge-official { background: rgba(0, 0, 0, 0.35);        color: #ccc;    border-color: rgba(200,200,200,0.35); }
+.mc-badge-current  { background: rgba(180, 186, 195, 0.15);  color: #bac0ca; border-color: rgba(180,186,195,0.4); }
+.mc-badge-fanmade  { background: rgba(18, 120, 216, 0.15);   color: #6db3f2; border-color: rgba(18,120,216,0.45); }
+.mc-badge-creator  { background: rgba(18, 120, 216, 0.15);   color: #93caff; border-color: rgba(18,120,216,0.45); }
+/* Pack environment / status badges */
+.mc-badge-alpha    { background: rgba(155, 96,  7, 0.18);    color: #d4921e; border-color: rgba(155,96,7,0.5); }
+.mc-badge-beta     { background: rgba(155, 96,  7, 0.18);    color: #d4921e; border-color: rgba(155,96,7,0.5); }
+.mc-badge-released { background: rgba(16,  113, 22, 0.18);   color: #4dc254; border-color: rgba(16,113,22,0.5); }
+.mc-badge-sealed   { background: rgba(16,  113, 22, 0.18);   color: #4dc254; border-color: rgba(16,113,22,0.5); }
+.mc-badge-legacy   { background: rgba(107, 114,128, 0.15);   color: #9ca3af; border-color: rgba(107,114,128,0.4); }
+
+/* ── Reputation medal (shared: Profile, PublicDeck, …) ─────────────────────── */
+.rep-badge { display: inline-flex; align-items: center; gap: 5px; padding: 3px 9px 3px 4px; border-radius: 20px; font-size: 0.82rem; font-weight: 700; }
+.rep-badge--bronze { background: rgba(205,127,50,0.12);  border: 1px solid #cd7f32; color: #cd7f32; }
+.rep-badge--silver { background: rgba(192,192,192,0.12); border: 1px solid #a0a0a0; color: #c8c8c8; }
+.rep-badge--gold   { background: rgba(255,215,0,0.12);   border: 1px solid #ffd700; color: #ffd700; }
+.rep-medal { width: 18px; height: 18px; flex-shrink: 0; }
+.rep-score { font-variant-numeric: tabular-nums; }
+
+/* ── Deck tag icons ───────────────────────────────────────────────────── */
+.deck-tag-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  line-height: 1;
+  cursor: default;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.12);
+  transition: background 0.15s;
+}
+.deck-tag-icon:hover { background: rgba(255,255,255,0.14); border-color: rgba(255,255,255,0.25); }
+.deck-tag-icon--solo         { background: rgba(43,128,197,0.15);  border-color: rgba(43,128,197,0.35); }
+.deck-tag-icon--multiplayer  { background: rgba(43,128,197,0.15);  border-color: rgba(43,128,197,0.35); }
+.deck-tag-icon--beginner     { background: rgba(16,113,22,0.15);   border-color: rgba(16,113,22,0.35); }
+.deck-tag-icon--theme        { background: rgba(155,96,7,0.15);    border-color: rgba(155,96,7,0.40); }
+.deck-tag-icon--campaign     { background: rgba(73,63,100,0.18);   border-color: rgba(73,63,100,0.40); }
+.deck-tag-icon--competitive  { background: rgba(204,48,56,0.15);   border-color: rgba(204,48,56,0.35); }
+.deck-tag-icon--fast         { background: rgba(234,213,27,0.12);  border-color: rgba(234,213,27,0.35); }
+.deck-tag-icon--hard         { background: rgba(100,30,9,0.20);    border-color: rgba(150,50,20,0.40); }
+
+/* Pack type badges (card detail page) */
+.mc-pack-badges {
+  display: inline-flex;
+  gap: .4rem;
+  align-items: center;
+  margin-left: .6rem;
+}
+.mc-pack-badge,
+.mc-pack-range {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  border: 1px solid rgba(18,120,216,0.45);
+  background: rgba(18, 120, 216, 0.15);
+  color: #6db3f2;
+}
+/* Official / fanmade standalone label (no pill) */
+.mc-pack-official { color: #aaa; background: transparent; border: none; padding: 0; font-weight: 400; font-size: 0.75rem; }
+.mc-pack-fanmade  { color: #6db3f2; background: transparent; border: none; padding: 0; font-weight: 400; font-size: 0.75rem; }
+
+/* Pack type colour overrides */
+.mc-pack-badge.mc-pack-type-hero,    .mc-pack-range.mc-pack-type-hero      { background: rgba(18,120,216,0.15);  border-color: rgba(18,120,216,0.45);  color: #6db3f2; }
+.mc-pack-badge.mc-pack-type-encounter,.mc-pack-range.mc-pack-type-encounter { background: rgba(155,96,7,0.15);    border-color: rgba(155,96,7,0.45);    color: #c98a30; }
+.mc-pack-badge.mc-pack-type-scenario, .mc-pack-range.mc-pack-type-scenario  { background: rgba(73,63,100,0.2);    border-color: rgba(73,63,100,0.5);    color: #a898d8; }
+.mc-pack-badge.mc-pack-type-resource, .mc-pack-range.mc-pack-type-resource  { background: rgba(40,167,69,0.15);   border-color: rgba(40,167,69,0.45);   color: #5cb85c; }
+.mc-pack-badge.mc-pack-type-default,  .mc-pack-range.mc-pack-type-default,
+.mc-pack-badge.mc-pack-type-unknown,  .mc-pack-range.mc-pack-type-unknown   { background: rgba(107,114,128,0.15); border-color: rgba(107,114,128,0.45); color: #9ca3af; }
+.mc-pack-badge.mc-pack-fanmade,       .mc-pack-range.mc-pack-fanmade        { background: rgba(18,120,216,0.15);  border-color: rgba(18,120,216,0.45);  color: #6db3f2; }
+.mc-pack-badge.mc-pack-official,      .mc-pack-range.mc-pack-official       { background: rgba(0,0,0,0.35);       border-color: rgba(200,200,200,0.35); color: #ccc; }
 .pack-nav-btn:hover{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.35);color:#fff}
 .pack-nav-btn--prev .pack-nav-label,.pack-nav-btn--next .pack-nav-label{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
 .pack-nav-arrow{flex-shrink:0;font-size:1.1rem;line-height:1}

@@ -1,0 +1,250 @@
+
+.decks-page-container {
+  max-width: 1200px;
+  margin: 80px auto 40px;
+  padding: 40px 20px;
+  min-height: calc(100vh - 80px);
+}
+
+.decks-title {
+  font-size: 2.5rem;
+  margin: 0;
+  color: #111;
+}
+
+.decks-subtitle { color: #444; margin: 8px 0 0; }
+.decks-loading  { color: #666; padding: 40px 0; text-align: center; }
+
+.decks-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+  gap: 25px;
+  margin-top: 30px;
+}
+
+/* ── Deck card ───────────────────────────────── */
+.deck-card {
+  background: #10203a;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 12px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.deck-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 15px 30px rgba(0,0,0,0.5);
+  border-color: rgba(255,255,255,0.2);
+}
+
+/* ── Header ─────────────────────────────────── */
+.deck-header {
+  position: relative;
+  padding: 16px 20px;
+  min-height: 90px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  overflow: hidden;
+}
+
+.deck-header-content {
+  position: relative;
+  z-index: 2;
+  flex: 1;
+  padding-right: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.deck-name {
+  margin: 0 0 4px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  /* color set via inline style (faction fg color) */
+  text-shadow: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.deck-hero-name {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: rgba(255,255,255,0.85);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* Vignette héros à droite du header */
+.deck-hero-thumb {
+  position: relative;
+  z-index: 2;
+  width: 80px;
+  height: 80px;
+  flex-shrink: 0;
+  border-radius: 6px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+  mask-image: linear-gradient(to right, transparent 0%, rgba(0,0,0,0.6) 25%, #000 100%);
+  -webkit-mask-image: linear-gradient(to right, transparent 0%, rgba(0,0,0,0.6) 25%, #000 100%);
+}
+.deck-hero-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top center;
+}
+
+/* Barre couleur bas header */
+.hero-meta-bar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  opacity: 0.5;
+  z-index: 3;
+}
+
+/* ── Body ────────────────────────────────────── */
+.deck-body {
+  padding: 12px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
+  background: rgba(255,255,255,0.02);
+  flex: 1;            /* pousse le footer en bas quel que soit le contenu */
+}
+
+.deck-body-left {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  flex: 1;
+}
+
+/* Ligne héros + badges */
+.deck-hero-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 5px;
+  width: 100%;
+}
+.deck-hero-row-left {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.deck-hero-badge {
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: #cfe6ff;
+}
+
+/* Stats déplacées sur la ligne héros (droite) — encart pill */
+.deck-hero-stats {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.75rem;
+  color: rgba(255,255,255,0.85);
+  white-space: nowrap;
+  margin-left: auto;
+  background: rgba(0,0,0,0.30);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 6px;
+  padding: 3px 10px;
+}
+
+/* Badges → voir mc4db.css (.mc-badge) */
+
+/* Ligne aspect */
+.deck-aspect-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.deck-aspect-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+}
+.deck-aspect-name {
+  font-size: 0.82rem;
+  color: #9fb4d8;
+  font-weight: 600;
+}
+
+/* Ligne tags (icônes) */
+.deck-tags-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 5px;
+  width: 100%;
+}
+/* Aspect poussé à droite dans la ligne tags */
+.deck-tags-row .deck-aspect-row {
+  margin-left: auto;
+}
+.deck-tag {
+  background: rgba(255,255,255,0.08);
+  padding: 1px 6px;
+  border-radius: 3px;
+  font-size: 0.75rem;
+}
+
+/* Stats dans le header (sous le nom) — encart sombre */
+.deck-stats {
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.78rem;
+  /* color set via inline style (faction fg color) */
+  white-space: nowrap;
+  align-self: flex-start;
+  background: rgba(0,0,0,0.35);
+  border: 1px solid;                  /* color via inline borderColor */
+  border-radius: 6px;
+  padding: 3px 10px;
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+}
+.deck-stats .stat { letter-spacing: 0.02em; }
+.stat-version { color: rgba(255,255,255,0.7); font-weight: 600; font-style: italic; }
+
+/* ── Footer ─────────────────────────────────── */
+.deck-footer {
+  padding: 10px 20px;
+  background: rgba(0,0,0,0.2);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.82rem;
+  color: #8a99af;
+  border-top: 1px solid rgba(255,255,255,0.05);
+}
+.author-name { color: #fff; font-weight: 600; margin: 0 5px; }
+
+/* Smaller rep badge scoped to deck cards */
+.deck-card .rep-badge {
+  font-size: 0.70rem;
+  padding: 1px 6px 1px 3px;
+  gap: 3px;
+}
+.deck-card .rep-medal { width: 13px; height: 13px; }
+
+/* Responsive */
+@media (max-width: 768px) {
+  .decks-grid { grid-template-columns: 1fr; }
+}

@@ -1,5 +1,5 @@
 import React from 'react';
-import { getFactionColor, getBorderClass } from './utils/factionUtils';
+import { getFactionColor, getBorderClass } from './utils/dataUtils';
 import CardFooter from './components/CardFooter';
 import { 
 	Fingerprint, 
