@@ -61,6 +61,33 @@ export const DECK_TAGS = {
   hard:         { label: 'Hard',         icon: '\u{1F480}', title: 'Hard difficulty' },
 };
 
+/**
+ * À partir d'un tableau de decks, extrait la liste des héros uniques
+ * triés par nom, séparés en deux groupes : FFG et fanmade.
+ * @param {Array} decks - tableau de deck objects (hero_code, hero_name, pack_creator)
+ * @returns {{ ffg: Array, fanmade: Array }}
+ */
+export function extractHeroes(decks) {
+  const seen = new Set();
+  const ffg = [];
+  const fanmade = [];
+
+  for (const deck of decks) {
+    if (!deck.hero_code || seen.has(deck.hero_code)) continue;
+    seen.add(deck.hero_code);
+    const entry = { hero_code: deck.hero_code, hero_name: deck.hero_name, pack_creator: deck.pack_creator };
+    const isFFG = !deck.pack_creator || deck.pack_creator.toUpperCase() === 'FFG';
+    if (isFFG) ffg.push(entry);
+    else fanmade.push(entry);
+  }
+
+  const byName = (a, b) => a.hero_name.localeCompare(b.hero_name);
+  ffg.sort(byName);
+  fanmade.sort(byName);
+
+  return { ffg, fanmade };
+}
+
 export function getHeaderClass(factionCode, typeCode) {
   if (factionCode === 'encounter' && typeCode === 'villain') {
     return 'mc-header-encounter-villain';

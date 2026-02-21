@@ -4,6 +4,83 @@ const { resolveImage } = require('../utils/cardSerializer');
 
 const router = Router();
 
+// ── Decklists publiques paginées + filtrées ─────────────────────────────────
+router.get('/decklists', async (req, res) => {
+  try {
+    const page   = parseInt(req.query.page)  || 1;
+    const limit  = parseInt(req.query.limit) || 20;
+    const offset = (page - 1) * limit;
+
+    const { hero, aspect, tag } = req.query;
+    // aspect et tag peuvent être string ou tableau
+    const aspects = aspect ? (Array.isArray(aspect) ? aspect : [aspect]) : [];
+    const tags    = tag    ? (Array.isArray(tag)    ? tag    : [tag])    : [];
+
+    const baseQuery = () => db('decklist as d')
+      .join('user as u', 'd.user_id', 'u.id')
+      .join('card as c', 'd.card_id', 'c.id')
+      .leftJoin('faction as f', 'c.faction_id', 'f.id')
+      .leftJoin('pack as p', 'c.pack_id', 'p.id')
+      .whereNull('d.next_deck')
+      .modify(q => {
+        if (hero) q.where('c.code', hero);
+        if (aspects.length) {
+          const includesBasic = aspects.includes('basic');
+          q.where(function() {
+            // aspects explicitement listés
+            this.whereIn(
+              db.raw("JSON_UNQUOTE(JSON_EXTRACT(d.meta, '$.aspect'))"),
+              aspects
+            );
+            // 'basic' couvre aussi les decks sans aspect déclaré (NULL / absent)
+            if (includesBasic) {
+              this.orWhereRaw("JSON_EXTRACT(d.meta, '$.aspect') IS NULL");
+              this.orWhereRaw("JSON_UNQUOTE(JSON_EXTRACT(d.meta, '$.aspect')) = ''");
+            }
+          });
+        }
+        tags.forEach(t => q.whereRaw("FIND_IN_SET(?, d.tags)", [t]));
+      });
+
+    const query = baseQuery()
+      .select(
+        'd.id', 'd.name', 'd.date_creation',
+        'd.nb_votes as likes', 'd.nb_favorites as favorites', 'd.nb_comments as comments',
+        'd.version', 'd.tags', 'd.meta',
+        'u.username as author_name', 'u.reputation as author_reputation',
+        'c.code as hero_code', 'c.name as hero_name',
+        'f.code as faction_code',
+        'p.creator as pack_creator', 'p.environment as pack_environment', 'p.status as pack_status'
+      )
+      .orderBy('d.date_creation', 'desc')
+      .limit(limit)
+      .offset(offset);
+
+    const decklists = (await query).map(row => ({
+      ...row,
+      hero_imagesrc: resolveImage(row.hero_code)
+    }));
+
+    const [{ total }] = await baseQuery().count('* as total');
+
+    return res.json({
+      ok: true,
+      data: decklists,
+      meta: {
+        current_page: page,
+        total_pages: Math.ceil(total / limit),
+        total_items: total
+      }
+    });
+
+  } catch (err) {
+    console.error('GET /public/decklists error:', err);
+    return res.status(500).json({ error: 'Internal error' });
+  }
+});
+
+module.exports = router;
+
 // Route pour récupérer les decklists publiques (Paginées)
 router.get('/decklists', async (req, res) => {
   try {

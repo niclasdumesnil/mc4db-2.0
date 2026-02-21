@@ -31,7 +31,7 @@ function RepBadge({ reputation }) {
 
 export default function PublicDeck({ deck }) {
   // Aspect (couleur) depuis meta JSON : {"aspect":"justice"}
-  let aspect = 'neutral';
+  let aspect = 'basic';
   try {
     const meta = typeof deck.meta === 'string' ? JSON.parse(deck.meta) : deck.meta;
     if (meta && meta.aspect) aspect = meta.aspect;
@@ -55,15 +55,17 @@ export default function PublicDeck({ deck }) {
 
   return (
     <div className="deck-card">
-      {/* En-tête : fond sombre card + faint faction en overlay */}
+      {/* En-tête : fond blanc + overlay faint faction */}
       <div className="deck-header" style={{ backgroundColor: 'white', backgroundImage: `linear-gradient(${headerFaint}, ${headerFaint})` }}>
         <div className="deck-header-content">
           <h3 className="deck-name" style={{ color: '#111' }} title={deck.name}>{deck.name}</h3>
         </div>
         {heroImage && (
-          <div className="deck-hero-thumb">
-            <img src={heroImage} alt={deck.hero_name} />
-          </div>
+          <div
+            className="card-thumbnail--wide-hero"
+            style={{ backgroundImage: `url(${heroImage})` }}
+            title={deck.hero_name}
+          />
         )}
       </div>
 
