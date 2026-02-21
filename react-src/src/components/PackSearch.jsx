@@ -1,9 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react';
 
 /**
- * Custom dropdown for fan-made packs — supports styled items with creator badge.
+ * Generic custom dropdown — supports a "current" badge (based on pack.environment)
+ * and an optional creator badge.
+ * Used for both official packs and fan-made packs.
  */
-function FanPackSelect({ packs, value, onChange, disabled }) {
+function CustomPackSelect({ packs, value, onChange, disabled, showCreator = false }) {
   const [open, setOpen] = useState(false);
   const containerRef = useRef(null);
   const listRef = useRef(null);
@@ -40,7 +42,10 @@ function FanPackSelect({ packs, value, onChange, disabled }) {
         {selected ? (
           <span className="pack-search-trigger-content">
             <span className="pack-search-trigger-name">{selected.name}</span>
-            <span className="pack-search-creator-badge">{selected.creator}</span>
+            {showCreator && <span className="pack-search-creator-badge">{selected.creator}</span>}
+            {selected.environment === 'current' && (
+              <span className="pack-search-current-badge">current</span>
+            )}
           </span>
         ) : (
           <span className="pack-search-trigger-placeholder">— Select a pack —</span>
@@ -67,7 +72,10 @@ function FanPackSelect({ packs, value, onChange, disabled }) {
               onClick={() => { onChange(p.code); setOpen(false); }}
             >
               <span className="pack-search-option-name">{p.name}</span>
-              <span className="pack-search-creator-badge">{p.creator}</span>
+              {showCreator && <span className="pack-search-creator-badge">{p.creator}</span>}
+              {p.environment === 'current' && (
+                <span className="pack-search-current-badge">current</span>
+              )}
             </li>
           ))}
         </ul>
@@ -146,24 +154,19 @@ export default function PackSearch({ currentPackCode, onNavigate }) {
 
   return (
     <div className={`pack-search${navigating ? ' pack-search--loading' : ''}`}>
-      {/* Official packs */}
+      {/* Official packs — custom dropdown with current badge */}
       {officialPacks.length > 0 && (
         <div className="pack-search-group">
-          <label className="pack-search-label" htmlFor="pack-search-official">
+          <label className="pack-search-label">
             Official packs
           </label>
-          <select
-            id="pack-search-official"
-            className="pack-search-select"
+          <CustomPackSelect
+            packs={officialPacks}
             value={isOfficialSelected ? selectedPack : ''}
-            onChange={e => handleSelectPack(e.target.value)}
+            onChange={handleSelectPack}
             disabled={navigating}
-          >
-            <option value="">— Select a pack —</option>
-            {officialPacks.map(p => (
-              <option key={p.code} value={p.code}>{p.name}</option>
-            ))}
-          </select>
+            showCreator={false}
+          />
         </div>
       )}
 
@@ -173,11 +176,12 @@ export default function PackSearch({ currentPackCode, onNavigate }) {
           <label className="pack-search-label">
             Fan-made packs
           </label>
-          <FanPackSelect
+          <CustomPackSelect
             packs={fanPacks}
             value={isFanSelected ? selectedPack : ''}
             onChange={handleSelectPack}
             disabled={navigating}
+            showCreator={true}
           />
         </div>
       )}

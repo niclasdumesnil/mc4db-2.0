@@ -65,5 +65,10 @@ function StatusTag({ card }) {
       </>
     );
   }
-  return <span className="mc-tag mc-tag-creator">{card.creator}</span>;
+  return (
+    <>
+      <span className="mc-tag mc-tag-fanmade">Fan made</span>
+      <span className="mc-tag mc-tag-creator">{card.creator}</span>
+    </>
+  );
 }

@@ -434,6 +434,13 @@ button.pack-nav-btn:hover {
   background-color: rgb(37 99 235);
   color: #fff;
 }
+.mc-tag-fanmade {
+  background-color: #1278d8;
+  padding: .15rem .55rem;
+  font-size: .7rem;
+  line-height: 1.15rem;
+  color: #fff;
+}
 .mc-tag-status {
   background-color: rgb(202 138 4);
   padding: .15rem .55rem;
@@ -857,6 +864,22 @@ button.pack-nav-btn:hover {
   flex: 1;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+/* "current" indicator badge — black on grey */
+.pack-search-current-badge {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background-color: rgb(209 213 219);
+  color: #000;
+  font-size: 0.70rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  line-height: 1.5;
 }
 
 /* Creator badge — fan-made blue pill */

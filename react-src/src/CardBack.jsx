@@ -62,7 +62,7 @@ export default function CardBack({ card, showSpoilers, preferWebpOnly, locale, i
               </h1>
               <div className="card-frame__type-badge">TYPE: {card.type_name}</div>
             </div>
-            {card.cost !== null && !['hero', 'alter_ego'].includes(card.type_code) && card.faction_code !== 'encounter' && (
+            {card.cost !== null && !['hero', 'alter_ego'].includes(card.type_code) && card.faction_code !== 'encounter' && card.type_code !== 'resource' && (
               <div className="card-frame__cost">
                 <span className="card-frame__cost-label">Cost</span>
                 <div className="card-frame__cost-value">{card.cost}</div>
