@@ -662,6 +662,54 @@ button.pack-nav-btn:hover {
   position: relative;
 }
 
+/* Sort controls toolbar */
+.pack-search-controls {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  width: 100%;
+  flex-shrink: 0;
+}
+
+.pack-search-sort-btn {
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.14);
+  border-radius: 6px;
+  color: #8a99af;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 3px 10px;
+  cursor: pointer;
+  transition: background .15s, border-color .15s, color .15s;
+  letter-spacing: 0.04em;
+}
+.pack-search-sort-btn:hover {
+  background: rgba(255,255,255,.12);
+  color: #dbeafa;
+}
+.pack-search-sort-btn--active {
+  background: rgba(18,120,216,.22);
+  border-color: #1278d8;
+  color: #60b0ff;
+}
+
+.pack-search-sort-dir {
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.14);
+  border-radius: 6px;
+  color: #8a99af;
+  font-size: 0.85rem;
+  font-weight: 700;
+  padding: 3px 8px;
+  cursor: pointer;
+  transition: background .15s, color .15s;
+  line-height: 1;
+}
+.pack-search-sort-dir:hover {
+  background: rgba(255,255,255,.12);
+  color: #dbeafa;
+}
+
 .pack-search--loading {
   opacity: 0.7;
   pointer-events: none;
@@ -731,6 +779,55 @@ button.pack-nav-btn:hover {
   position: relative;
   width: 100%;
 }
+
+/* Dropdown wrapper — contains filter input + list */
+.pack-search-dropdown-wrap {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  z-index: 200;
+  background: #0f1c30;
+  border: 1px solid rgba(255,255,255,.18);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0,0,0,.5);
+  overflow: hidden;
+}
+
+/* Filter input row */
+.pack-search-filter-row {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  border-bottom: 1px solid rgba(255,255,255,.10);
+  padding: 6px 8px;
+}
+
+.pack-search-filter-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #dbeafa;
+  font-size: 0.85rem;
+  padding: 2px 4px;
+  caret-color: #60b0ff;
+}
+.pack-search-filter-input::placeholder {
+  color: #506070;
+}
+
+.pack-search-filter-clear {
+  background: none;
+  border: none;
+  color: #506070;
+  font-size: 0.8rem;
+  cursor: pointer;
+  padding: 0 2px;
+  line-height: 1;
+  transition: color .1s;
+}
+.pack-search-filter-clear:hover { color: #dbeafa; }
 
 /* Trigger button — mirrors .pack-search-select appearance */
 .pack-search-trigger {
@@ -805,20 +902,11 @@ button.pack-nav-btn:hover {
 
 /* Dropdown list */
 .pack-search-dropdown {
-  position: absolute;
-  top: calc(100% + 4px);
-  left: 0;
-  right: 0;
-  z-index: 200;
-  background: #0f1c30;
-  border: 1px solid rgba(255,255,255,.18);
-  border-radius: 8px;
   list-style: none;
   margin: 0;
   padding: 4px 0;
-  max-height: 280px;
+  max-height: 250px;
   overflow-y: auto;
-  box-shadow: 0 8px 24px rgba(0,0,0,.5);
 }
 
 .pack-search-dropdown::-webkit-scrollbar {
@@ -858,6 +946,13 @@ button.pack-nav-btn:hover {
 .pack-search-option--placeholder {
   color: #8a99af;
   font-style: italic;
+}
+
+.pack-search-option--empty {
+  color: #506070;
+  font-style: italic;
+  cursor: default;
+  justify-content: center;
 }
 
 .pack-search-option-name {

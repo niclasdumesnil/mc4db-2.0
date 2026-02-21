@@ -8,14 +8,15 @@ import React, { useEffect, useState } from 'react';
  *   onNavigate — callback(code) optionnel : navigation SPA sans rechargement
  *                Si absent, utilise un <a href> classique.
  */
-export default function PackNav({ card, onNavigate }) {
+export default function PackNav({ card, locale = 'en', onNavigate }) {
   const [packCards, setPackCards] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!card?.pack_code) return;
     setLoading(true);
-    fetch(`/api/public/cards/${card.pack_code}`)
+    const localeParam = locale !== 'en' ? `?locale=${locale}` : '';
+    fetch(`/api/public/cards/${card.pack_code}${localeParam}`)
       .then(r => r.json())
       .then(data => {
         if (Array.isArray(data)) {
@@ -26,7 +27,7 @@ export default function PackNav({ card, onNavigate }) {
       })
       .catch(() => {})
       .finally(() => setLoading(false));
-  }, [card?.pack_code]);
+  }, [card?.pack_code, locale]);
 
   if (loading || packCards.length === 0) return null;
 

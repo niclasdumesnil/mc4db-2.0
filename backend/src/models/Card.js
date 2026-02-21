@@ -154,4 +154,16 @@ async function findDuplicateCodes(cardId) {
   return rows.map((r) => r.code);
 }
 
-module.exports = { findAll, findByCode, findByPackCode, findDuplicateCodes };
+/**
+ * Get translated fields for a given card code and locale.
+ * Returns an object with name, subname, text, flavor, traits, errata
+ * or undefined if no translation exists.
+ */
+async function findTranslation(code, locale) {
+  return db('card_translation')
+    .where({ code, locale })
+    .select(['name', 'subname', 'text', 'flavor', 'traits', 'errata'])
+    .first();
+}
+
+module.exports = { findAll, findByCode, findByPackCode, findDuplicateCodes, findTranslation };

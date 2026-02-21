@@ -24,34 +24,41 @@ const DEFAULT_LOCALE = (process.env.DEFAULT_LOCALE || 'EN').toUpperCase() === 'F
 
 /**
  * Resolve the best available image src for a card code.
- * Checks EN/FR webp, png, jpg, and 'a' variants, mirroring PHP logic.
+ * When preferLang is 'FR', checks FR dir first then EN dir as fallback.
+ * When preferLang is 'EN' (or absent), checks EN dir only (plus root-level).
  */
-function resolveImage(code, suffix = '', lang = undefined) {
-  // Determine language to search: prefer provided lang, then DEFAULT_LOCALE
-  const searchLang = (lang && String(lang).toUpperCase() === 'FR') ? 'FR' : DEFAULT_LOCALE || 'EN';
+function resolveImage(code, suffix = '', preferLang = undefined) {
+  const pref = (preferLang && String(preferLang).toUpperCase() === 'FR') ? 'FR' : 'EN';
   const fileName = `${code}${suffix}`;
-  const candidates = [
-    `${searchLang}/${fileName}.webp`,
-    `${searchLang}/${fileName}.jpg`,
-    `${searchLang}/${fileName}.png`,
-    `${searchLang}/${fileName}a.webp`,
-    `${searchLang}/${fileName}a.jpg`,
-    `${searchLang}/${fileName}a.png`,
+
+  // Build ordered list of lang dirs to try
+  const langs = pref === 'FR' ? ['FR', 'EN'] : ['EN'];
+
+  const candidates = [];
+  for (const l of langs) {
+    candidates.push(
+      `${l}/${fileName}.webp`,
+      `${l}/${fileName}.jpg`,
+      `${l}/${fileName}.png`,
+      `${l}/${fileName}a.webp`,
+      `${l}/${fileName}a.jpg`,
+      `${l}/${fileName}a.png`,
+    );
+  }
+  // Root-level fallback (no lang dir)
+  candidates.push(
     `${fileName}.webp`,
     `${fileName}.jpg`,
     `${fileName}.png`,
     `${fileName}a.webp`,
     `${fileName}a.jpg`,
     `${fileName}a.png`,
-  ];
+  );
 
   for (const c of candidates) {
     try {
-      // If candidate uses a locale segment, replace placeholder lang with searchLang
-      const candidatePath = path.join(CARDS_DIR, c.replace(/^([A-Z]{2})\//, `${searchLang}/`));
+      const candidatePath = path.join(CARDS_DIR, c);
       if (fs.existsSync(candidatePath)) {
-        // Return URL path under the /bundles/cards mount.
-        // Use a path relative to the CARDS_DIR so we don't duplicate the "cards" segment.
         const rel = path.relative(CARDS_DIR, candidatePath).replace(/\\/g, '/');
         return `/bundles/cards/${rel}`;
       }
@@ -73,13 +80,15 @@ function resolveImage(code, suffix = '', lang = undefined) {
  * @param {object|null} opts.linkedCard - pre-serialized linked card (avoid infinite recursion)
  */
 function serializeCard(row, opts = {}) {
-  const { api = true, html = false, duplicatedBy = [], linkedCard = null } = opts;
+  const { api = true, html = false, duplicatedBy = [], linkedCard = null, locale = null } = opts;
 
   const packYear = row.pack_date_release
     ? new Date(row.pack_date_release).getFullYear().toString()
     : '';
 
-  const lang = (row.pack_language || 'en').toUpperCase() === 'FR' ? 'FR' : 'EN';
+  // Image lang priority: explicit locale (from ?locale= param) → pack language → EN
+  const packLang = (row.pack_language || 'en').toUpperCase() === 'FR' ? 'FR' : 'EN';
+  const imageLang = (locale && locale.toUpperCase() === 'FR') ? 'FR' : packLang;
 
   const card = {
     pack_code: row.pack_code || '',
@@ -169,8 +178,8 @@ function serializeCard(row, opts = {}) {
 
     // Computed fields
     url: `${BASE_URL}/card/${row.code}`,
-    imagesrc: resolveImage(row.code, '', lang),
-    backimagesrc: row.double_sided ? resolveImage(row.code, 'b', lang) : '',
+    imagesrc: resolveImage(row.code, '', imageLang),
+    backimagesrc: row.double_sided ? resolveImage(row.code, 'b', imageLang) : '',
     spoiler:
       row.card_set_code &&
       (row.faction_code === 'encounter' || row.card_set_type_name_code === 'encounter')

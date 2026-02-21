@@ -34,6 +34,10 @@ function renderSharedHeader() {
     <a href="/card/" style="color:#cfe6ff;text-decoration:none;margin-right:4px;">Browse</a>
     <a id="mc-dashboard-link" href="/dashboard" style="color:#cfe6ff;text-decoration:none;margin-right:4px;display:none;">Dashboard</a>
     <span id="mc-username" style="margin-right:4px;display:none;color:#fff;font-weight:600;font-size:14px;"></span>
+    <span id="mc-locale-badge"
+          title="Switch language"
+          style="cursor:pointer;padding:3px 9px;border-radius:999px;font-size:11px;font-weight:700;letter-spacing:0.06em;user-select:none;transition:background .15s;"
+    >EN</span>
     <a id="mc-login-btn" href="#"
        style="color:#fff;background:#1f6fb6;padding:7px 14px;border-radius:6px;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;height:34px;font-size:14px;">
       Login
@@ -107,6 +111,31 @@ function renderSharedHeader() {
 
       // Run immediately in case the DOM is already ready
       if (document.readyState !== 'loading') { _mcRenderHeader(); }
+
+      // ── Locale switcher ───────────────────────────────────────────────
+      function _mcGetLocale() {
+        return localStorage.getItem('mc_locale') || 'en';
+      }
+      function _mcRenderLocale() {
+        var badge = document.getElementById('mc-locale-badge');
+        if (!badge) return;
+        var loc = _mcGetLocale();
+        badge.textContent = loc.toUpperCase();
+        badge.style.background = loc === 'fr' ? '#1278d8' : '#374151';
+        badge.style.color = '#fff';
+      }
+      window._mcToggleLocale = function() {
+        var next = _mcGetLocale() === 'en' ? 'fr' : 'en';
+        localStorage.setItem('mc_locale', next);
+        window.dispatchEvent(new Event('mc_locale_changed'));
+        _mcRenderLocale();
+      };
+      document.addEventListener('DOMContentLoaded', function() {
+        _mcRenderLocale();
+        var badge = document.getElementById('mc-locale-badge');
+        if (badge) badge.addEventListener('click', window._mcToggleLocale);
+      });
+      if (document.readyState !== 'loading') { _mcRenderLocale(); }
     })();
   </script>
 </header>

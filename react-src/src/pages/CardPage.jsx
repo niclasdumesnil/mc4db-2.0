@@ -18,13 +18,21 @@ function navigateTo(code) {
 // Read server-injected card data (set by the backend on initial page load)
 const INITIAL_DATA = window.__CARD_DATA__ || null;
 
+function readLocale() {
+  return localStorage.getItem('mc_locale') || 'en';
+}
+
 export default function CardPage() {
   const [card, setCard] = useState(null);
-  const [renderOpts, setRenderOpts] = useState({
-    showSpoilers: INITIAL_DATA?.showSpoilers ?? true,
-    locale: INITIAL_DATA?.locale ?? 'en',
-    langDir: INITIAL_DATA?.langDir ?? 'EN',
-    preferWebpOnly: INITIAL_DATA?.preferWebpOnly ?? false,
+  const [locale, setLocale] = useState(readLocale);
+  const [renderOpts, setRenderOpts] = useState(() => {
+    const currentLocale = readLocale();
+    return {
+      showSpoilers: INITIAL_DATA?.showSpoilers ?? true,
+      locale: currentLocale,
+      langDir: currentLocale === 'fr' ? 'FR' : (INITIAL_DATA?.langDir ?? 'EN'),
+      preferWebpOnly: INITIAL_DATA?.preferWebpOnly ?? false,
+    };
   });
   const [loading, setLoading] = useState(!INITIAL_DATA?.card);
   const [error, setError] = useState(null);
@@ -35,6 +43,21 @@ export default function CardPage() {
     function onPop() { setCurrentCode(codeFromPath()); }
     window.addEventListener('popstate', onPop);
     return () => window.removeEventListener('popstate', onPop);
+  }, []);
+
+  // Listen for locale changes dispatched by the header badge
+  useEffect(() => {
+    function onLocaleChange() {
+      const newLocale = readLocale();
+      setLocale(newLocale);
+      setRenderOpts(prev => ({
+        ...prev,
+        locale: newLocale,
+        langDir: newLocale === 'fr' ? 'FR' : (INITIAL_DATA?.langDir ?? 'EN'),
+      }));
+    }
+    window.addEventListener('mc_locale_changed', onLocaleChange);
+    return () => window.removeEventListener('mc_locale_changed', onLocaleChange);
   }, []);
 
   // Bootstrap: if server gave us the initial card, use it directly
@@ -69,14 +92,15 @@ export default function CardPage() {
       .catch(e => { setError(e.message); setLoading(false); });
   }, [currentCode]);
 
-  // Fetch card by code (skip if it was just served by the backend)
+  // Fetch card by code (skip if it was just served by the backend for the default locale)
   useEffect(() => {
     if (!currentCode) return;
-    // Skip the initial load when the server already gave us this card
-    if (INITIAL_DATA?.card && INITIAL_DATA.card.code === currentCode && !card) return;
+    // Skip the very first load when the server already gave us this card in the default locale
+    if (INITIAL_DATA?.card && INITIAL_DATA.card.code === currentCode && !card && locale === 'en') return;
     setLoading(true);
     setError(null);
-    fetch(`/api/public/card/${currentCode}`)
+    const localeParam = locale !== 'en' ? `?locale=${locale}` : '';
+    fetch(`/api/public/card/${currentCode}${localeParam}`)
       .then(r => r.json())
       .then(data => {
         if (data?.error) throw new Error(data.error.message || 'Card not found');
@@ -85,7 +109,7 @@ export default function CardPage() {
         setLoading(false);
       })
       .catch(e => { setError(e.message); setLoading(false); });
-  }, [currentCode]);
+  }, [currentCode, locale]);
 
   const opts = renderOpts;
 
@@ -112,7 +136,7 @@ export default function CardPage() {
             />
           </div>
           <div className="card-page-nav">
-            <PackNav card={card} onNavigate={(code) => {
+            <PackNav card={card} locale={locale} onNavigate={(code) => {
               navigateTo(code);
               setCurrentCode(code);
             }} />
