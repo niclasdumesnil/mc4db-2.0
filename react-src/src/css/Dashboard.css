@@ -98,6 +98,7 @@
 .label { color: var(--text-muted); font-size: 0.8rem; text-transform: uppercase; font-weight: 600; }
 .value { font-size: 1rem; color: var(--white); }
 .value.highlight { color: var(--accent-cyan); font-weight: 700; }
+.top-hero-count { color: var(--text-muted); font-size: 0.85rem; margin-left: 4px; }
 
 .resume-section { margin-top: 25px; }
 .resume-content { margin-top: 10px; line-height: 1.6; color: #cedae8; font-style: italic; font-size: 0.95rem; }
