@@ -122,9 +122,20 @@ function Pagination({ page, totalPages, onPage }) {
 }
 
 export default function CardList() {
-  // Read the locale injected by the server (window.__MC_LOCALE__) so translations
-  // are applied automatically when the page is served in a non-English language.
-  const locale = (typeof window !== 'undefined' && window.__MC_LOCALE__) || 'en';
+  // Locale: prefer the live localStorage value (set by the language switcher),
+  // then fall back to the server-injected __MC_LOCALE__, then 'en'.
+  const [locale, setLocale] = useState(() =>
+    localStorage.getItem('mc_locale') || window.__MC_LOCALE__ || 'en'
+  );
+
+  // Re-fetch when the user switches language (dispatched by the header badge)
+  useEffect(() => {
+    function onLocaleChange() {
+      setLocale(localStorage.getItem('mc_locale') || 'en');
+    }
+    window.addEventListener('mc_locale_changed', onLocaleChange);
+    return () => window.removeEventListener('mc_locale_changed', onLocaleChange);
+  }, []);
   const [cards, setCards]         = useState([]);
   const [loading, setLoading]     = useState(true);
   const [page, setPage]           = useState(1);
@@ -196,7 +207,7 @@ export default function CardList() {
       });
 
     return () => { cancelled = true; };
-  }, [debouncedFilters, page, sort, order, showDuplicates, showOfficial, showFanmade]);
+  }, [debouncedFilters, page, sort, order, showDuplicates, showOfficial, showFanmade, locale]);
 
   const handleFiltersChange = useCallback((newFilters) => {
     setFilters(newFilters);

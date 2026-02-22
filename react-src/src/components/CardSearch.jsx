@@ -257,17 +257,14 @@ export default function CardSearch({ filters, onChange, types = [], subtypes = [
         </div>
         <div style={{ marginBottom: 8 }} />
 
-        <span className="card-search__numeric-label">Unique</span>
-        <div className="card-search__radio-group">
-          {[['', 'Any'], ['1', 'Yes ✦'], ['0', 'No']].map(([val, lbl]) => (
-            <button
-              key={val}
-              className={`card-search__radio-btn${filters.is_unique === val ? ' card-search__radio-btn--active' : ''}`}
-              onClick={() => set({ is_unique: val })}
-            >
-              {lbl}
-            </button>
-          ))}
+        <div className="card-search__unique-row">
+          <span className="card-search__numeric-label">Unique</span>
+          <button
+            className={`card-search__unique-toggle${filters.is_unique === '1' ? ' card-search__unique-toggle--active' : ''}`}
+            onClick={() => set({ is_unique: filters.is_unique === '1' ? '' : '1' })}
+          >
+            {filters.is_unique === '1' ? '✦ Yes' : 'No'}
+          </button>
         </div>
       </Section>
 

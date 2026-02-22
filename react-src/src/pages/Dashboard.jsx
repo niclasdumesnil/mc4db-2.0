@@ -17,6 +17,14 @@ export default function Dashboard() {
   const [packs, setPacks] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  function refreshUser() {
+    if (!id) return;
+    fetch(`/api/public/user/${id}`)
+      .then(r => r.json())
+      .then(data => { if (data?.ok) setUser(data.user); })
+      .catch(() => {});
+  }
+
   useEffect(() => {
     if (!id) return;
     setLoading(true);
@@ -51,7 +59,7 @@ export default function Dashboard() {
         {id && !loading && user && (
           <section className="db-grid">
             <Profile user={user} />
-            <Collection user={user} packsData={packs} />
+            <Collection user={user} packsData={packs} onSaved={refreshUser} />
             <Parameters user={user} />
           </section>
         )}

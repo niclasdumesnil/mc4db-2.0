@@ -1,6 +1,6 @@
 import React, { useMemo, useState, useEffect } from 'react';
 
-export default function Collection({ user, packsData }) {
+export default function Collection({ user, packsData, onSaved }) {
   // Set of owned pack IDs — editable by the user
   const [ownedIds, setOwnedIds] = useState(() => {
     if (!user?.owned_packs) return new Set();
@@ -70,6 +70,7 @@ export default function Collection({ user, packsData }) {
       setDirty(false);
       setSavedFeedback(true);
       setTimeout(() => setSavedFeedback(false), 2000);
+      if (onSaved) onSaved();
     } catch (_) { /* silently fail */ }
     setSaving(false);
   }

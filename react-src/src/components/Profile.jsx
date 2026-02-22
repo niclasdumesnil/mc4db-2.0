@@ -100,6 +100,21 @@ export default function Profile({ user }) {
             </span>
           </div>
         )}
+        {(user.collection_official > 0 || user.collection_fanmade > 0) && (
+          <div className="info-item info-item--collection">
+            <span className="label">Collection</span>
+            <span className="value collection-counts">
+              <span className="collection-count-official">
+                {(user.collection_official ?? 0).toLocaleString()} official cards
+              </span>
+              {user.collection_fanmade > 0 && (
+                <span className="collection-count-fanmade">
+                  {(user.collection_fanmade ?? 0).toLocaleString()} fan-made cards
+                </span>
+              )}
+            </span>
+          </div>
+        )}
       </div>
 
       <div className="resume-section">

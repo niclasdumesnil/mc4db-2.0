@@ -5,7 +5,7 @@ export default function Landing(){
     <div style={{ paddingTop:80, display:'flex', justifyContent:'center' }}>
       <main style={{ maxWidth:980, padding:32 }}>
         <section style={{ background:'#071026', color:'#e6eef8', padding:40, borderRadius:12 }}>
-          <h1 style={{ fontSize:36, margin:0 }}>Welcome to MarvelCDB</h1>
+          <h1 style={{ fontSize:36, margin:0 }}>Welcome to MC4DB 2.0</h1>
           <p style={{ color:'#bcd6f5' }}>A modern fan-made database for Marvel Champions cards — browse cards, check promos, and manage your dashboard.</p>
           <div style={{ marginTop:20 }}>
             <a href="/card/01001a" style={{ marginRight:12, padding:'10px 16px', background:'#1f6fb6', color:'#fff', borderRadius:8 }}>Browse cards</a>

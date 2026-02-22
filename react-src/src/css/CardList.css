@@ -793,6 +793,38 @@
   margin-bottom: 3px;
 }
 
+/* Unique toggle row */
+.card-search__unique-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+.card-search__unique-row .card-search__numeric-label {
+  margin-bottom: 0;
+}
+.card-search__unique-toggle {
+  padding: 4px 14px;
+  border: 1px solid var(--cl-border);
+  border-radius: 5px;
+  background: rgba(255,255,255,0.04);
+  color: var(--cl-text-muted);
+  font-size: 0.78rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s, border-color 0.12s;
+}
+.card-search__unique-toggle:hover {
+  background: rgba(59,130,246,0.1);
+  color: var(--cl-text);
+}
+.card-search__unique-toggle--active {
+  background: rgba(59,130,246,0.2);
+  border-color: rgba(59,130,246,0.5);
+  color: #93c5fd;
+  font-weight: 700;
+}
+
 @media (max-width: 900px) {
   .cardlist-page-inner {
     grid-template-columns: 1fr;

@@ -99,6 +99,10 @@
 .value { font-size: 1rem; color: var(--white); }
 .value.highlight { color: var(--accent-cyan); font-weight: 700; }
 .top-hero-count { color: var(--text-muted); font-size: 0.85rem; margin-left: 4px; }
+.collection-counts { display: flex; flex-direction: column; gap: 3px; align-items: flex-end; }
+.collection-count-official { color: #e2e8f0; font-size: 0.9rem; }
+.collection-count-fanmade  { color: #93caff; font-size: 0.9rem; }
+.info-item--collection { align-items: flex-start; }
 
 .resume-section { margin-top: 25px; }
 .resume-content { margin-top: 10px; line-height: 1.6; color: #cedae8; font-style: italic; font-size: 0.95rem; }

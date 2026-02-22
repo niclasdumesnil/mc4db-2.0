@@ -46,6 +46,28 @@ router.get('/user/:id', async (req, res) => {
       .orderBy('cnt', 'desc')
       .first();
 
+    // Collection stats: count official + fan-made cards from owned packs
+    const ownedPackIds = (row.owned_packs || '')
+      .split(',')
+      .map(s => parseInt(s, 10))
+      .filter(n => n > 0);
+
+    let collectionOfficial = 0;
+    let collectionFanmade  = 0;
+
+    if (ownedPackIds.length > 0) {
+      const collStats = await db('card as c')
+        .join('pack as p', 'c.pack_id', 'p.id')
+        .whereIn('p.id', ownedPackIds)
+        .select(
+          db.raw('SUM(p.creator IS NULL) as official'),
+          db.raw('SUM(p.creator IS NOT NULL) as fanmade'),
+        )
+        .first();
+      collectionOfficial = Number(collStats?.official ?? 0);
+      collectionFanmade  = Number(collStats?.fanmade  ?? 0);
+    }
+
     // Mapping exhaustif basé sur l'entité PHP et le fichier ORM YML
     const completeUser = {
       id: row.id,
@@ -65,6 +87,8 @@ router.get('/user/:id', async (req, res) => {
       
       // Packs & Collections
       owned_packs: row.owned_packs,
+      collection_official: collectionOfficial,
+      collection_fanmade:  collectionFanmade,
 
       // UI & Settings
       is_share_decks: !!row.is_share_decks,

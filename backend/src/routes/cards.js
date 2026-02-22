@@ -48,11 +48,22 @@ router.get('/cards/', async (req, res, next) => {
 router.get('/cards/attributes', async (req, res, next) => {
   try {
     const db = require('../config/database');
-    const [types, subtypes, illustrators] = await Promise.all([
+    const [types, subtypes, rawIllustrators] = await Promise.all([
       db('type').select('code', 'name').orderBy('name'),
       db('subtype').select('code', 'name').orderBy('name'),
-      db('card').distinct('illustrator').whereNotNull('illustrator').whereNot('illustrator', '').orderBy('illustrator').pluck('illustrator'),
+      db('card').distinct('illustrator').whereNotNull('illustrator').whereNot('illustrator', '').pluck('illustrator'),
     ]);
+
+    // Split multi-illustrator strings (separated by "," or "&") into individual names
+    const illustratorSet = new Set();
+    for (const raw of rawIllustrators) {
+      for (const part of raw.split(/[,&]/)) {
+        const name = part.trim();
+        if (name) illustratorSet.add(name);
+      }
+    }
+    const illustrators = [...illustratorSet].sort((a, b) => a.localeCompare(b));
+
     res.json({ types, subtypes, illustrators });
   } catch (err) {
     next(err);
@@ -143,7 +154,7 @@ router.get('/cards/search', async (req, res, next) => {
     if (type)       q = q.where('t.code', type);
     if (subtype)    q = q.where('st.code', subtype);
     if (traits)     q = q.whereRaw('c.traits LIKE ?', [`%${traits}%`]);
-    if (illustrator) q = q.where('c.illustrator', illustrator);
+    if (illustrator) q = q.whereRaw('c.illustrator LIKE ?', [`%${illustrator}%`]);
     if (is_unique === '1') q = q.where('c.is_unique', 1);
     if (is_unique === '0') q = q.where('c.is_unique', 0);
 
