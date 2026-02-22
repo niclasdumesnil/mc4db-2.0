@@ -42,6 +42,154 @@ router.get('/cards/', async (req, res, next) => {
 });
 
 /**
+ * GET /api/public/cards/attributes
+ * Returns distinct types, subtypes, and illustrators for building filter dropdowns.
+ */
+router.get('/cards/attributes', async (req, res, next) => {
+  try {
+    const db = require('../config/database');
+    const [types, subtypes, illustrators] = await Promise.all([
+      db('type').select('code', 'name').orderBy('name'),
+      db('subtype').select('code', 'name').orderBy('name'),
+      db('card').distinct('illustrator').whereNotNull('illustrator').whereNot('illustrator', '').orderBy('illustrator').pluck('illustrator'),
+    ]);
+    res.json({ types, subtypes, illustrators });
+  } catch (err) {
+    next(err);
+  }
+});
+
+const VALID_OPS = { '=': '=', 'lt': '<', 'lte': '<=', 'gt': '>', 'gte': '>=' };
+
+/**
+ * GET /api/public/cards/search
+ * Filterable, paginated card search.
+ *
+ * Query params:
+ *   name, text, flavor  — LIKE matches
+ *   pack                — pack code exact match
+ *   faction             — faction code (matches faction or faction2)
+ *   type                — type code exact
+ *   subtype             — subtype code exact
+ *   traits              — LIKE match on traits string
+ *   illustrator         — exact illustrator name
+ *   is_unique           — 1 or 0
+ *   cost / cost_op      — numeric comparison (op: =, lt, lte, gt, gte)
+ *   qty / qty_op        — same for quantity
+ *   atk / atk_op        — attack
+ *   thw / thw_op        — thwart
+ *   def / def_op        — defense
+ *   health / health_op  — health
+ *   res_physical / res_mental / res_energy / res_wild — minimum resource icons (>=)
+ *   page, limit         — pagination (default page=1, limit=50, max limit=200)
+ *   sort                — name (default) | pack | cost | faction
+ */
+router.get('/cards/search', async (req, res, next) => {
+  try {
+    const db = require('../config/database');
+    const {
+      name, text, flavor, pack, faction, type, subtype,
+      traits, illustrator, is_unique,
+      cost_op = '=', cost,
+      qty_op = '=', qty,
+      atk_op = '=', atk,
+      thw_op = '=', thw,
+      def_op = '=', def,
+      health_op = '=', health,
+      res_physical, res_mental, res_energy, res_wild,
+      page = 1, limit = 50, sort = 'name', order = 'asc',
+      hide_duplicates,
+    } = req.query;
+
+    const dir = order === 'desc' ? 'desc' : 'asc';
+
+    let q = db('card as c')
+      .leftJoin('pack as p', 'c.pack_id', 'p.id')
+      .leftJoin('type as t', 'c.type_id', 't.id')
+      .leftJoin('subtype as st', 'c.subtype_id', 'st.id')
+      .leftJoin('faction as f', 'c.faction_id', 'f.id')
+      .leftJoin('faction as f2', 'c.faction2_id', 'f2.id')
+      .leftJoin('cardset as cs', 'c.set_id', 'cs.id')
+      .select([
+        'c.code', 'c.name', 'c.cost', 'c.position', 'c.hidden', 'c.is_unique',
+        'c.traits', 'c.quantity', db.raw('IF(c.duplicate_id IS NOT NULL, 1, 0) as is_duplicate'),
+        'c.resource_energy', 'c.resource_physical', 'c.resource_mental', 'c.resource_wild',
+        'c.attack', 'c.thwart', 'c.defense', 'c.health',
+        'p.code as pack_code', 'p.name as pack_name',
+        'p.creator as pack_creator', 'p.status as pack_status', 'p.environment as pack_environment',
+        't.code as type_code', 't.name as type_name',
+        'st.code as subtype_code', 'st.name as subtype_name',
+        'f.code as faction_code', 'f.name as faction_name',
+        'f2.code as faction2_code', 'f2.name as faction2_name',
+        'cs.code as card_set_code', 'cs.name as card_set_name',
+      ])
+      .where('c.hidden', 0);
+
+    if (name)       q = q.whereRaw('c.name LIKE ?', [`%${name}%`]);
+    if (text)       q = q.whereRaw('(c.text LIKE ? OR c.real_text LIKE ?)', [`%${text}%`, `%${text}%`]);
+    if (flavor)     q = q.whereRaw('c.flavor LIKE ?', [`%${flavor}%`]);
+    if (pack)       q = q.where('p.code', pack);
+    if (faction)    q = q.where(function () { this.where('f.code', faction).orWhere('f2.code', faction); });
+    // Multi-faction filter: `factions` param is a comma-separated list → OR logic
+    const factionsList = req.query.factions ? req.query.factions.split(',').map(s => s.trim()).filter(Boolean) : [];
+    if (!faction && factionsList.length > 0) {
+      q = q.where(function () {
+        factionsList.forEach(fc => {
+          this.orWhere(function () { this.where('f.code', fc).orWhere('f2.code', fc); });
+        });
+      });
+    }
+    if (type)       q = q.where('t.code', type);
+    if (subtype)    q = q.where('st.code', subtype);
+    if (traits)     q = q.whereRaw('c.traits LIKE ?', [`%${traits}%`]);
+    if (illustrator) q = q.where('c.illustrator', illustrator);
+    if (is_unique === '1') q = q.where('c.is_unique', 1);
+    if (is_unique === '0') q = q.where('c.is_unique', 0);
+
+    const applyNumeric = (field, val, op) => {
+      if (val === undefined || val === '') return q;
+      const sqlOp = VALID_OPS[op] || '=';
+      return q.where(field, sqlOp, parseInt(val, 10));
+    };
+    q = applyNumeric('c.cost', cost, cost_op);
+    q = applyNumeric('c.quantity', qty, qty_op);
+    q = applyNumeric('c.attack', atk, atk_op);
+    q = applyNumeric('c.thwart', thw, thw_op);
+    q = applyNumeric('c.defense', def, def_op);
+    q = applyNumeric('c.health', health, health_op);
+
+    if (res_physical) q = q.where('c.resource_physical', '>=', parseInt(res_physical, 10));
+    if (res_mental)   q = q.where('c.resource_mental',   '>=', parseInt(res_mental,   10));
+    if (res_energy)   q = q.where('c.resource_energy',   '>=', parseInt(res_energy,   10));
+    if (res_wild)     q = q.where('c.resource_wild',     '>=', parseInt(res_wild,     10));
+
+    if (hide_duplicates === '1') q = q.whereNull('c.duplicate_id');
+
+    if (sort === 'pack')    q = q.orderBy([{ column: 'p.position', order: dir }, { column: 'c.position', order: dir }]);
+    else if (sort === 'cost') q = q.orderByRaw(`c.cost IS NULL, c.cost ${dir.toUpperCase()}, c.name ASC`);
+    else if (sort === 'faction') q = q.orderBy([{ column: 'f.name', order: dir }, { column: 'c.name', order: dir }]);
+    else q = q.orderBy('c.name', dir); // default: name
+
+    // Pagination
+    const pageNum  = Math.max(1, parseInt(page,  10) || 1);
+    const limitNum = Math.min(200, Math.max(10, parseInt(limit, 10) || 50));
+
+    const countRow = await q.clone().clearSelect().clearOrder().count('c.id as n').first();
+    const totalItems = Number(countRow?.n ?? 0);
+    const totalPages = Math.ceil(totalItems / limitNum);
+
+    const rows = await q.offset((pageNum - 1) * limitNum).limit(limitNum);
+
+    res.json({
+      cards: rows,
+      meta: { page: pageNum, limit: limitNum, total_pages: totalPages, total_items: totalItems },
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+/**
  * GET /api/public/card/:code[.json]
  */
 router.get(['/card/:code.json', '/card/:code'], async (req, res, next) => {

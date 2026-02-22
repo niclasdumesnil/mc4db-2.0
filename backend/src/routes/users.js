@@ -14,7 +14,7 @@ router.get('/user/:id', async (req, res) => {
     const row = await db('user').where('id', id).first();
     if (!row) return res.status(404).json({ error: 'User not found' });
 
-    // Published decks stats
+    // Published decks stats (table decklist)
     const [{ published_count }] = await db('decklist')
       .where('user_id', id)
       .whereNull('next_deck')
@@ -22,6 +22,22 @@ router.get('/user/:id', async (req, res) => {
 
     const topHeroRow = await db('decklist as d')
       .join('card as c', 'd.card_id', 'c.id')
+      .where('d.user_id', id)
+      .whereNull('d.next_deck')
+      .select('c.name as hero_name', 'c.code as hero_code')
+      .count('* as cnt')
+      .groupBy('c.id', 'c.name', 'c.code')
+      .orderBy('cnt', 'desc')
+      .first();
+
+    // Private decks stats (table deck)
+    const [{ private_count }] = await db('deck')
+      .where('user_id', id)
+      .whereNull('next_deck')
+      .count('* as private_count');
+
+    const topPrivateHeroRow = await db('deck as d')
+      .join('card as c', 'd.character_id', 'c.id')
       .where('d.user_id', id)
       .whereNull('d.next_deck')
       .select('c.name as hero_name', 'c.code as hero_code')
@@ -67,6 +83,12 @@ router.get('/user/:id', async (req, res) => {
       published_decks_count: Number(published_count) || 0,
       top_hero: topHeroRow
         ? { name: topHeroRow.hero_name, code: topHeroRow.hero_code, count: Number(topHeroRow.cnt) }
+        : null,
+
+      // Private decks stats
+      private_decks_count: Number(private_count) || 0,
+      top_private_hero: topPrivateHeroRow
+        ? { name: topPrivateHeroRow.hero_name, code: topPrivateHeroRow.hero_code, count: Number(topPrivateHeroRow.cnt) }
         : null
     };
 

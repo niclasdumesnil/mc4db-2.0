@@ -209,6 +209,8 @@
   border-top: 1px solid rgba(255,255,255,0.05);
 }
 .author-name { color: #fff; font-weight: 600; margin: 0 5px; }
+.deck-footer-private-badge { color: #8a99af; font-size: 0.78rem; }
+.deck-footer-date { color: #8a99af; font-size: 0.78rem; font-style: italic; }
 
 /* Smaller rep badge scoped to deck cards */
 .deck-card .rep-badge {

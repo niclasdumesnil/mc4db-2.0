@@ -1,0 +1,670 @@
+/* ── Card List Page ───────────────────────────────────────────── */
+
+:root {
+  --cl-bg:          #0d1629;
+  --cl-surface:     #111d35;
+  --cl-border:      rgba(255,255,255,0.08);
+  --cl-text:        #e2e8f0;
+  --cl-text-muted:  #94a3b8;
+  --cl-accent:      #3b82f6;
+}
+
+/* ── Outer layout ────────────────────────────────── */
+
+.cardlist-page {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background: var(--cl-bg);
+  color: var(--cl-text);
+  font-family: ui-sans-serif, system-ui, sans-serif;
+}
+
+.cardlist-page-inner {
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  grid-template-rows: auto 1fr;
+  gap: 0;
+  max-width: 1400px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 20px 16px;
+}
+
+/* ── Top bar (PackSearch) ───────────────────────── */
+
+.cardlist-topbar {
+  grid-column: 1 / -1;
+  background: var(--cl-surface);
+  border: 1px solid var(--cl-border);
+  border-radius: 10px;
+  padding: 14px 20px;
+  margin-bottom: 16px;
+}
+
+.cardlist-topbar-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.cardlist-topbar-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--cl-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin: 0;
+}
+
+/* ── Display mode selector ──────────────────────── */
+
+.cardlist-mode-bar {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.cardlist-mode-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border: 1px solid var(--cl-border);
+  border-radius: 6px;
+  background: var(--cl-surface);
+  color: var(--cl-text-muted);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.cardlist-mode-btn:hover {
+  background: rgba(59, 130, 246, 0.12);
+  color: var(--cl-text);
+}
+
+.cardlist-mode-btn--active {
+  background: rgba(59, 130, 246, 0.18);
+  border-color: rgba(59, 130, 246, 0.5);
+  color: #93c5fd;
+}
+
+/* ── Main area (left = list, right = filters) ────── */
+
+.cardlist-main {
+  min-width: 0;
+  padding-right: 16px;
+}
+
+.cardlist-sidebar {
+  position: sticky;
+  top: 80px;
+  max-height: calc(100vh - 96px);
+  overflow-y: auto;
+}
+
+/* ── Results meta + sort ─────────────────────────── */
+
+.cardlist-meta-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 2px;
+  margin-bottom: 10px;
+}
+
+.cardlist-count {
+  font-size: 0.85rem;
+  color: var(--cl-text-muted);
+}
+
+.cardlist-sort {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.cardlist-sort-label {
+  font-size: 0.8rem;
+  color: var(--cl-text-muted);
+}
+
+.cardlist-sort-select {
+  background: var(--cl-surface);
+  border: 1px solid var(--cl-border);
+  border-radius: 5px;
+  color: var(--cl-text);
+  font-size: 0.82rem;
+  padding: 4px 8px;
+  cursor: pointer;
+}
+
+.cardlist-order-btn {
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--cl-surface);
+  border: 1px solid var(--cl-border);
+  border-radius: 5px;
+  color: var(--cl-text-muted);
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  flex-shrink: 0;
+}
+
+.cardlist-order-btn:hover {
+  background: #3b82f61f;
+  color: var(--cl-text);
+  border-color: #3b82f680;
+}
+
+.cardlist-order-btn--desc {
+  background: #3b82f62e;
+  border-color: #3b82f680;
+  color: #93c5fd;
+}
+
+.cardlist-showdup-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 28px;
+  padding: 0 10px;
+  background: var(--cl-surface);
+  border: 1px solid var(--cl-border);
+  border-radius: 5px;
+  color: var(--cl-text-muted);
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.cardlist-showdup-btn:hover {
+  background: #3b82f61f;
+  color: var(--cl-text);
+  border-color: #3b82f680;
+}
+
+.cardlist-showdup-btn--active {
+  background: #f59e0b22;
+  border-color: #f59e0b88;
+  color: #f59e0b;
+}
+
+/* ── Loading / empty ─────────────────────────────── */
+
+.cardlist-loading,
+.cardlist-empty {
+  text-align: center;
+  padding: 48px;
+  color: var(--cl-text-muted);
+  font-size: 1rem;
+}
+
+/* ── Pagination (reuse deck pagination style) ─────── */
+
+.cardlist-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 16px 0;
+}
+
+.cardlist-pagination-btn {
+  min-width: 34px;
+  height: 34px;
+  padding: 0 8px;
+  border: 1px solid var(--cl-border);
+  border-radius: 6px;
+  background: var(--cl-surface);
+  color: var(--cl-text);
+  font-size: 0.88rem;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.cardlist-pagination-btn:hover:not(:disabled) {
+  background: rgba(59,130,246,0.15);
+  border-color: rgba(59,130,246,0.4);
+}
+
+.cardlist-pagination-btn--active {
+  background: rgba(59,130,246,0.25);
+  border-color: rgba(59,130,246,0.6);
+  color: #93c5fd;
+  font-weight: 700;
+}
+
+.cardlist-pagination-btn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+/* ═══════════════════════════════════════════════════
+   CHECKLIST DISPLAY
+═══════════════════════════════════════════════════ */
+
+.cl-checklist {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.84rem;
+}
+
+.cl-checklist th {
+  text-align: left;
+  padding: 8px 10px;
+  border-bottom: 2px solid rgba(255,255,255,0.12);
+  color: var(--cl-text-muted);
+  font-weight: 600;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+  background: var(--cl-surface);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.cl-checklist th.sortable {
+  cursor: pointer;
+  user-select: none;
+}
+
+.cl-checklist th.sortable:hover {
+  color: var(--cl-text);
+}
+
+.cl-checklist th .sort-indicator {
+  margin-left: 4px;
+  opacity: 0.6;
+}
+
+.cl-checklist tr:nth-child(even) td {
+  background: rgba(255,255,255,0.02);
+}
+
+.cl-checklist tr:hover td {
+  background: rgba(59,130,246,0.06);
+}
+
+.cl-checklist td {
+  padding: 7px 10px;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  vertical-align: middle;
+}
+
+/* Name column */
+.cl-card-name {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.cl-card-name a {
+  color: var(--cl-text);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.cl-card-name a:hover {
+  color: #93c5fd;
+  text-decoration: underline;
+}
+
+.cl-faction-dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.cl-faction-dot--hero {
+  width: auto;
+  height: auto;
+  border-radius: 0;
+  color: #8a99af;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: none !important;
+}
+
+.cl-unique-icon {
+  font-family: 'marvel-icons', sans-serif;
+  font-size: 0.85rem;
+  color: #ffffff;
+  flex-shrink: 0;
+  line-height: 1;
+  margin-right: 1px;
+}
+
+.cl-qty {
+  font-size: 0.74rem;
+  color: var(--cl-text-muted);
+  font-style: italic;
+  flex-shrink: 0;
+  margin-left: 2px;
+}
+
+/* Faction/class column */
+.cl-faction {
+  font-weight: 600;
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+
+.cl-faction-dual {
+  font-size: 0.72rem;
+}
+
+/* Cost column */
+.cl-cost {
+  width: 36px;
+  text-align: center;
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+/* Type column */
+.cl-type {
+  color: var(--cl-text-muted);
+  white-space: nowrap;
+  font-size: 0.8rem;
+}
+
+/* Resources column */
+.cl-resources {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  min-width: 48px;
+}
+
+/* cl-res-icon styles are in mc4db.css (shared) */
+
+/* Traits column */
+.cl-traits {
+  color: var(--cl-text-muted);
+  font-size: 0.78rem;
+  font-style: italic;
+  max-width: 220px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Pack column */
+.cl-pack {
+  color: var(--cl-text-muted);
+  font-size: 0.78rem;
+  white-space: nowrap;
+}
+
+/* Set column */
+.cl-set {
+  color: var(--cl-text-muted);
+  font-size: 0.78rem;
+  white-space: nowrap;
+}
+
+/* ═══════════════════════════════════════════════════
+   CARD SEARCH SIDEBAR
+═══════════════════════════════════════════════════ */
+
+.card-search {
+  background: var(--cl-surface);
+  border: 1px solid var(--cl-border);
+  border-radius: 10px;
+  padding: 16px;
+  color: var(--cl-text);
+  font-size: 0.84rem;
+}
+
+.card-search-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.card-search-title {
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--cl-text-muted);
+  margin: 0;
+}
+
+.card-search-reset {
+  background: none;
+  border: none;
+  color: var(--cl-accent);
+  font-size: 0.78rem;
+  cursor: pointer;
+  padding: 0;
+  text-decoration: underline;
+}
+
+.card-search-reset:hover {
+  color: #93c5fd;
+}
+
+.card-search__section {
+  margin-bottom: 14px;
+  border-bottom: 1px solid var(--cl-border);
+  padding-bottom: 14px;
+}
+
+.card-search__section:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.card-search__label {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--cl-text-muted);
+  margin-bottom: 6px;
+}
+
+.card-search__input {
+  width: 100%;
+  background: rgba(0,0,0,0.3);
+  border: 1px solid var(--cl-border);
+  border-radius: 5px;
+  color: var(--cl-text);
+  font-size: 0.83rem;
+  padding: 6px 8px;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.card-search__input:focus {
+  border-color: rgba(59,130,246,0.5);
+}
+
+.card-search__select {
+  width: 100%;
+  background: rgba(0,0,0,0.3);
+  border: 1px solid var(--cl-border);
+  border-radius: 5px;
+  color: var(--cl-text);
+  font-size: 0.83rem;
+  padding: 6px 8px;
+  cursor: pointer;
+  box-sizing: border-box;
+}
+
+/* Faction/aspect pills — use deck-filters__aspect-btn from PublicDecks.css */
+
+/* Numeric row: op + value */
+.card-search__numeric-row {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.card-search__op-select {
+  width: 56px;
+  background: rgba(0,0,0,0.3);
+  border: 1px solid var(--cl-border);
+  border-radius: 5px;
+  color: var(--cl-text);
+  font-size: 0.8rem;
+  padding: 5px 4px;
+  flex-shrink: 0;
+}
+
+.card-search__number {
+  flex: 1;
+  background: rgba(0,0,0,0.3);
+  border: 1px solid var(--cl-border);
+  border-radius: 5px;
+  color: var(--cl-text);
+  font-size: 0.83rem;
+  padding: 5px 8px;
+  outline: none;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.card-search__number:focus {
+  border-color: rgba(59,130,246,0.5);
+}
+
+/* Resource row */
+.card-search__res-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+.card-search__res-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.card-search__res-label {
+  font-size: 0.78rem;
+  color: var(--cl-text-muted);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.card-search__res-input {
+  width: 100%;
+  background: rgba(0,0,0,0.3);
+  border: 1px solid var(--cl-border);
+  border-radius: 5px;
+  color: var(--cl-text);
+  font-size: 0.83rem;
+  padding: 5px 8px;
+  outline: none;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+/* Unique radio buttons */
+.card-search__radio-group {
+  display: flex;
+  gap: 6px;
+}
+
+.card-search__radio-btn {
+  flex: 1;
+  padding: 5px 0;
+  border: 1px solid var(--cl-border);
+  border-radius: 5px;
+  background: rgba(255,255,255,0.04);
+  color: var(--cl-text-muted);
+  font-size: 0.78rem;
+  font-weight: 500;
+  cursor: pointer;
+  text-align: center;
+  transition: background 0.12s, color 0.12s;
+}
+
+.card-search__radio-btn:hover {
+  background: rgba(59,130,246,0.1);
+  color: var(--cl-text);
+}
+
+.card-search__radio-btn--active {
+  background: rgba(59,130,246,0.2);
+  border-color: rgba(59,130,246,0.5);
+  color: #93c5fd;
+  font-weight: 700;
+}
+
+/* Section toggler (collapsed/expanded) */
+.card-search__section-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  user-select: none;
+  margin-bottom: 0;
+}
+
+.card-search__section-toggle label {
+  cursor: pointer;
+}
+
+.card-search__chevron {
+  font-size: 0.65rem;
+  opacity: 0.5;
+  transition: transform 0.15s;
+  flex-shrink: 0;
+}
+
+.card-search__chevron--open {
+  transform: rotate(180deg);
+}
+
+.card-search__section-body {
+  margin-top: 8px;
+}
+
+/* Numerics grid label */
+.card-search__numeric-label {
+  display: block;
+  font-size: 0.72rem;
+  color: var(--cl-text-muted);
+  margin-bottom: 3px;
+}
+
+@media (max-width: 900px) {
+  .cardlist-page-inner {
+    grid-template-columns: 1fr;
+  }
+
+  .cardlist-sidebar {
+    order: -1;
+    position: static;
+    max-height: none;
+  }
+
+  .cardlist-main {
+    padding-right: 0;
+  }
+}

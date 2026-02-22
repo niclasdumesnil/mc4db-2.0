@@ -84,6 +84,9 @@ app.use('/react', express.static(path.resolve(reactStaticDir)));
 // Serve site CSS used by Symfony templates so Node pages match Symfony styling
 app.use('/css', express.static(path.resolve(cssStaticDir)));
 
+// /card/ and /card with no code → redirect to the card list page
+app.get(['/card', '/card/'], (req, res) => res.redirect(301, '/card-list'));
+
 // Add a simple HTML view that mounts the React card components
 // This runs before the API routes so visiting /card/:code returns the React HTML
 app.get(['/card/:code.html', '/card/:code'], async (req, res, next) => {
@@ -363,6 +366,76 @@ app.get(['/decklists', '/decklists/'], async (req, res) => {
     <meta name="twitter:title" content="${title}">
     <meta name="twitter:description" content="${description}">
     <meta name="twitter:image" content="${image}">
+    <link rel="stylesheet" href="/react/css/card.css?v=${assetVersion}">
+  </head>
+  <body>
+    ${renderSharedHeader()}
+    <div id="mc-app"></div>
+    <noscript>
+      <div style="max-width:980px;margin:24px auto;padding:16px;background:#fee;color:#333;border-radius:8px;">JavaScript is disabled — the interactive UI requires JavaScript to function.</div>
+    </noscript>
+    <script src="/react/js/card.js?v=${assetVersion}"></script>
+  </body>
+</html>`;
+  res.type('html').send(html);
+});
+
+// Card List / Browse page (client-side rendered)
+app.get(['/card-list', '/card-list/'], (req, res) => {
+  const baseUrl = req.protocol + '://' + req.get('host');
+  const url = baseUrl + '/card-list';
+  const title = 'Card List — MarvelCDB';
+  const description = 'Browse and search all Marvel Champions cards with advanced filters.';
+  const image = baseUrl + '/react/images/og-default.svg';
+
+  const html = `<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>${title}</title>
+    <meta name="description" content="${description}">
+    <link rel="canonical" href="${url}">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="${title}">
+    <meta property="og:description" content="${description}">
+    <meta property="og:url" content="${url}">
+    <meta property="og:image" content="${image}">
+    <link rel="stylesheet" href="/react/css/card.css?v=${assetVersion}">
+  </head>
+  <body>
+    ${renderSharedHeader()}
+    <div id="mc-app"></div>
+    <noscript>
+      <div style="max-width:980px;margin:24px auto;padding:16px;background:#fee;color:#333;border-radius:8px;">JavaScript is disabled — the interactive UI requires JavaScript to function.</div>
+    </noscript>
+    <script src="/react/js/card.js?v=${assetVersion}"></script>
+  </body>
+</html>`;
+  res.type('html').send(html);
+});
+
+// My Decks page (client-side rendered — requires login)
+app.get(['/my-decks', '/my-decks/'], (req, res) => {
+  const baseUrl = req.protocol + '://' + req.get('host');
+  const url = baseUrl + '/my-decks';
+  const title = 'My Decks — MarvelCDB';
+  const description = 'Manage your private deck collection on MarvelCDB.';
+  const image = baseUrl + '/react/images/og-default.svg';
+
+  const html = `<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>${title}</title>
+    <meta name="description" content="${description}">
+    <link rel="canonical" href="${url}">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="${title}">
+    <meta property="og:description" content="${description}">
+    <meta property="og:url" content="${url}">
+    <meta property="og:image" content="${image}">
     <link rel="stylesheet" href="/react/css/card.css?v=${assetVersion}">
   </head>
   <body>

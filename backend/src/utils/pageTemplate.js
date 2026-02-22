@@ -31,8 +31,9 @@ function renderSharedHeader() {
     <a href="/" style="color:#fff;text-decoration:none;font-weight:700;font-size:18px;">MC4DB 2.0</a>
     <div style="flex:1"></div>
     <a href="/" style="color:#cfe6ff;text-decoration:none;margin-right:4px;">Home</a>
-    <a href="/card/" style="color:#cfe6ff;text-decoration:none;margin-right:4px;">Browse</a>
+    <a href="/card-list" style="color:#cfe6ff;text-decoration:none;margin-right:4px;">Cards</a>
     <a href="/decklists" style="color:#cfe6ff;text-decoration:none;margin-right:4px;">Public Decks</a>
+    <a id="mc-my-decks-link" href="/my-decks" style="color:#cfe6ff;text-decoration:none;margin-right:4px;display:none;">My Decks</a>
     <a id="mc-dashboard-link" href="/dashboard" style="color:#cfe6ff;text-decoration:none;margin-right:4px;display:none;">Dashboard</a>
     <span id="mc-username" style="margin-right:4px;display:none;color:#fff;font-weight:600;font-size:14px;"></span>
     <span id="mc-locale-badge"
@@ -51,8 +52,9 @@ function renderSharedHeader() {
   <script>
     (function(){
       function _mcRenderHeader(){
-        var dash     = document.getElementById('mc-dashboard-link');
-        var userSpan = document.getElementById('mc-username');
+        var dash       = document.getElementById('mc-dashboard-link');
+        var myDecks    = document.getElementById('mc-my-decks-link');
+        var userSpan   = document.getElementById('mc-username');
         var loginBtn = document.getElementById('mc-login-btn');
         var logoutBtn= document.getElementById('mc-logout-btn');
         var u = null;
@@ -77,11 +79,13 @@ function renderSharedHeader() {
           var displayName = u.name || u.login || u.username || u.user || ('#' + u.id);
           if (userSpan)  { userSpan.style.display  = 'inline-block'; userSpan.textContent = displayName; }
           if (dash)      { dash.style.display       = 'inline-block'; }
+          if (myDecks)   { myDecks.style.display    = 'inline-block'; }
           if (loginBtn)  { loginBtn.style.display   = 'none'; }
           if (logoutBtn) { logoutBtn.style.display  = 'inline-flex'; }
         } else {
           if (userSpan)  { userSpan.style.display  = 'none'; }
           if (dash)      { dash.style.display      = 'none'; }
+          if (myDecks)   { myDecks.style.display   = 'none'; }
           if (loginBtn)  { loginBtn.style.display  = 'inline-flex'; }
           if (logoutBtn) { logoutBtn.style.display = 'none'; }
         }

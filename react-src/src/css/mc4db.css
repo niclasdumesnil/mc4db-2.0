@@ -254,3 +254,22 @@
 .pack-nav-btn:hover{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.35);color:#fff}
 .pack-nav-btn--prev .pack-nav-label,.pack-nav-btn--next .pack-nav-label{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
 .pack-nav-arrow{flex-shrink:0;font-size:1.1rem;line-height:1}
+
+/* ── Shared checklist resource icons (used by CardListDisplay) ── */
+.cl-res-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 3px;
+  font-family: 'marvel-icons', sans-serif;
+  font-size: 12px;
+  border: 1.5px solid;
+  line-height: 1;
+  flex-shrink: 0;
+}
+.cl-res-icon.icon-energy   { color: #ffc107; border-color: #ffc107; }
+.cl-res-icon.icon-physical { color: #dc3545; border-color: #dc3545; }
+.cl-res-icon.icon-mental   { color: #007bff; border-color: #007bff; }
+.cl-res-icon.icon-wild     { color: #28a745; border-color: #28a745; }

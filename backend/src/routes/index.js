@@ -8,7 +8,7 @@ const packsRoutes = require('./packs');
 const factionsRoutes = require('./factions');
 const authRoutes = require('./auth');
 const usersRoutes = require('./users');
-const decklistsRoutes = require('./decklists');
+const decksRoutes = require('./decks');
 
 const router = Router();
 
@@ -17,6 +17,6 @@ router.use(packsRoutes);
 router.use(factionsRoutes);
 router.use(authRoutes);
 router.use(usersRoutes);
-router.use(decklistsRoutes);
+router.use(decksRoutes);
 
 module.exports = router;

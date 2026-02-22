@@ -131,9 +131,11 @@ function CustomPackSelect({ packs, value, onChange, disabled, showCreator = fals
  *
  * Props:
  *   currentPackCode - code of the currently displayed pack
- *   onNavigate      - callback(code) navigates to the first card of the pack
+ *   onNavigate      - callback(cardCode) navigates to the first card of the pack
+ *   onPackSelect    - callback(packCode) fires with the pack code directly (filter mode,
+ *                     no card fetch). Provide this instead of onNavigate for filter UIs.
  */
-export default function PackSearch({ currentPackCode, onNavigate }) {
+export default function PackSearch({ currentPackCode, onNavigate, onPackSelect }) {
   const [officialPacks, setOfficialPacks] = useState([]);
   const [fanPacks, setFanPacks] = useState([]);
   const [selectedPack, setSelectedPack] = useState(currentPackCode || '');
@@ -169,8 +171,18 @@ export default function PackSearch({ currentPackCode, onNavigate }) {
   const sortedFan      = useMemo(() => applySort(fanPacks),      [fanPacks,      sortBy, sortDir]);
 
   const handleSelectPack = (packCode) => {
-    if (!packCode || packCode === selectedPack) return;
+    if (packCode === selectedPack) return;
     setSelectedPack(packCode);
+
+    // Filter mode: just fire the pack code (including '' to clear)
+    if (onPackSelect) {
+      onPackSelect(packCode || '');
+      return;
+    }
+
+    if (!packCode) return;
+
+    // Navigation mode: fetch first card of the pack and call onNavigate
     setNavigating(true);
     fetch(`/api/public/cards/${packCode}`)
       .then(r => r.json())

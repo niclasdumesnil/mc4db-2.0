@@ -87,12 +87,16 @@ export default function Profile({ user }) {
           <span className="label">Published Decks</span>
           <span className="value">{user.published_decks_count ?? 0}</span>
         </div>
-        {user.top_hero && (
+        <div className="info-item">
+          <span className="label">Private Decks</span>
+          <span className="value">{user.private_decks_count ?? 0}</span>
+        </div>
+        {user.top_private_hero && (
           <div className="info-item">
             <span className="label">Favourite Hero</span>
             <span className="value">
-              {user.top_hero.name}
-              <span className="top-hero-count"> ({user.top_hero.count} deck{user.top_hero.count > 1 ? 's' : ''})</span>
+              {user.top_private_hero.name}
+              <span className="top-hero-count"> ({user.top_private_hero.count} deck{user.top_private_hero.count > 1 ? 's' : ''})</span>
             </span>
           </div>
         )}
