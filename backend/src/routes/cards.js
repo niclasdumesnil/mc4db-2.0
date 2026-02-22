@@ -109,7 +109,7 @@ router.get('/cards/search', async (req, res, next) => {
       health_op = '=', health,
       res_physical, res_mental, res_energy, res_wild,
       page = 1, limit = 50, sort = 'name', order = 'asc',
-      hide_duplicates, creator_filter,
+      hide_duplicates, show_alt_art, creator_filter,
       locale = 'en',
     } = req.query;
 
@@ -124,7 +124,7 @@ router.get('/cards/search', async (req, res, next) => {
       .leftJoin('cardset as cs', 'c.set_id', 'cs.id')
       .select([
         'c.code', 'c.name', 'c.cost', 'c.position', 'c.hidden', 'c.is_unique',
-        'c.traits', 'c.quantity', db.raw('IF(c.duplicate_id IS NOT NULL, 1, 0) as is_duplicate'),
+        'c.traits', 'c.quantity', 'c.alt_art', db.raw('IF(c.duplicate_id IS NOT NULL, 1, 0) as is_duplicate'),
         'c.resource_energy', 'c.resource_physical', 'c.resource_mental', 'c.resource_wild',
         'c.attack', 'c.thwart', 'c.defense', 'c.health',
         'p.code as pack_code', 'p.name as pack_name',
@@ -175,7 +175,16 @@ router.get('/cards/search', async (req, res, next) => {
     if (res_energy)   q = q.where('c.resource_energy',   '>=', parseInt(res_energy,   10));
     if (res_wild)     q = q.where('c.resource_wild',     '>=', parseInt(res_wild,     10));
 
-    if (hide_duplicates === '1') q = q.whereNull('c.duplicate_id');
+    if (hide_duplicates === '1') {
+      if (show_alt_art === '1') {
+        // Keep alt-art duplicates even when hiding regular duplicates
+        q = q.where(function () {
+          this.whereNull('c.duplicate_id').orWhere('c.alt_art', 1);
+        });
+      } else {
+        q = q.whereNull('c.duplicate_id');
+      }
+    }
     if (creator_filter === 'official') q = q.whereNull('p.creator');
     if (creator_filter === 'fanmade')  q = q.whereNotNull('p.creator');
 

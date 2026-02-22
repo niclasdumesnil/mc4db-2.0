@@ -4,6 +4,12 @@ import CardSearch, { EMPTY_FILTERS } from '@components/CardSearch';
 import CardListDisplay from '@components/CardListDisplay';
 import '@css/CardList.css';
 
+// Single shared reference used to initialise both `filters` and `debouncedFilters`.
+// Because both states start from the *same* object reference, the debounce timeout
+// that fires 350 ms after mount calls setDebouncedFilters(filters) where
+// debouncedFilters === filters (same ref) → React bails out → no extra fetch.
+const _INIT_FILTERS = { ...EMPTY_FILTERS };
+
 const DISPLAY_MODES = [
   { key: 'checklist', icon: '☰', label: 'Checklist' },
   // Future: { key: 'grid', icon: '⊞', label: 'Cards' },
@@ -12,13 +18,14 @@ const DISPLAY_MODES = [
 /**
  * Build the search API URL from filters + pagination state.
  */
-function buildSearchUrl(filters, page, sort, order, showDuplicates, showOfficial, showFanmade, locale = 'en', limit = 50) {
+function buildSearchUrl(filters, page, sort, order, showDuplicates, showAltArt, showOfficial, showFanmade, locale = 'en', limit = 50) {
   const params = new URLSearchParams();
   params.set('page', page);
   params.set('limit', limit);
   params.set('sort', sort);
   params.set('order', order);
   if (!showDuplicates) params.set('hide_duplicates', '1');
+  if (showAltArt) params.set('show_alt_art', '1');
   if (showOfficial && !showFanmade)  params.set('creator_filter', 'official');
   if (!showOfficial && showFanmade)  params.set('creator_filter', 'fanmade');
   if (locale && locale !== 'en') params.set('locale', locale);
@@ -147,15 +154,18 @@ export default function CardList() {
   const [sort, setSort]           = useState('pack');
   const [order, setOrder]         = useState('asc');
   const [showDuplicates, setShowDuplicates] = useState(false);
+  const [showAltArt, setShowAltArt]         = useState(true);
   const [showOfficial, setShowOfficial]     = useState(true);
   const [showFanmade,  setShowFanmade]      = useState(true);
   const [mode, setMode]           = useState('checklist');
-  const [filters, setFilters]     = useState({ ...EMPTY_FILTERS });
+  const [filters, setFilters]     = useState(_INIT_FILTERS);
   const [attributes, setAttributes] = useState({ types: [], subtypes: [], illustrators: [] });
 
   // Debounce text filters so we don't fire on every keystroke
   const debounceRef = useRef(null);
-  const [debouncedFilters, setDebouncedFilters] = useState({ ...EMPTY_FILTERS });
+  // Start from the *same* reference as `filters` to avoid a spurious second fetch
+  // 350 ms after mount (see module-level _INIT_FILTERS comment above).
+  const [debouncedFilters, setDebouncedFilters] = useState(_INIT_FILTERS);
 
   // Fetch type/subtype/illustrator lists once on mount
   useEffect(() => {
@@ -185,14 +195,19 @@ export default function CardList() {
       return;
     }
 
-    let cancelled = false;
+    // AbortController cancels the in-flight HTTP request when the effect re-runs
+    // (e.g. user changes filters again before the previous response arrived).
+    // Without this, rapid filter changes pile up concurrent requests on the server.
+    const controller = new AbortController();
     setLoading(true);
 
-    const url = buildSearchUrl(debouncedFilters, page, sort, order, showDuplicates, showOfficial, showFanmade, locale);
-    fetch(url)
-      .then(r => r.json())
+    const url = buildSearchUrl(debouncedFilters, page, sort, order, showDuplicates, showAltArt, showOfficial, showFanmade, locale);
+    fetch(url, { signal: controller.signal })
+      .then(r => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return r.json();
+      })
       .then(data => {
-        if (cancelled) return;
         setCards(data.cards || []);
         setTotalPages(data.meta?.total_pages ?? 1);
         setTotalItems(data.meta?.total_items ?? 0);
@@ -202,12 +217,15 @@ export default function CardList() {
         setLoading(false);
         window.scrollTo({ top: 0, behavior: 'smooth' });
       })
-      .catch(() => {
-        if (!cancelled) setLoading(false);
+      .catch((err) => {
+        // AbortError is expected when a newer filter is applied — ignore silently.
+        if (err.name === 'AbortError') return;
+        setCards([]);
+        setLoading(false);
       });
 
-    return () => { cancelled = true; };
-  }, [debouncedFilters, page, sort, order, showDuplicates, showOfficial, showFanmade, locale]);
+    return () => { controller.abort(); };
+  }, [debouncedFilters, page, sort, order, showDuplicates, showAltArt, showOfficial, showFanmade, locale]);
 
   const handleFiltersChange = useCallback((newFilters) => {
     setFilters(newFilters);
@@ -300,10 +318,16 @@ export default function CardList() {
                 title={showFanmade ? 'Masquer les cartes fan-made' : 'Afficher les cartes fan-made'}
               >Fan-Made</button>
               <button
+                className={`cardlist-altart-btn${showAltArt ? ' cardlist-altart-btn--active' : ''}`}
+                onClick={() => { setShowAltArt(v => !v); setPage(1); }}
+                title={showAltArt ? 'Hide alt-art cards' : 'Show alt-art cards'}
+              >
+                🎨 Alt Art
+              </button>
+              <button
                 className={`cardlist-showdup-btn${showDuplicates ? ' cardlist-showdup-btn--active' : ''}`}
                 onClick={() => { setShowDuplicates(v => !v); setPage(1); }}
-                title={showDuplicates ? 'Hide duplicates' : 'Show duplicates'}
-              >
+                title={showDuplicates ? 'Hide duplicates' : 'Show duplicates'}>
                 {showDuplicates ? '⊕' : '⊕'} Duplicates
               </button>
               <span className="cardlist-sort-label">Sort:</span>

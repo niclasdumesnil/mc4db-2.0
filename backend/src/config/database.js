@@ -19,8 +19,8 @@ const db = knex({
     charset: 'utf8',
   },
   pool: { min: 2, max: 10 },
-  // Log queries in development
-  debug: process.env.NODE_ENV === 'development',
+  // Set DEBUG_SQL=1 in .env to log all queries (very verbose).
+  debug: process.env.DEBUG_SQL === '1',
 });
 
 module.exports = db;

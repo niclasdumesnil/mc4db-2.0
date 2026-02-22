@@ -99,6 +99,7 @@ export default function CardListDisplay({ cards, mode = 'checklist', sort, onSor
                     <a href={`/card/${card.code}`}>{card.name}</a>
                     {(!card.is_unique && card.quantity > 0) ? <span className="cl-qty">(x{card.quantity})</span> : null}
                     {card.pack_environment === 'current' ? <span className="mc-badge mc-badge-current" title="Standard format">Current</span> : null}
+                    {card.alt_art ? <span className="mc-badge mc-badge-altart" title="Alternative art">Alt Art</span> : null}
                     {card.pack_creator ? <span className="mc-badge mc-badge-creator" title={`Created by ${card.pack_creator}`}>{card.pack_creator}</span> : null}
                   </div>
                 </td>

@@ -175,6 +175,7 @@ function serializeCard(row, opts = {}) {
     octgn_id: row.octgn_id || null,
     errata: row.errata || '',
     expansions_needed: row.expansions_needed || '',
+    alt_art: toBool(row.alt_art),
 
     // Computed fields
     url: `${BASE_URL}/card/${row.code}`,

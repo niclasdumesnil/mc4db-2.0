@@ -78,6 +78,7 @@ const BASE_CARD_COLUMNS = [
   'c.octgn_id',
   'c.errata',
   'c.expansions_needed',
+  'c.alt_art',
   'c.date_creation',
   'c.date_update',
   // Joined fields
