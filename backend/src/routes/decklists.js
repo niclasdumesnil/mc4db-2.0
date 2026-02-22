@@ -39,7 +39,11 @@ router.get('/decklists', async (req, res) => {
             }
           });
         }
-        tags.forEach(t => q.whereRaw("FIND_IN_SET(?, d.tags)", [t]));
+        if (tags.length) {
+          q.where(function () {
+            tags.forEach(t => this.orWhereRaw("FIND_IN_SET(?, d.tags)", [t]));
+          });
+        }
       });
 
     const query = baseQuery()
