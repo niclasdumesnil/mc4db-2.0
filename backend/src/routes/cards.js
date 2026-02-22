@@ -99,6 +99,7 @@ router.get('/cards/search', async (req, res, next) => {
       res_physical, res_mental, res_energy, res_wild,
       page = 1, limit = 50, sort = 'name', order = 'asc',
       hide_duplicates, creator_filter,
+      locale = 'en',
     } = req.query;
 
     const dir = order === 'desc' ? 'desc' : 'asc';
@@ -190,8 +191,29 @@ router.get('/cards/search', async (req, res, next) => {
 
     const rows = await q.offset((pageNum - 1) * limitNum).limit(limitNum);
 
+    // Apply translations if a non-English locale is requested
+    const localeClean = (locale || 'en').toLowerCase();
+    let cards = rows;
+    if (localeClean !== 'en' && rows.length > 0) {
+      const codes = rows.map(r => r.code);
+      const transRows = await db('card_translation')
+        .whereIn('code', codes)
+        .where('locale', localeClean)
+        .select(['code', ...TRANS_FIELDS]);
+      const transMap = Object.fromEntries(transRows.map(t => [t.code, t]));
+      cards = rows.map(r => {
+        const t = transMap[r.code];
+        if (!t) return r;
+        const updated = { ...r };
+        for (const f of TRANS_FIELDS) {
+          if (t[f] != null && t[f] !== '') updated[f] = t[f];
+        }
+        return updated;
+      });
+    }
+
     res.json({
-      cards: rows,
+      cards,
       meta: {
         page: pageNum, limit: limitNum, total_pages: totalPages, total_items: totalItems,
         total_official: totalOfficial, total_fanmade: totalFanmade, total_duplicates: totalDuplicates,

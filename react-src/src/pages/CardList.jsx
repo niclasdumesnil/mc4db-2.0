@@ -12,7 +12,7 @@ const DISPLAY_MODES = [
 /**
  * Build the search API URL from filters + pagination state.
  */
-function buildSearchUrl(filters, page, sort, order, showDuplicates, showOfficial, showFanmade, limit = 50) {
+function buildSearchUrl(filters, page, sort, order, showDuplicates, showOfficial, showFanmade, locale = 'en', limit = 50) {
   const params = new URLSearchParams();
   params.set('page', page);
   params.set('limit', limit);
@@ -21,6 +21,7 @@ function buildSearchUrl(filters, page, sort, order, showDuplicates, showOfficial
   if (!showDuplicates) params.set('hide_duplicates', '1');
   if (showOfficial && !showFanmade)  params.set('creator_filter', 'official');
   if (!showOfficial && showFanmade)  params.set('creator_filter', 'fanmade');
+  if (locale && locale !== 'en') params.set('locale', locale);
 
   if (filters.name)    params.set('name',    filters.name);
   if (filters.text)    params.set('text',    filters.text);
@@ -121,6 +122,9 @@ function Pagination({ page, totalPages, onPage }) {
 }
 
 export default function CardList() {
+  // Read the locale injected by the server (window.__MC_LOCALE__) so translations
+  // are applied automatically when the page is served in a non-English language.
+  const locale = (typeof window !== 'undefined' && window.__MC_LOCALE__) || 'en';
   const [cards, setCards]         = useState([]);
   const [loading, setLoading]     = useState(true);
   const [page, setPage]           = useState(1);
@@ -173,7 +177,7 @@ export default function CardList() {
     let cancelled = false;
     setLoading(true);
 
-    const url = buildSearchUrl(debouncedFilters, page, sort, order, showDuplicates, showOfficial, showFanmade);
+    const url = buildSearchUrl(debouncedFilters, page, sort, order, showDuplicates, showOfficial, showFanmade, locale);
     fetch(url)
       .then(r => r.json())
       .then(data => {

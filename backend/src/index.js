@@ -388,6 +388,10 @@ app.get(['/card-list', '/card-list/'], (req, res) => {
   const description = 'Browse and search all Marvel Champions cards with advanced filters.';
   const image = baseUrl + '/react/images/og-default.svg';
 
+  // Determine locale from Accept-Language header (e.g. 'fr-FR,fr;q=0.9' → 'fr')
+  const localeRaw = (req.acceptsLanguages && req.acceptsLanguages()[0]) || 'en';
+  const locale = localeRaw.split('-')[0].toLowerCase() || 'en';
+
   const html = `<!doctype html>
 <html>
   <head>
@@ -402,6 +406,7 @@ app.get(['/card-list', '/card-list/'], (req, res) => {
     <meta property="og:url" content="${url}">
     <meta property="og:image" content="${image}">
     <link rel="stylesheet" href="/react/css/card.css?v=${assetVersion}">
+    <script>window.__MC_LOCALE__ = ${JSON.stringify(locale)};</script>
   </head>
   <body>
     ${renderSharedHeader()}
