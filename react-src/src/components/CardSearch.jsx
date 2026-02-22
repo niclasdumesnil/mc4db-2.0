@@ -50,13 +50,22 @@ function NumericField({ label, valKey, opKey, filters, onChange }) {
   );
 }
 
-function Section({ label, defaultOpen = true, children }) {
+function Section({ label, defaultOpen = true, active = false, onReset, children }) {
   const [open, setOpen] = useState(defaultOpen);
   return (
     <div className="card-search__section">
       <div className="card-search__section-toggle" onClick={() => setOpen(o => !o)}>
         <label className="card-search__label" style={{ marginBottom: 0 }}>{label}</label>
-        <span className={`card-search__chevron${open ? ' card-search__chevron--open' : ''}`}>▼</span>
+        <div className="card-search__section-toggle-right">
+          {active && onReset && (
+            <button
+              className="card-search__section-reset"
+              onClick={e => { e.stopPropagation(); onReset(); }}
+              title="Reset"
+            >✕</button>
+          )}
+          <span className={`card-search__chevron${open ? ' card-search__chevron--open' : ''}`}>▼</span>
+        </div>
       </div>
       {open && <div className="card-search__section-body">{children}</div>}
     </div>
@@ -101,12 +110,15 @@ export default function CardSearch({ filters, onChange, types = [], subtypes = [
       <div className="card-search-header">
         <h3 className="card-search-title">✦ Filters</h3>
         {hasFilters && (
-          <button className="card-search-reset" onClick={reset}>✕ Reset</button>
+          <button className="card-search-reset" onClick={reset} title="Reset">✕</button>
         )}
       </div>
 
       {/* ── Text searches ── */}
-      <Section label="Name" defaultOpen={true}>
+      <Section label="Name" defaultOpen={true}
+        active={!!filters.name}
+        onReset={() => set({ name: '' })}
+      >
         <input
           className="card-search__input"
           type="text"
@@ -116,7 +128,10 @@ export default function CardSearch({ filters, onChange, types = [], subtypes = [
         />
       </Section>
 
-      <Section label="Text" defaultOpen={false}>
+      <Section label="Text" defaultOpen={false}
+        active={!!(filters.text || filters.flavor)}
+        onReset={() => set({ text: '', flavor: '' })}
+      >
         <input
           className="card-search__input"
           type="text"
@@ -135,7 +150,10 @@ export default function CardSearch({ filters, onChange, types = [], subtypes = [
       </Section>
 
       {/* ── Aspect / Faction ── */}
-      <Section label="Aspect" defaultOpen={true}>
+      <Section label="Aspect" defaultOpen={true}
+        active={!!(filters.factions && filters.factions.length)}
+        onReset={() => set({ factions: [] })}
+      >
         <div className="deck-filters__aspects" style={{ flexWrap: 'wrap' }}>
           <button
             className={`deck-filters__aspect-btn deck-filters__aspect-btn--all${
@@ -168,7 +186,13 @@ export default function CardSearch({ filters, onChange, types = [], subtypes = [
       </Section>
 
       {/* ── Attributes ── */}
-      <Section label="Attributes" defaultOpen={true}>
+      <Section label="Attributes" defaultOpen={true}
+        active={!!(filters.type || filters.subtype || filters.traits ||
+          filters.res_physical || filters.res_mental || filters.res_energy || filters.res_wild ||
+          filters.is_unique !== '')}
+        onReset={() => set({ type: '', subtype: '', traits: '', is_unique: '',
+          res_physical: '', res_mental: '', res_energy: '', res_wild: '' })}
+      >
         <span className="card-search__numeric-label">Type</span>
         <select
           className="card-search__select"
@@ -201,6 +225,38 @@ export default function CardSearch({ filters, onChange, types = [], subtypes = [
           style={{ marginBottom: 8 }}
         />
 
+        <span className="card-search__numeric-label">Resources (min)</span>
+        <div className="card-search__res-grid">
+          {[
+            { key: 'res_physical', iconCls: 'icon-physical' },
+            { key: 'res_mental',   iconCls: 'icon-mental'   },
+            { key: 'res_energy',   iconCls: 'icon-energy'   },
+            { key: 'res_wild',     iconCls: 'icon-wild'     },
+          ].map(r => (
+            <div className="card-search__res-item" key={r.key}>
+              <div className="card-search__res-qty-btns">
+                {['1', '2'].map(qty => (
+                  <button
+                    key={qty}
+                    className={`card-search__res-qty-btn${filters[r.key] === qty ? ' card-search__res-qty-btn--active' : ''}`}
+                    onClick={() => set({ [r.key]: filters[r.key] === qty ? '' : qty })}
+                  >{qty}+</button>
+                ))}
+              </div>
+              <span className={`cl-res-icon ${r.iconCls} card-search__res-icon-inline`} />
+            </div>
+          ))}
+          <div className="card-search__res-item card-search__res-item--any">
+            <button
+              className={`card-search__res-qty-btn card-search__res-any-btn${
+                !filters.res_physical && !filters.res_mental && !filters.res_energy && !filters.res_wild
+                  ? ' card-search__res-qty-btn--active' : ''}`}
+              onClick={() => set({ res_physical: '', res_mental: '', res_energy: '', res_wild: '' })}
+            >Any</button>
+          </div>
+        </div>
+        <div style={{ marginBottom: 8 }} />
+
         <span className="card-search__numeric-label">Unique</span>
         <div className="card-search__radio-group">
           {[['', 'Any'], ['1', 'Yes ✦'], ['0', 'No']].map(([val, lbl]) => (
@@ -216,7 +272,13 @@ export default function CardSearch({ filters, onChange, types = [], subtypes = [
       </Section>
 
       {/* ── Numerics ── */}
-      <Section label="Numerics" defaultOpen={false}>
+      <Section label="Numerics" defaultOpen={false}
+        active={!!(filters.cost !== '' || filters.qty !== '' || filters.atk !== '' ||
+          filters.thw !== '' || filters.def !== '' || filters.health !== '')}
+        onReset={() => set({ cost: '', cost_op: '=', qty: '', qty_op: '=',
+          atk: '', atk_op: '=', thw: '', thw_op: '=', def: '', def_op: '=',
+          health: '', health_op: '=' })}
+      >
         <NumericField label="Cost"     valKey="cost"   opKey="cost_op"   filters={filters} onChange={onChange} />
         <NumericField label="Quantity" valKey="qty"    opKey="qty_op"    filters={filters} onChange={onChange} />
         <NumericField label="Attack"   valKey="atk"    opKey="atk_op"    filters={filters} onChange={onChange} />
@@ -224,33 +286,14 @@ export default function CardSearch({ filters, onChange, types = [], subtypes = [
         <NumericField label="Defend"   valKey="def"    opKey="def_op"    filters={filters} onChange={onChange} />
         <NumericField label="Health"   valKey="health" opKey="health_op" filters={filters} onChange={onChange} />
 
-        <span className="card-search__numeric-label" style={{ marginTop: 4 }}>Resources (min)</span>
-        <div className="card-search__res-grid">
-          {[
-            { key: 'res_physical', icon: '🔴', label: 'Phys' },
-            { key: 'res_mental',   icon: '🔵', label: 'Ment' },
-            { key: 'res_energy',   icon: '🟡', label: 'Enrg' },
-            { key: 'res_wild',     icon: '🟢', label: 'Wild' },
-          ].map(r => (
-            <div className="card-search__res-item" key={r.key}>
-              <span className="card-search__res-label">{r.icon} {r.label}</span>
-              <input
-                className="card-search__res-input"
-                type="number"
-                min="0"
-                max="4"
-                placeholder="0"
-                value={filters[r.key] ?? ''}
-                onChange={e => set({ [r.key]: e.target.value })}
-              />
-            </div>
-          ))}
-        </div>
       </Section>
 
       {/* ── Illustrator ── */}
       {illustrators.length > 0 && (
-        <Section label="Illustrator" defaultOpen={false}>
+        <Section label="Illustrator" defaultOpen={false}
+          active={!!filters.illustrator}
+          onReset={() => set({ illustrator: '' })}
+        >
           <select
             className="card-search__select"
             value={filters.illustrator || ''}

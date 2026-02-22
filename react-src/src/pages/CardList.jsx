@@ -12,13 +12,15 @@ const DISPLAY_MODES = [
 /**
  * Build the search API URL from filters + pagination state.
  */
-function buildSearchUrl(filters, page, sort, order, showDuplicates, limit = 50) {
+function buildSearchUrl(filters, page, sort, order, showDuplicates, showOfficial, showFanmade, limit = 50) {
   const params = new URLSearchParams();
   params.set('page', page);
   params.set('limit', limit);
   params.set('sort', sort);
   params.set('order', order);
   if (!showDuplicates) params.set('hide_duplicates', '1');
+  if (showOfficial && !showFanmade)  params.set('creator_filter', 'official');
+  if (!showOfficial && showFanmade)  params.set('creator_filter', 'fanmade');
 
   if (filters.name)    params.set('name',    filters.name);
   if (filters.text)    params.set('text',    filters.text);
@@ -124,9 +126,14 @@ export default function CardList() {
   const [page, setPage]           = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
+  const [totalOfficial, setTotalOfficial] = useState(0);
+  const [totalFanmade, setTotalFanmade]   = useState(0);
+  const [totalDuplicates, setTotalDuplicates] = useState(0);
   const [sort, setSort]           = useState('pack');
   const [order, setOrder]         = useState('asc');
   const [showDuplicates, setShowDuplicates] = useState(false);
+  const [showOfficial, setShowOfficial]     = useState(true);
+  const [showFanmade,  setShowFanmade]      = useState(true);
   const [mode, setMode]           = useState('checklist');
   const [filters, setFilters]     = useState({ ...EMPTY_FILTERS });
   const [attributes, setAttributes] = useState({ types: [], subtypes: [], illustrators: [] });
@@ -155,10 +162,18 @@ export default function CardList() {
 
   // Fetch cards whenever debounced filters, page or sort change
   useEffect(() => {
+    // Both off → nothing to show, skip API call
+    if (!showOfficial && !showFanmade) {
+      setCards([]);
+      setTotalItems(0); setTotalOfficial(0); setTotalFanmade(0); setTotalDuplicates(0);
+      setTotalPages(1); setLoading(false);
+      return;
+    }
+
     let cancelled = false;
     setLoading(true);
 
-    const url = buildSearchUrl(debouncedFilters, page, sort, order, showDuplicates);
+    const url = buildSearchUrl(debouncedFilters, page, sort, order, showDuplicates, showOfficial, showFanmade);
     fetch(url)
       .then(r => r.json())
       .then(data => {
@@ -166,6 +181,9 @@ export default function CardList() {
         setCards(data.cards || []);
         setTotalPages(data.meta?.total_pages ?? 1);
         setTotalItems(data.meta?.total_items ?? 0);
+        setTotalOfficial(data.meta?.total_official ?? 0);
+        setTotalFanmade(data.meta?.total_fanmade ?? 0);
+        setTotalDuplicates(data.meta?.total_duplicates ?? 0);
         setLoading(false);
         window.scrollTo({ top: 0, behavior: 'smooth' });
       })
@@ -174,7 +192,7 @@ export default function CardList() {
       });
 
     return () => { cancelled = true; };
-  }, [debouncedFilters, page, sort, order, showDuplicates]);
+  }, [debouncedFilters, page, sort, order, showDuplicates, showOfficial, showFanmade]);
 
   const handleFiltersChange = useCallback((newFilters) => {
     setFilters(newFilters);
@@ -231,7 +249,17 @@ export default function CardList() {
           {/* Total count badge */}
           {!loading && (
             <span className="cardlist-count" style={{ marginLeft: 'auto' }}>
-              {totalItems.toLocaleString()} card{totalItems !== 1 ? 's' : ''}
+              <span className="cardlist-count-breakdown">
+                <span className="cardlist-count-official" title="Official">{totalOfficial.toLocaleString()} official</span>
+                {showDuplicates && totalDuplicates > 0 && (
+                  <><span className="cardlist-count-sep">/</span>
+                  <span className="cardlist-count-dup" title="Duplicates">{totalDuplicates.toLocaleString()} Duplicate{totalDuplicates !== 1 ? 's' : ''}</span></>
+                )}
+                <span className="cardlist-count-sep">/</span>
+                <span className="cardlist-count-fanmade" title="Fan-made">{totalFanmade.toLocaleString()} fan-made</span>
+                <span className="cardlist-count-sep">/</span>
+                <span className="cardlist-count-total">{totalItems.toLocaleString()} card{totalItems !== 1 ? 's' : ''}</span>
+              </span>
             </span>
           )}
         </div>
@@ -246,6 +274,16 @@ export default function CardList() {
                 : 'Loading…'}
             </span>
             <div className="cardlist-sort">
+              <button
+                className={`cardlist-filtertype-btn cardlist-filtertype-btn--official${!showOfficial ? ' cardlist-filtertype-btn--off' : ''}`}
+                onClick={() => { setShowOfficial(v => !v); setPage(1); }}
+                title={showOfficial ? 'Masquer les cartes officielles' : 'Afficher les cartes officielles'}
+              >Official</button>
+              <button
+                className={`cardlist-filtertype-btn cardlist-filtertype-btn--fanmade${!showFanmade ? ' cardlist-filtertype-btn--off' : ''}`}
+                onClick={() => { setShowFanmade(v => !v); setPage(1); }}
+                title={showFanmade ? 'Masquer les cartes fan-made' : 'Afficher les cartes fan-made'}
+              >Fan-Made</button>
               <button
                 className={`cardlist-showdup-btn${showDuplicates ? ' cardlist-showdup-btn--active' : ''}`}
                 onClick={() => { setShowDuplicates(v => !v); setPage(1); }}

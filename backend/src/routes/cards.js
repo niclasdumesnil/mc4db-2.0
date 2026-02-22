@@ -98,7 +98,7 @@ router.get('/cards/search', async (req, res, next) => {
       health_op = '=', health,
       res_physical, res_mental, res_energy, res_wild,
       page = 1, limit = 50, sort = 'name', order = 'asc',
-      hide_duplicates,
+      hide_duplicates, creator_filter,
     } = req.query;
 
     const dir = order === 'desc' ? 'desc' : 'asc';
@@ -164,6 +164,8 @@ router.get('/cards/search', async (req, res, next) => {
     if (res_wild)     q = q.where('c.resource_wild',     '>=', parseInt(res_wild,     10));
 
     if (hide_duplicates === '1') q = q.whereNull('c.duplicate_id');
+    if (creator_filter === 'official') q = q.whereNull('p.creator');
+    if (creator_filter === 'fanmade')  q = q.whereNotNull('p.creator');
 
     if (sort === 'pack')    q = q.orderBy([{ column: 'p.position', order: dir }, { column: 'c.position', order: dir }]);
     else if (sort === 'cost') q = q.orderByRaw(`c.cost IS NULL, c.cost ${dir.toUpperCase()}, c.name ASC`);
@@ -174,15 +176,26 @@ router.get('/cards/search', async (req, res, next) => {
     const pageNum  = Math.max(1, parseInt(page,  10) || 1);
     const limitNum = Math.min(200, Math.max(10, parseInt(limit, 10) || 50));
 
-    const countRow = await q.clone().clearSelect().clearOrder().count('c.id as n').first();
-    const totalItems = Number(countRow?.n ?? 0);
+    const statsRow = await q.clone().clearSelect().clearOrder().select(
+      db.raw('COUNT(*) as total'),
+      db.raw('SUM(p.creator IS NULL) as official'),
+      db.raw('SUM(p.creator IS NOT NULL) as fanmade'),
+      db.raw('SUM(c.duplicate_id IS NOT NULL) as duplicates'),
+    ).first();
+    const totalItems   = Number(statsRow?.total      ?? 0);
+    const totalOfficial = Number(statsRow?.official   ?? 0);
+    const totalFanmade  = Number(statsRow?.fanmade    ?? 0);
+    const totalDuplicates = Number(statsRow?.duplicates ?? 0);
     const totalPages = Math.ceil(totalItems / limitNum);
 
     const rows = await q.offset((pageNum - 1) * limitNum).limit(limitNum);
 
     res.json({
       cards: rows,
-      meta: { page: pageNum, limit: limitNum, total_pages: totalPages, total_items: totalItems },
+      meta: {
+        page: pageNum, limit: limitNum, total_pages: totalPages, total_items: totalItems,
+        total_official: totalOfficial, total_fanmade: totalFanmade, total_duplicates: totalDuplicates,
+      },
     });
   } catch (err) {
     next(err);
