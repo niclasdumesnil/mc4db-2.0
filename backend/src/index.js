@@ -455,6 +455,52 @@ app.get(['/my-decks', '/my-decks/'], (req, res) => {
   res.type('html').send(html);
 });
 
+// Public Deck View page (client-side rendered)
+app.get('/decklists/:id', (req, res) => {
+  const localeRaw = (req.acceptsLanguages && req.acceptsLanguages()[0]) || 'en';
+  const locale = localeRaw.split('-')[0].toLowerCase() || 'en';
+  const html = `<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Deck View — MarvelCDB</title>
+    <meta name="description" content="View a Marvel Champions deck on MarvelCDB.">
+    <link rel="stylesheet" href="/react/css/card.css?v=${assetVersion}">
+    <script>window.__MC_LOCALE__ = ${JSON.stringify(locale)};</script>
+  </head>
+  <body>
+    ${renderSharedHeader()}
+    <div id="mc-app"></div>
+    <script src="/react/js/card.js?v=${assetVersion}"></script>
+  </body>
+</html>`;
+  res.type('html').send(html);
+});
+
+// My Deck View page (client-side rendered — requires login)
+app.get('/my-decks/:id', (req, res) => {
+  const localeRaw = (req.acceptsLanguages && req.acceptsLanguages()[0]) || 'en';
+  const locale = localeRaw.split('-')[0].toLowerCase() || 'en';
+  const html = `<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>My Deck — MarvelCDB</title>
+    <meta name="description" content="View your private deck on MarvelCDB.">
+    <link rel="stylesheet" href="/react/css/card.css?v=${assetVersion}">
+    <script>window.__MC_LOCALE__ = ${JSON.stringify(locale)};</script>
+  </head>
+  <body>
+    ${renderSharedHeader()}
+    <div id="mc-app"></div>
+    <script src="/react/js/card.js?v=${assetVersion}"></script>
+  </body>
+</html>`;
+  res.type('html').send(html);
+});
+
 // Mount API routes after the HTML route
 app.use('/api/public', publicRoutes);
 

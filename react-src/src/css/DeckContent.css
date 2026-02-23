@@ -1,0 +1,136 @@
+/* Container Principal */
+.deck-content-container {
+  background: #0f1e35;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 24px;
+  color: #dbeafa;
+  font-family: 'Inter', system-ui, sans-serif;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+/* Colonnes — flux naturel top→bottom, pas d'alignement forcé */
+.deck-slots-grid {
+  columns: 2;
+  column-gap: 40px;
+}
+
+.slot-group {
+  break-inside: avoid;
+  margin-bottom: 28px;
+}
+
+/* Titres de groupes (ex: "Event (22)") */
+.slot-group-title {
+  font-size: 1.05rem;
+  color: #dbeafa;
+  margin: 0 0 8px 0;
+  font-weight: 700;
+  border-bottom: 2px solid rgba(74, 144, 226, 0.3);
+  padding-bottom: 6px;
+  display: inline-block;
+}
+
+.slot-group-count {
+  font-weight: 500;
+  color: #8a99af;
+  margin-left: 4px;
+  font-size: 0.95rem;
+}
+
+/* Liste de cartes */
+.slot-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+/* Ligne d'une carte */
+.slot-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 2px 8px;
+  font-size: 0.9rem;
+  border-radius: 4px;
+  transition: background 0.2s;
+}
+
+.slot-item:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.slot-main-info {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  gap: 4px;
+}
+
+.slot-main-info .mc-badge:first-of-type {
+  margin-left: 6px;
+}
+
+.slot-qty {
+  font-weight: 700;
+  color: #8a99af;
+  width: 28px;
+  flex-shrink: 0;
+}
+
+/* Faction dot — réutilise le style de CardListDisplay */
+.cl-faction-dot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  margin-right: 10px;
+  flex-shrink: 0;
+}
+.cl-faction-dot--hero {
+  background: transparent;
+  color: #94a3b8;
+} 
+
+/* Nom de la carte */
+.slot-name {
+  color: #fff;
+  cursor: pointer;
+  transition: color 0.2s;
+  font-weight: 500;
+}
+
+.slot-item:hover .slot-name {
+  color: #93c5fd;
+  text-decoration: underline;
+}
+
+/* Conteneur des ressources à droite */
+.slot-resources {
+  display: flex;
+  gap: 3px;
+  margin-left: 10px;
+}
+
+/* Style de repli si le deck est vide */
+.deck-empty {
+  text-align: center;
+  padding: 40px;
+  color: #8a99af;
+  font-size: 1.1rem;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 12px;
+  border: 1px dashed rgba(255, 255, 255, 0.1);
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .deck-slots-grid {
+    columns: 1;
+  }
+}

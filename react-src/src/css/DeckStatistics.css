@@ -1,0 +1,204 @@
+/* ── DeckStatistics panel ─────────────────────────── */
+.deck-stats {
+  background: #0f1e35;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 20px;
+  color: #dbeafa;
+  font-family: 'Inter', system-ui, sans-serif;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* ── Totaux ────────────────────────────────────────── */
+.ds-totals {
+  display: flex;
+  gap: 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding-bottom: 16px;
+}
+
+.ds-total-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  padding: 12px 8px 8px;
+  gap: 2px;
+}
+
+.ds-total-value {
+  font-size: 1.7rem;
+  font-weight: 800;
+  color: #fff;
+  line-height: 1;
+}
+
+.ds-total-label {
+  font-size: 0.72rem;
+  color: #8a99af;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 500;
+}
+
+/* ── Section title ─────────────────────────────────── */
+.ds-section-title {
+  font-size: 0.72rem;
+  color: #8a99af;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-weight: 600;
+  margin: 0 0 10px 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.ds-avg-cost {
+  font-size: 0.78rem;
+  color: #60a5fa;
+  font-weight: 700;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.ds-section {
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Types ─────────────────────────────────────────── */
+.ds-type-list {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.ds-type-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ds-type-name {
+  font-size: 0.82rem;
+  color: #c8d8f0;
+  width: 76px;
+  flex-shrink: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Faction label avec dot coloré */
+.ds-faction-label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  width: 100px;
+  flex-shrink: 0;
+}
+
+.ds-faction-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.ds-type-bar-wrap {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.07);
+  border-radius: 3px;
+  height: 6px;
+  overflow: hidden;
+}
+
+.ds-type-bar {
+  height: 100%;
+  background: linear-gradient(to right, #3b82f6, #60a5fa);
+  border-radius: 3px;
+  transition: width 0.3s ease;
+  min-width: 4px;
+}
+
+.ds-type-count {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #8a99af;
+  width: 20px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+/* ── Resources ─────────────────────────────────────── */
+.ds-res-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.ds-res-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+  padding: 5px 10px;
+}
+
+.ds-res-icon {
+  display: inline-block;
+  font-size: 1rem;
+}
+
+.ds-res-count {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #dbeafa;
+}
+
+/* ── Cost curve ────────────────────────────────────── */
+.ds-cost-chart {
+  display: flex;
+  align-items: flex-end;
+  gap: 5px;
+  height: 88px; /* count label + max bar (60px) + cost label */
+}
+
+.ds-cost-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  flex: 1;
+  min-width: 22px;
+}
+
+.ds-cost-count {
+  font-size: 0.68rem;
+  color: #8a99af;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.ds-cost-bar {
+  width: 100%;
+  background: linear-gradient(to top, #3b6fcf, #60a5fa);
+  border-radius: 3px 3px 0 0;
+  min-height: 4px;
+}
+
+.ds-cost-label {
+  font-size: 0.7rem;
+  color: #8a99af;
+  font-weight: 600;
+  line-height: 1;
+}

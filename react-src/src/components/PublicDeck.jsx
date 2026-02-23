@@ -53,8 +53,10 @@ export default function PublicDeck({ deck }) {
   // Tags utilisateur
   const tags = deck.tags ? deck.tags.split(',').map(t => t.trim()).filter(Boolean) : [];
 
+  const handleClick = () => { window.location.href = `/decklists/${deck.id}`; };
+
   return (
-    <div className="deck-card">
+    <div className="deck-card" onClick={handleClick} style={{ cursor: 'pointer' }}>
       {/* En-tête : fond blanc + overlay faint faction */}
       <div className="deck-header" style={{ backgroundColor: 'white', backgroundImage: `linear-gradient(${headerFaint}, ${headerFaint})` }}>
         <div className="deck-header-content">

@@ -1,0 +1,139 @@
+import React, { useMemo } from 'react';
+import { getFactionColor } from '@utils/dataUtils';
+import '../css/DeckContent.css';
+
+// Faction dot — même logique que CardListDisplay
+function FactionDot({ card }) {
+  const code = card.faction_code;
+  const name = card.faction_name || code;
+  if (code === 'hero') {
+    return (
+      <span className="cl-faction-dot cl-faction-dot--hero" title={name}>
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true">
+          <path d="M12 12c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm0 2c-3.34 0-10 1.68-10 5v1h20v-1c0-3.32-6.66-5-10-5z" />
+        </svg>
+      </span>
+    );
+  }
+  if (code === 'campaign') {
+    return (
+      <span className="cl-faction-dot cl-faction-dot--hero" title={name}>
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true">
+          <path d="M18 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2zm0 18H6V4h2v8l2.5-1.5L13 12V4h5v16z" />
+        </svg>
+      </span>
+    );
+  }
+  const color = getFactionColor(code);
+  return (
+    <span
+      className="cl-faction-dot"
+      style={{ background: color, boxShadow: `0 0 0 1px ${color}55` }}
+      title={name}
+    />
+  );
+}
+
+export default function DeckContent({ slots }) {
+  // 1. Grouper les cartes par Type (Ally, Event, Support...) et calculer les totaux
+  // Les cartes Permanent sont isolées dans un groupe à part et exclues du total
+  const { groupedSlots, permanentSlots, totalCards } = useMemo(() => {
+    if (!slots || slots.length === 0) return { groupedSlots: {}, permanentSlots: { count: 0, cards: [] }, totalCards: 0 };
+
+    let total = 0;
+    const permanent = { count: 0, cards: [] };
+    const groups = slots.reduce((acc, slot) => {
+      if (slot.permanent) {
+        permanent.cards.push(slot);
+        permanent.count += slot.quantity;
+        return acc;
+      }
+      const type = slot.type_name || 'Other';
+      if (!acc[type]) acc[type] = { count: 0, cards: [] };
+      acc[type].cards.push(slot);
+      acc[type].count += slot.quantity;
+      total += slot.quantity;
+      return acc;
+    }, {});
+
+    return { groupedSlots: groups, permanentSlots: permanent, totalCards: total };
+  }, [slots]);
+
+  // 2. Ordre alphabétique des catégories (Permanent toujours en dernier)
+  const sortedTypes = Object.keys(groupedSlots).sort((a, b) => a.localeCompare(b));
+
+  // 3. Fonction pour générer les icônes de ressources (basée sur mc4db.css)
+  const renderResources = (card) => {
+    const resources = [];
+    
+    for (let i = 0; i < (card.resource_physical || 0); i++) {
+      resources.push(<span key={`p${i}`} className="cl-res-icon icon-physical" title="Physical"></span>);
+    }
+    for (let i = 0; i < (card.resource_energy || 0); i++) {
+      resources.push(<span key={`e${i}`} className="cl-res-icon icon-energy" title="Energy"></span>);
+    }
+    for (let i = 0; i < (card.resource_mental || 0); i++) {
+      resources.push(<span key={`m${i}`} className="cl-res-icon icon-mental" title="Mental"></span>);
+    }
+    for (let i = 0; i < (card.resource_wild || 0); i++) {
+      resources.push(<span key={`w${i}`} className="cl-res-icon icon-wild" title="Wild"></span>);
+    }
+    
+    return <div className="slot-resources">{resources}</div>;
+  };
+
+  if (totalCards === 0 && permanentSlots.cards.length === 0) {
+    return <div className="deck-empty">No cards found in this deck.</div>;
+  }
+
+  return (
+    <div className="deck-content-container">
+      <div className="deck-slots-grid">
+        {sortedTypes.map(type => (
+          <div key={type} className="slot-group">
+            <h5 className="slot-group-title">
+              {type} <span className="slot-group-count">({groupedSlots[type].count})</span>
+            </h5>
+            <ul className="slot-list">
+              {groupedSlots[type].cards.map(card => (
+                <li key={card.code} className="slot-item">
+                  <div className="slot-main-info">
+                    <span className="slot-qty">{card.quantity}x</span>
+                    <FactionDot card={card} />
+                    <span className="slot-name">{card.name}</span>
+                    {card.pack_environment === 'current' ? <span className="mc-badge mc-badge-current" title="Standard format">Current</span> : null}
+                    {card.alt_art ? <span className="mc-badge mc-badge-altart" title="Alternative art">Alt Art</span> : null}
+                  </div>
+                  {renderResources(card)}
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+
+        {/* Groupe Permanent — toujours en dernier, exclu du total */}
+        {permanentSlots.cards.length > 0 && (
+          <div className="slot-group slot-group--permanent">
+            <h5 className="slot-group-title">
+              Permanent <span className="slot-group-count">({permanentSlots.count})</span>
+            </h5>
+            <ul className="slot-list">
+              {permanentSlots.cards.map(card => (
+                <li key={card.code} className="slot-item">
+                  <div className="slot-main-info">
+                    <span className="slot-qty">{card.quantity}x</span>
+                    <FactionDot card={card} />
+                    <span className="slot-name">{card.name}</span>
+                    {card.pack_environment === 'current' ? <span className="mc-badge mc-badge-current" title="Standard format">Current</span> : null}
+                    {card.alt_art ? <span className="mc-badge mc-badge-altart" title="Alternative art">Alt Art</span> : null}
+                  </div>
+                  {renderResources(card)}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

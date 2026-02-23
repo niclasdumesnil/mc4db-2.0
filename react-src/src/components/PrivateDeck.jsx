@@ -30,8 +30,10 @@ export default function PrivateDeck({ deck }) {
     ? new Date(deck.date_creation).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
     : null;
 
+  const handleClick = () => { window.location.href = `/my-decks/${deck.id}`; };
+
   return (
-    <div className="deck-card">
+    <div className="deck-card" onClick={handleClick} style={{ cursor: 'pointer' }}>
       {/* Header */}
       <div className="deck-header" style={{ backgroundColor: 'white', backgroundImage: `linear-gradient(${headerFaint}, ${headerFaint})` }}>
         <div className="deck-header-content">

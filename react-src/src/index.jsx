@@ -11,6 +11,7 @@ import Dashboard from './pages/Dashboard';
 import CardPage from './pages/CardPage';
 import PublicDeckList from './pages/PublicDeckList';
 import MyDecks from './pages/MyDecks';
+import DeckView from './pages/DeckView';
 import CardList from './pages/CardList';
 
 function mountAllCards() {
@@ -101,7 +102,9 @@ try{
     else if (path.startsWith('/dashboard')) appRoot.render(<Dashboard />);
     else if (path.startsWith('/card-list')) appRoot.render(<CardList />);
     else if (path.startsWith('/card')) appRoot.render(<CardPage />);
+    else if (/^\/decklists\/\d+/.test(path)) appRoot.render(<DeckView />);
     else if (path.startsWith('/decklists')) appRoot.render(<PublicDeckList />);
+    else if (/^\/my-decks\/\d+/.test(path)) appRoot.render(<DeckView />);
     else if (path.startsWith('/my-decks')) appRoot.render(<MyDecks />);
   }
 }catch(e){ console.error('Failed to mount app container', e); }

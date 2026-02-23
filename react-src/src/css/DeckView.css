@@ -1,0 +1,271 @@
+/* ── DeckView page ───────────────────────────────── */
+.deck-view-container {
+  max-width: 1100px;
+  margin: 80px auto 60px;
+  padding: 32px 20px;
+  min-height: calc(100vh - 80px);
+}
+
+/* Back button */
+.deck-view-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #8a99af;
+  font-size: 0.9rem;
+  padding: 7px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  margin-bottom: 28px;
+  transition: background 0.2s, color 0.2s;
+}
+.deck-view-back:hover {
+  background: rgba(255, 255, 255, 0.07);
+  color: #dbeafa;
+}
+
+/* ── Banner ───────────────────────────────────────── */
+.deck-view-banner {
+  position: relative;
+  background: #10203a;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 14px;
+  overflow: hidden;
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  margin-bottom: 24px;
+}
+
+/* Voile sombre pour lisibilité du texte */
+.deck-view-banner::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.48);
+  z-index: 0;
+}
+
+.deck-view-banner-info {
+  flex: 1;
+  min-width: 0;
+  position: relative;
+  z-index: 1;
+  padding: 12px 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+/* Zone images */
+.deck-view-banner-images {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  position: relative;
+  z-index: 1;
+  padding: 8px 14px 8px 0;
+}
+
+.deck-view-banner-heroname {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #dbeafa;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  text-align: center;
+  opacity: 0.85;
+}
+
+.deck-view-banner-thumbs {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-end;
+  gap: 6px;
+}
+
+/* Image carte complète portrait */
+.deck-view-banner-thumb {
+  height: 80px;
+  width: auto;
+  object-fit: contain;
+  border-radius: 5px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.7);
+  display: block;
+  transition: transform 0.2s;
+}
+
+.deck-view-banner-thumb:hover {
+  transform: scale(1.06) translateY(-4px);
+}
+
+/* Ligne 1 : Titre + Updated inline */
+.deck-view-title-row {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 4px;
+}
+
+.deck-view-title {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: #fff;
+  margin: 0;
+  line-height: 1.2;
+  word-break: break-word;
+}
+
+/* Ligne 2 : private | version | aspect | auteur | stats */
+.deck-view-subtitle {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 0;
+}
+
+.deck-view-version {
+  font-size: 0.8rem;
+  color: #60a5fa;
+  font-weight: 600;
+  background: rgba(96, 165, 250, 0.12);
+  border: 1px solid rgba(96, 165, 250, 0.25);
+  border-radius: 5px;
+  padding: 2px 8px;
+}
+
+.deck-view-updated {
+  font-size: 0.75rem;
+  color: #8a99af;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.deck-view-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.deck-view-hero {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #dbeafa;
+  background: rgba(255, 255, 255, 0.08);
+  padding: 3px 10px;
+  border-radius: 6px;
+}
+
+.deck-view-aspect-dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.deck-view-aspect-name {
+  font-size: 0.88rem;
+  color: #8a99af;
+  font-weight: 500;
+}
+
+.deck-view-author {
+  font-size: 0.88rem;
+  color: #8a99af;
+}
+
+.deck-view-private-badge {
+  font-size: 0.8rem;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 20px;
+  padding: 2px 10px;
+  color: #8a99af;
+}
+
+.deck-view-stats {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+
+.deck-view-stat {
+  font-size: 0.78rem;
+  color: #8a99af;
+  border-left: 1px solid rgba(255,255,255,0.12);
+  padding-left: 8px;
+}
+
+.deck-view-stat--highlight {
+  font-size: 0.93rem;
+  color: #dbeafa;
+  font-weight: 600;
+}
+
+.deck-view-stat--date {
+  margin-left: auto;
+}
+
+/* ── Content area ─────────────────────────────────── */
+.deck-view-body {
+  display: flex;
+  align-items: flex-start;
+  gap: 24px;
+}
+
+.deck-view-left {
+  flex: 1;
+  min-width: 0;
+}
+
+.deck-view-right {
+  flex-shrink: 0;
+  width: 300px;
+}
+
+/* ── States ───────────────────────────────────────── */
+.deck-view-loading,
+.deck-view-error {
+  text-align: center;
+  padding: 60px 0;
+  color: #8a99af;
+  font-size: 1rem;
+}
+
+.deck-view-error {
+  color: #e06c75;
+}
+
+/* ── Responsive ───────────────────────────────────── */
+@media (max-width: 900px) {
+  .deck-view-body {
+    flex-direction: column;
+  }
+  .deck-view-right {
+    width: 100%;
+  }
+}
+
+@media (max-width: 640px) {
+  .deck-view-banner {
+    flex-direction: column;
+  }
+  .deck-view-banner-images {
+    padding: 0 0 12px 16px;
+    align-self: flex-start;
+  }
+  .deck-view-title {
+    font-size: 1.4rem;
+  }
+}
