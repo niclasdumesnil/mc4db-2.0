@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import DeckContent from '@components/DeckContent';
 import DeckStatistics from '@components/DeckStatistics';
 import DeckEditor from '@components/DeckEditor';
@@ -18,6 +18,9 @@ export default function DeckView() {
   const [error, setError] = useState(null);
   const [showEditor, setShowEditor] = useState(false);
   const [liveSlots, setLiveSlots] = useState(null); // preview en temps réel
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState(null);
+  const editorRef = useRef(null);
   const [locale, setLocale] = useState(
     () => localStorage.getItem('mc_locale') || window.__MC_LOCALE__ || 'en'
   );
@@ -131,9 +134,28 @@ export default function DeckView() {
     <div className="deck-view-container">
       <div className="deck-view-actions">
         <button className="deck-view-back" onClick={handleBack}>← Back</button>
-        <button className="deck-view-edit" onClick={() => setShowEditor(v => !v)}>
+        <button className="deck-view-edit" onClick={() => {
+          if (showEditor) { setShowEditor(false); setLiveSlots(null); setSaveError(null); }
+          else setShowEditor(true);
+        }}>
           {showEditor ? 'Close Editor' : 'Edit'}
         </button>
+        {showEditor && (
+          <>
+            {saveError && <span className="deck-view-save-error">{saveError}</span>}
+            <button
+              className="deck-view-save-btn"
+              disabled={saving}
+              onClick={async () => {
+                setSaving(true); setSaveError(null);
+                try { await editorRef.current?.save(); }
+                catch (e) { setSaveError(e?.message || 'Save failed.'); }
+                finally { setSaving(false); }
+              }}
+            >{saving ? 'Saving…' : 'Save'}</button>
+            <button className="deck-view-cancel-btn" onClick={() => { setShowEditor(false); setLiveSlots(null); setSaveError(null); }}>Cancel</button>
+          </>
+        )}
       </div>
 
       {/* Hero banner */}
@@ -173,33 +195,35 @@ export default function DeckView() {
         )}
       </div>
 
-      {/* Corps : DeckContent à gauche + DeckStatistics à droite */}
-      <div className="deck-view-body">
-        <div className="deck-view-left">
+      {/* Corps : layout conditionnel selon mode édition */}
+      <div className={`deck-view-body${showEditor ? ' deck-view-body--editing' : ''}`}>
+        <div className={`deck-view-left${showEditor ? ' deck-view-left--compact' : ''}`}>
           <DeckContent slots={liveSlots ?? deck.slots ?? []} />
         </div>
-        <div className="deck-view-right">
-          <DeckStatistics slots={liveSlots ?? deck.slots ?? []} packsRequired={deck.packs_required} />
-        </div>
+        {!showEditor && (
+          <div className="deck-view-right">
+            <DeckStatistics slots={liveSlots ?? deck.slots ?? []} packsRequired={deck.packs_required} />
+          </div>
+        )}
+        {showEditor && (
+          <div className="deck-view-editor-panel">
+            <DeckEditor
+              ref={editorRef}
+              deck={deck}
+              deckId={deckId}
+              isPrivate={isPrivate}
+              onSlotsChange={slots => setLiveSlots(slots)}
+              onClose={() => { setShowEditor(false); setLiveSlots(null); setSaveError(null); }}
+              onSaved={() => {
+                setShowEditor(false);
+                setLiveSlots(null);
+                setSaveError(null);
+                window.location.reload();
+              }}
+            />
+          </div>
+        )}
       </div>
-
-      {/* Éditeur de deck (affiché sous les cartes lors du clic sur Edit) */}
-      {showEditor && (
-        <div className="deck-view-editor-section">
-          <DeckEditor
-            deck={deck}
-            deckId={deckId}
-            isPrivate={isPrivate}
-            onSlotsChange={slots => setLiveSlots(slots)}
-            onClose={() => { setShowEditor(false); setLiveSlots(null); }}
-            onSaved={() => {
-              setShowEditor(false);
-              setLiveSlots(null);
-              window.location.reload();
-            }}
-          />
-        </div>
-      )}
     </div>
   );
 }

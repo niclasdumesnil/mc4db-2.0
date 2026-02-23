@@ -65,21 +65,34 @@ function QtySelector({ cardCode, deckLimit = 3, slotsMap, onSetQty }) {
   return <div className="qty-selector">{buttons}</div>;
 }
 
-export default function AvailableCardList({ cards, slotsMap = {}, onSetQty }) {
+export default function AvailableCardList({ cards, slotsMap = {}, onSetQty, sortBy = 'name', sortOrder = 'asc', onSort }) {
   if (!cards || cards.length === 0) {
     return <div className="cardlist-empty">Aucune carte ne correspond à ces filtres.</div>;
   }
+
+  const arrow = (col) => {
+    if (sortBy !== col) return <span className="cl-sort-icon cl-sort-icon--inactive">⇅</span>;
+    return <span className="cl-sort-icon">{sortOrder === 'asc' ? '↑' : '↓'}</span>;
+  };
 
   return (
     <div style={{ overflowX: 'auto' }}>
       <table className="cl-checklist cl-checklist--compact">
         <thead>
           <tr>
-            <th>QTY</th>
-            <th>NAME</th>
-            <th>COST</th>
-            <th>TYPE</th>
-            <th>RESOURCES</th>
+            <th>Qty</th>
+            <th
+              className="sortable"
+              onClick={() => onSort && onSort('name')}
+              title="Sort by name"
+            >Name {arrow('name')}</th>
+            <th
+              className="sortable"
+              onClick={() => onSort && onSort('cost')}
+              title="Sort by cost"
+            >$ {arrow('cost')}</th>
+            <th>Type</th>
+            <th title="Resources">Res.</th>
           </tr>
         </thead>
         <tbody>

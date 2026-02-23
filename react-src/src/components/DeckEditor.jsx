@@ -1,9 +1,17 @@
-﻿import React, { useState, useEffect, useMemo, useCallback } from 'react';
+﻿import React, { useState, useEffect, useMemo, useCallback, useImperativeHandle, forwardRef } from 'react';
 import AvailableCardList from './AvailableCardList';
+import { getFactionColor } from '@utils/dataUtils';
 import '../css/DeckEditor.css';
 
-// Player-card factions â€” excludes encounter cards
-const PLAYER_FACTIONS = new Set(['justice', 'leadership', 'aggression', 'protection', 'basic', 'hero']);
+// Player-card factions — excludes encounter cards
+const PLAYER_FACTIONS = new Set(['justice', 'leadership', 'aggression', 'protection', 'basic', 'hero', 'determination']);
+
+const FACTION_LIST = ['justice', 'leadership', 'aggression', 'protection', 'basic', 'determination'];
+const FACTION_LABELS = {
+  justice: 'Justice', leadership: 'Leadership', aggression: 'Aggression',
+  protection: 'Protection', basic: 'Basic', determination: 'Determination',
+};
+const TYPE_LIST = ['ally', 'event', 'support', 'upgrade', 'resource'];
 
 function currentUserId() {
   try {
@@ -23,7 +31,7 @@ function currentUserId() {
  *   onSaved       â€” callback appelÃ© aprÃ¨s save rÃ©ussi
  *   onClose       â€” callback pour fermer l'Ã©diteur
  */
-export default function DeckEditor({ deck, deckId, isPrivate, onSlotsChange, onSaved, onClose }) {
+export default forwardRef(function DeckEditor({ deck, deckId, isPrivate, onSlotsChange, onSaved, onClose }, ref) {
   const [allCards, setAllCards] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -51,6 +59,8 @@ export default function DeckEditor({ deck, deckId, isPrivate, onSlotsChange, onS
     showCurrent: false,
     showAltArt:  true,
   });
+  const [sortBy,    setSortBy]    = useState('name');   // 'name' | 'cost'
+  const [sortOrder, setSortOrder] = useState('asc');
 
   // Sync with global locale switcher (header badge)
   useEffect(() => {
@@ -150,18 +160,34 @@ export default function DeckEditor({ deck, deckId, isPrivate, onSlotsChange, onS
       if (selectedType && card.type_code?.toLowerCase() !== selectedType) return false;
       // Fan Made
       if (!filters.showFanMade && card.creator && card.creator !== 'FFG') return false;
-      // Current
-      if (!filters.showCurrent && card.pack_environment === 'current') return false;
+      // Current: when active, only show cards from the current format
+      if (filters.showCurrent && card.pack_environment !== 'current') return false;
       return true;
+    }).sort((a, b) => {
+      if (sortBy === 'cost') {
+        const ca = a.cost ?? 999;
+        const cb = b.cost ?? 999;
+        if (ca !== cb) return sortOrder === 'asc' ? ca - cb : cb - ca;
+      }
+      // secondary / default: name
+      const cmp = (a.name || '').localeCompare(b.name || '');
+      return sortOrder === 'asc' || sortBy !== 'name' ? cmp : -cmp;
     });
-  }, [allCards, selectedFaction, selectedType, filters]);
+  }, [allCards, selectedFaction, selectedType, filters, sortBy, sortOrder]);
+
+  const handleSort = useCallback((col) => {
+    setSortBy(prev => {
+      if (prev === col) { setSortOrder(o => o === 'asc' ? 'desc' : 'asc'); return prev; }
+      setSortOrder('asc');
+      return col;
+    });
+  }, []);
 
   // --- SAVE ---
   const handleSave = async () => {
     const userId = currentUserId();
     if (!userId || !deckId) {
-      setSaveError('Cannot save: user not logged in.');
-      return;
+      throw new Error('Cannot save: user not logged in.');
     }
     setSaving(true);
     setSaveError(null);
@@ -178,83 +204,99 @@ export default function DeckEditor({ deck, deckId, isPrivate, onSlotsChange, onS
       const data = await res.json();
       if (data.ok) {
         onSaved && onSaved(slots);
-        onClose && onClose();
       } else {
-        setSaveError(data.error || 'Error saving deck.');
+        throw new Error(data.error || 'Error saving deck.');
       }
     } catch (err) {
-      setSaveError('Network error. Please try again.');
-    } finally {
       setSaving(false);
+      throw err;
     }
+    setSaving(false);
   };
 
   const handleToggle = key => setFilters(prev => ({ ...prev, [key]: !prev[key] }));
 
+  // Expose save() to parent (DeckView action bar)
+  useImperativeHandle(ref, () => ({ save: handleSave, getSaving: () => saving }), [handleSave, saving]);
+
   return (
     <div className="editor-container">
-      <aside className="editor-sidebar">
-        <h3 className="sidebar-title">Filters</h3>
-
-        <div className="filter-group">
-          <h4>AFFINITY</h4>
-          <div className="filter-buttons">
-            {['justice', 'leadership', 'aggression', 'protection', 'basic'].map(fac => (
-              <button
-                key={fac}
-                className={`filter-btn ${selectedFaction === fac ? 'active' : ''}`}
-                onClick={() => setSelectedFaction(prev => prev === fac ? null : fac)}
-              >
-                {fac.charAt(0).toUpperCase() + fac.slice(1)}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div className="filter-group">
-          <h4>TYPE</h4>
-          <div className="filter-buttons">
-            {['ally', 'event', 'support', 'upgrade', 'resource'].map(type => (
-              <button
-                key={type}
-                className={`filter-btn ${selectedType === type ? 'active' : ''}`}
-                onClick={() => setSelectedType(prev => prev === type ? null : type)}
-              >
-                {type.charAt(0).toUpperCase() + type.slice(1)}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div className="filter-group mt-20">
-          <h4>OPTIONS</h4>
-          <label className="toggle-label">
-            <input type="checkbox" checked={filters.showFanMade} onChange={() => handleToggle('showFanMade')} />
-            Show Fan Made
-          </label>
-          <label className="toggle-label">
-            <input type="checkbox" checked={filters.showCurrent} onChange={() => handleToggle('showCurrent')} />
-            Show Current
-          </label>
-          <label className="toggle-label">
-            <input type="checkbox" checked={filters.showAltArt} onChange={() => handleToggle('showAltArt')} />
-            Show Alt-Art
-          </label>
-        </div>
-
-        {/* Save area */}
-        <div className="editor-save-area">
-          {saveError && <div className="editor-save-error">{saveError}</div>}
-          <button className="editor-save-btn" onClick={handleSave} disabled={saving}>
-            {saving ? 'Saving...' : 'Save'}
-          </button>
-          {onClose && (
-            <button className="editor-cancel-btn" onClick={onClose}>Cancel</button>
-          )}
-        </div>
-      </aside>
-
+      {/* ── Main area: filter bar + card list ── */}
       <main className="editor-main">
+
+        {/* ── Horizontal filter bar ── */}
+        <div className="editor-filter-bar">
+
+          {/* Affinity row */}
+          <div className="editor-filter-row">
+            <span className="editor-filter-bar-label">Affinity</span>
+            <div className="editor-filter-pills">
+              {FACTION_LIST.map(fac => {
+                const color = getFactionColor(fac);
+                const active = selectedFaction === fac;
+                return (
+                  <button
+                    key={fac}
+                    className={`editor-faction-btn${active ? ' editor-faction-btn--active' : ''}`}
+                    style={{
+                      '--fac-color': color,
+                      borderColor: active ? color : `${color}55`,
+                      background:  active ? color : `${color}18`,
+                      color:       active ? '#fff' : `${color}cc`,
+                    }}
+                    onClick={() => setSelectedFaction(prev => prev === fac ? null : fac)}
+                  >
+                    {FACTION_LABELS[fac]}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Type row */}
+          <div className="editor-filter-row">
+            <span className="editor-filter-bar-label">Type</span>
+            <div className="editor-filter-pills">
+              {TYPE_LIST.map(type => {
+                const active = selectedType === type;
+                return (
+                  <button
+                    key={type}
+                    className={`editor-faction-btn${active ? ' editor-faction-btn--active editor-faction-btn--type-active' : ''}`}
+                    onClick={() => setSelectedType(prev => prev === type ? null : type)}
+                  >
+                    {type.charAt(0).toUpperCase() + type.slice(1)}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Options row */}
+          <div className="editor-filter-row">
+            <span className="editor-filter-bar-label">Show</span>
+            <div className="editor-filter-pills">
+              <button
+                className={`editor-filter-badge editor-filter-badge--fanmade${!filters.showFanMade ? ' editor-filter-badge--off' : ' editor-filter-badge--on'}`}
+                onClick={() => handleToggle('showFanMade')}
+                title={filters.showFanMade ? 'Hide fan-made cards' : 'Show fan-made cards'}
+              >Fan-Made</button>
+              <button
+                className={`editor-filter-badge editor-filter-badge--altart${filters.showAltArt ? ' editor-filter-badge--on' : ' editor-filter-badge--off'}`}
+                onClick={() => handleToggle('showAltArt')}
+                title={filters.showAltArt ? 'Hide alt-art' : 'Show alt-art'}
+              >🎨 Alt Art</button>
+              <button
+                className={`editor-filter-badge editor-filter-badge--current${filters.showCurrent ? ' editor-filter-badge--on' : ' editor-filter-badge--off'}`}
+                onClick={() => handleToggle('showCurrent')}
+                title={filters.showCurrent ? 'Show all cards' : 'Show current format only'}
+              >⚡ Current</button>
+            </div>
+          </div>
+
+        </div>
+
+        {/* ── Card list ── */}
         {loading ? (
           <div className="cardlist-loading">Loading library...</div>
         ) : (
@@ -262,9 +304,12 @@ export default function DeckEditor({ deck, deckId, isPrivate, onSlotsChange, onS
             cards={filteredCards}
             slotsMap={slotsMap}
             onSetQty={setQty}
+            sortBy={sortBy}
+            sortOrder={sortOrder}
+            onSort={handleSort}
           />
         )}
       </main>
     </div>
   );
-}
+})

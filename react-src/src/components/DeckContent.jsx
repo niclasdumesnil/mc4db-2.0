@@ -95,7 +95,9 @@ export default function DeckContent({ slots }) {
               {type} <span className="slot-group-count">({groupedSlots[type].count})</span>
             </h5>
             <ul className="slot-list">
-              {groupedSlots[type].cards.map(card => (
+              {[...groupedSlots[type].cards]
+                .sort((a, b) => (a.name || '').localeCompare(b.name || ''))
+                .map(card => (
                 <li key={card.code} className="slot-item">
                   <div className="slot-main-info">
                     <span className="slot-qty">{card.quantity}x</span>
@@ -118,7 +120,9 @@ export default function DeckContent({ slots }) {
               Permanent <span className="slot-group-count">({permanentSlots.count})</span>
             </h5>
             <ul className="slot-list">
-              {permanentSlots.cards.map(card => (
+              {[...permanentSlots.cards]
+                .sort((a, b) => (a.name || '').localeCompare(b.name || ''))
+                .map(card => (
                 <li key={card.code} className="slot-item">
                   <div className="slot-main-info">
                     <span className="slot-qty">{card.quantity}x</span>

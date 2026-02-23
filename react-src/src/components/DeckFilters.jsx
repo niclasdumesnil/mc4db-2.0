@@ -87,15 +87,13 @@ export default function DeckFilters({ filters, onChange, heroes }) {
                 key={code}
                 className={`deck-filters__aspect-btn${active ? ' deck-filters__aspect-btn--active' : ''}`}
                 style={{
-                  '--aspect-color': color,
-                  borderColor: active ? color : 'transparent',
-                  background: active ? color : `${color}22`,
-                  color: active ? '#fff' : color,
+                  borderColor: active ? color : `${color}55`,
+                  background:  active ? color : `${color}18`,
+                  color:       active ? '#fff' : `${color}cc`,
                 }}
                 title={ASPECT_LABELS[code]}
                 onClick={() => toggleAspect(code)}
               >
-                <span className="deck-filters__aspect-dot" style={{ background: color }} />
                 {ASPECT_LABELS[code]}
               </button>
             );

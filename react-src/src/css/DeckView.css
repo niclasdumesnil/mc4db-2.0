@@ -1,6 +1,6 @@
 /* ── DeckView page ───────────────────────────────── */
 .deck-view-container {
-  max-width: 1100px;
+  max-width: 1400px;
   margin: 80px auto 60px;
   padding: 32px 20px;
   min-height: calc(100vh - 80px);
@@ -31,6 +31,53 @@
 .deck-view-back:hover {
   background: rgba(255, 255, 255, 0.07);
   color: #dbeafa;
+}
+
+/* Save / Cancel buttons (shown inline in action bar when editing) */
+.deck-view-save-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #2563eb;
+  border: 1px solid #3b82f6;
+  color: #fff;
+  font-size: 0.9rem;
+  font-weight: 700;
+  padding: 7px 18px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.deck-view-save-btn:hover:not(:disabled) {
+  background: #1d4ed8;
+}
+.deck-view-save-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.deck-view-cancel-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #8a99af;
+  font-size: 0.9rem;
+  padding: 7px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+.deck-view-cancel-btn:hover {
+  background: rgba(255, 255, 255, 0.07);
+  color: #dbeafa;
+}
+
+.deck-view-save-error {
+  color: #f87171;
+  font-size: 0.82rem;
+  align-self: center;
 }
 
 /* Edit button */
@@ -250,9 +297,28 @@
   gap: 24px;
 }
 
+/* Editing mode: wider container, deck panel compact on left */
+.deck-view-body--editing {
+  max-width: 100%;
+}
+
 .deck-view-left {
   flex: 1;
   min-width: 0;
+}
+
+/* Deck panel when editor is open — 50% */
+.deck-view-left--compact {
+  flex: 0 0 50%;
+  min-width: 0;
+  font-size: 0.82rem;
+}
+
+/* Editor panel — 50% */
+.deck-view-editor-panel {
+  flex: 0 0 50%;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .deck-view-right {
@@ -274,6 +340,16 @@
 }
 
 /* ── Responsive ───────────────────────────────────── */
+@media (max-width: 1100px) {
+  .deck-view-body--editing {
+    flex-direction: column;
+  }
+  .deck-view-left--compact {
+    flex: unset;
+    width: 100%;
+  }
+}
+
 @media (max-width: 900px) {
   .deck-view-body {
     flex-direction: column;
@@ -296,7 +372,7 @@
   }
 }
 
-/* ── Inline DeckEditor section ────────────────────── */
+/* ── Inline DeckEditor section (legacy, kept for safety) ─ */
 .deck-view-editor-section {
   margin-top: 40px;
   border-top: 1px solid rgba(255, 255, 255, 0.1);
