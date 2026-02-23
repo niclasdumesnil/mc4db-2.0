@@ -264,4 +264,51 @@ router.get('/user/:userId/decks/:deckId', async (req, res) => {
   }
 });
 
+// 2C. Sauvegarder les slots d'un deck privé
+router.put('/user/:userId/decks/:deckId/slots', async (req, res) => {
+  try {
+    const userId = parseInt(req.params.userId, 10);
+    const deckId = parseInt(req.params.deckId, 10);
+    if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+
+    // Vérification propriété
+    const deck = await db('deck').where({ id: deckId, user_id: userId }).first();
+    if (!deck) return res.status(404).json({ error: 'Deck not found or unauthorized' });
+
+    const { slots } = req.body; // [{ code, quantity }]
+    if (!Array.isArray(slots)) return res.status(400).json({ error: 'Invalid slots' });
+
+    // Ne garder que les slots avec quantity > 0
+    const toInsert = slots.filter(s => s.quantity > 0);
+
+    // Résoudre card_id depuis les codes
+    const codes = toInsert.map(s => s.code);
+    const cardRows = codes.length > 0
+      ? await db('card').whereIn('code', codes).select('id', 'code')
+      : [];
+    const codeToId = Object.fromEntries(cardRows.map(r => [r.code, r.id]));
+
+    await db.transaction(async trx => {
+      // Supprimer tous les slots existants
+      await trx('deckslot').where('deck_id', deckId).delete();
+
+      // Insérer les nouveaux
+      if (toInsert.length > 0) {
+        const rows = toInsert
+          .filter(s => codeToId[s.code])
+          .map(s => ({ deck_id: deckId, card_id: codeToId[s.code], quantity: s.quantity }));
+        if (rows.length > 0) await trx('deckslot').insert(rows);
+      }
+
+      // Mettre à jour date_update
+      await trx('deck').where('id', deckId).update({ date_update: new Date() });
+    });
+
+    return res.json({ ok: true });
+  } catch (err) {
+    console.error('PUT /user/:userId/decks/:deckId/slots error', err);
+    return res.status(500).json({ error: 'Internal error' });
+  }
+});
+
 module.exports = router;

@@ -1,0 +1,313 @@
+.editor-container {
+  display: flex;
+  gap: 30px;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  padding: 24px 20px;
+  color: #dbeafa;
+  font-family: 'Inter', sans-serif;
+  background: #0f1623;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+/* --- SIDEBAR (Filtres) --- */
+.editor-sidebar {
+  flex: 0 0 280px;
+  display: flex;
+  flex-direction: column;
+  background: #161f2e;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 24px;
+  align-self: flex-start;
+  position: sticky;
+  top: 100px;
+}
+
+.sidebar-title {
+  font-size: 1.3rem;
+  color: #fff;
+  margin: 0 0 20px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  padding-bottom: 10px;
+}
+
+.filter-group {
+  margin-bottom: 25px;
+}
+
+.filter-group h4 {
+  font-size: 0.85rem;
+  color: #8a99af;
+  text-transform: uppercase;
+  margin: 0 0 10px 0;
+}
+
+.filter-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.filter-btn {
+  background: #0f1623;
+  border: 1px solid rgba(255,255,255,0.12);
+  color: #8a99af;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  text-transform: capitalize;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.filter-btn:hover {
+  background: rgba(255,255,255,0.05);
+  color: #fff;
+}
+
+.filter-btn.active {
+  background: #4a90e2;
+  color: #fff;
+  border-color: #4a90e2;
+  font-weight: 600;
+}
+
+.toggle-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.9rem;
+  margin-bottom: 12px;
+  cursor: pointer;
+  color: #cedae8;
+}
+
+.toggle-label input[type="checkbox"] {
+  accent-color: #4a90e2;
+  width: 16px;
+  height: 16px;
+}
+
+/* --- MAIN LIST --- */
+.editor-main {
+  flex: 1;
+  min-width: 0;
+  overflow-x: auto;
+}
+
+.available-cards-container {
+  background: #161f2e;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.available-cards-header {
+  display: flex;
+  padding: 15px 20px;
+  background: #0f1623;
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: #8a99af;
+  text-transform: uppercase;
+}
+
+.available-cards-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 700px;
+  overflow-y: auto;
+}
+
+.available-card-item {
+  display: flex;
+  align-items: center;
+  padding: 12px 20px;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  transition: background 0.2s;
+}
+
+.available-card-item:hover {
+  background: rgba(255,255,255,0.05);
+}
+
+/* Colonnes */
+.col-name { flex: 2; display: flex; align-items: center; gap: 8px; }
+.col-type { flex: 1; color: #cedae8; font-size: 0.9rem; }
+.col-cost { flex: 0.5; font-weight: bold; color: #4a90e2; text-align: center; }
+.col-res  { flex: 1; display: flex; justify-content: center; }
+.col-action { flex: 0.5; display: flex; justify-content: flex-end; }
+
+.card-name {
+  font-weight: 600;
+  color: #fff;
+}
+
+.card-badges {
+  display: flex;
+  gap: 5px;
+  margin-left: 10px;
+}
+
+.btn-add-card {
+  background: #2ecc71;
+  color: white;
+  border: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  font-size: 1.2rem;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s, background 0.2s;
+}
+
+.btn-add-card:hover {
+  background: #27ae60;
+  transform: scale(1.1);
+}
+
+.empty-card-list {
+  padding: 40px;
+  text-align: center;
+  color: #8a99af;
+  font-style: italic;
+}
+
+/* ── Compact table (éditeur) ──────────────────────── */
+.cl-checklist--compact {
+  table-layout: fixed;
+  width: 100%;
+}
+
+.cl-checklist--compact td,
+.cl-checklist--compact th {
+  padding: 3px 8px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Column widths: QTY | NAME | COST | TYPE | RESOURCES */
+.cl-checklist--compact th:nth-child(1),
+.cl-checklist--compact td:nth-child(1) { width: 100px; min-width: 100px; overflow: visible; white-space: nowrap; }
+.cl-checklist--compact th:nth-child(2),
+.cl-checklist--compact td:nth-child(2) { width: auto; }
+.cl-checklist--compact th:nth-child(3),
+.cl-checklist--compact td:nth-child(3) { width: 48px;  min-width: 48px;  text-align: center; }
+.cl-checklist--compact th:nth-child(4),
+.cl-checklist--compact td:nth-child(4) { width: 110px; min-width: 80px; }
+.cl-checklist--compact th:nth-child(5),
+.cl-checklist--compact td:nth-child(5) { width: 80px;  min-width: 60px; overflow: visible; }
+
+.cl-checklist--compact tr td:first-child {
+  padding-left: 4px;
+}
+
+/* ── Quantity selector ────────────────────────────── */
+.cl-qty-cell {
+  white-space: nowrap;
+  padding: 2px 6px !important;
+}
+
+.qty-selector {
+  display: inline-flex;
+  gap: 3px;
+  align-items: center;
+}
+
+.qty-btn {
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 4px;
+  background: #0f1623;
+  color: #8a99af;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  line-height: 1;
+}
+
+.qty-btn:hover {
+  background: rgba(99, 179, 237, 0.15);
+  color: #bee3f8;
+  border-color: rgba(99, 179, 237, 0.4);
+}
+
+.qty-btn--active {
+  background: #3b82f6;
+  color: #fff;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.35);
+}
+
+/* ── Save area ────────────────────────────────────── */
+.editor-save-area {
+  margin-top: auto;
+  padding-top: 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.editor-save-btn {
+  width: 100%;
+  padding: 10px 0;
+  background: #3b82f6;
+  border: none;
+  border-radius: 8px;
+  color: #fff;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.editor-save-btn:hover:not(:disabled) {
+  background: #2563eb;
+}
+
+.editor-save-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.editor-cancel-btn {
+  width: 100%;
+  padding: 8px 0;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+  color: #8a99af;
+  font-size: 0.88rem;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+
+.editor-cancel-btn:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: #dbeafa;
+}
+
+.editor-save-error {
+  color: #e06c75;
+  font-size: 0.82rem;
+  padding: 6px 8px;
+  background: rgba(224, 108, 117, 0.1);
+  border-radius: 6px;
+  border: 1px solid rgba(224, 108, 117, 0.25);
+}

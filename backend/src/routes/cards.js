@@ -33,8 +33,25 @@ async function applyTranslation(card, locale) {
  */
 router.get('/cards/', async (req, res, next) => {
   try {
+    const locale = (req.query.locale || 'en').toLowerCase();
     const rows = await Card.findAll();
     const cards = rows.map((r) => serializeCard(r, { api: true }));
+    if (locale !== 'en' && cards.length > 0) {
+      const db = require('../config/database');
+      const codes = cards.map((c) => c.code);
+      const transRows = await db('card_translation')
+        .whereIn('code', codes)
+        .where('locale', locale)
+        .select(['code', ...TRANS_FIELDS]);
+      const transMap = Object.fromEntries(transRows.map((t) => [t.code, t]));
+      for (const card of cards) {
+        const t = transMap[card.code];
+        if (!t) continue;
+        for (const f of TRANS_FIELDS) {
+          if (t[f] != null && t[f] !== '') card[f] = t[f];
+        }
+      }
+    }
     res.json(cards);
   } catch (err) {
     next(err);

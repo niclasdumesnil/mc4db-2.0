@@ -6,6 +6,14 @@
   min-height: calc(100vh - 80px);
 }
 
+/* Actions row (Back + Edit) */
+.deck-view-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 28px;
+}
+
 /* Back button */
 .deck-view-back {
   display: inline-flex;
@@ -18,12 +26,30 @@
   padding: 7px 16px;
   border-radius: 8px;
   cursor: pointer;
-  margin-bottom: 28px;
   transition: background 0.2s, color 0.2s;
 }
 .deck-view-back:hover {
   background: rgba(255, 255, 255, 0.07);
   color: #dbeafa;
+}
+
+/* Edit button */
+.deck-view-edit {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(99, 179, 237, 0.12);
+  border: 1px solid rgba(99, 179, 237, 0.35);
+  color: #63b3ed;
+  font-size: 0.9rem;
+  padding: 7px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+.deck-view-edit:hover {
+  background: rgba(99, 179, 237, 0.22);
+  color: #bee3f8;
 }
 
 /* ── Banner ───────────────────────────────────────── */
@@ -268,4 +294,11 @@
   .deck-view-title {
     font-size: 1.4rem;
   }
+}
+
+/* ── Inline DeckEditor section ────────────────────── */
+.deck-view-editor-section {
+  margin-top: 40px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding-top: 32px;
 }

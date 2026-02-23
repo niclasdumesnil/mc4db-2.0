@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import DeckContent from '@components/DeckContent';
 import DeckStatistics from '@components/DeckStatistics';
+import DeckEditor from '@components/DeckEditor';
 import { getFactionColor } from '@utils/dataUtils';
 import '@css/DeckView.css';
 
@@ -15,6 +16,8 @@ export default function DeckView() {
   const [deck, setDeck] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [showEditor, setShowEditor] = useState(false);
+  const [liveSlots, setLiveSlots] = useState(null); // preview en temps réel
   const [locale, setLocale] = useState(
     () => localStorage.getItem('mc_locale') || window.__MC_LOCALE__ || 'en'
   );
@@ -126,7 +129,12 @@ export default function DeckView() {
 
   return (
     <div className="deck-view-container">
-      <button className="deck-view-back" onClick={handleBack}>← Back</button>
+      <div className="deck-view-actions">
+        <button className="deck-view-back" onClick={handleBack}>← Back</button>
+        <button className="deck-view-edit" onClick={() => setShowEditor(v => !v)}>
+          {showEditor ? 'Close Editor' : 'Edit'}
+        </button>
+      </div>
 
       {/* Hero banner */}
       <div
@@ -168,12 +176,30 @@ export default function DeckView() {
       {/* Corps : DeckContent à gauche + DeckStatistics à droite */}
       <div className="deck-view-body">
         <div className="deck-view-left">
-          <DeckContent slots={deck.slots || []} />
+          <DeckContent slots={liveSlots ?? deck.slots ?? []} />
         </div>
         <div className="deck-view-right">
-          <DeckStatistics slots={deck.slots || []} packsRequired={deck.packs_required} />
+          <DeckStatistics slots={liveSlots ?? deck.slots ?? []} packsRequired={deck.packs_required} />
         </div>
       </div>
+
+      {/* Éditeur de deck (affiché sous les cartes lors du clic sur Edit) */}
+      {showEditor && (
+        <div className="deck-view-editor-section">
+          <DeckEditor
+            deck={deck}
+            deckId={deckId}
+            isPrivate={isPrivate}
+            onSlotsChange={slots => setLiveSlots(slots)}
+            onClose={() => { setShowEditor(false); setLiveSlots(null); }}
+            onSaved={() => {
+              setShowEditor(false);
+              setLiveSlots(null);
+              window.location.reload();
+            }}
+          />
+        </div>
+      )}
     </div>
   );
 }
