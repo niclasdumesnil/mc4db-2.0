@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import { getFactionColor } from '@utils/dataUtils';
 import '../css/DeckStatistics.css';
+import '../css/DeckHistory.css';
 
 const FACTION_LABELS = {
   leadership: 'Leadership', justice: 'Justice', aggression: 'Aggression',
@@ -77,6 +78,8 @@ export default function DeckStatistics({ slots = [], packsRequired }) {
 
   return (
     <div className="deck-stats">
+
+      <h4 className="dh-title">Statistics</h4>
 
       {/* — Totaux — */}
       <div className="ds-totals">

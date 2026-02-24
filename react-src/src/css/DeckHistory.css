@@ -1,0 +1,143 @@
+﻿/* ══════════════════════════════════════════════════
+   DeckHistory  –  panneau latéral historique
+   ══════════════════════════════════════════════════ */
+
+/* ── Panel wrapper ─────────────────────────────────── */
+.deck-history {
+  background: #0f1e35;
+  border-radius: 12px;
+  padding: 16px;
+  color: #c8d8f0;
+  font-family: inherit;
+  overflow: hidden;
+  min-width: 0;
+}
+
+/* ── Title (partagé avec DeckStatistics) ───────────── */
+.dh-title {
+  font-size: 0.72rem;
+  color: #8a99af;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-weight: 600;
+  margin: 0 0 14px 0;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* ── Table ─────────────────────────────────────────── */
+.dh-table {
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Header row ────────────────────────────────────── */
+/* 2 colonnes : gauche (date & version) | droite (changes) */
+.dh-header {
+  display: grid;
+  grid-template-columns: 108px 1fr;
+  gap: 10px;
+  padding-bottom: 8px;
+  margin-bottom: 2px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+  color: #8a99af;
+}
+
+/* ── Data row ──────────────────────────────────────── */
+/* Grille 2 colonnes : gauche (date + version empilés) | droite (liste cartes) */
+.dh-row {
+  display: grid;
+  grid-template-columns: 108px 1fr;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  align-items: start;
+}
+.dh-row:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+/* ── Colonne gauche : date + version empilés ───────── */
+.dh-row-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: flex-start;
+}
+
+.dh-date {
+  font-size: 0.73rem;
+  color: #60a5fa;
+  font-weight: 500;
+  line-height: 1.3;
+  word-break: break-word;
+}
+
+.dh-version {
+  font-size: 0.73rem;
+  font-weight: 700;
+  color: #c8d8f0;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 5px;
+  padding: 2px 8px;
+  white-space: nowrap;
+  line-height: 1.3;
+}
+
+/* ── Colonne droite : liste des changements ────────── */
+.dh-changes {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+/* ── Change entry ──────────────────────────────────── */
+.dh-change {
+  display: flex;
+  align-items: baseline;
+  gap: 5px;
+  min-width: 0;
+}
+
+.dh-change-qty {
+  font-size: 0.78rem;
+  font-weight: 800;
+  min-width: 24px;
+  flex-shrink: 0;
+  line-height: 1.3;
+}
+.dh-change--add    .dh-change-qty { color: #4ade80; }
+.dh-change--remove .dh-change-qty { color: #f87171; }
+
+.dh-faction-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-top: 3px;
+}
+
+.dh-change-name {
+  font-size: 0.78rem;
+  color: #c8d8f0;
+  line-height: 1.3;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ── Empty / error state ───────────────────────────── */
+.dh-empty {
+  font-size: 0.82rem;
+  color: #8a99af;
+  text-align: center;
+  padding: 12px 0;
+}
+.dh-empty--error { color: #f87171; }

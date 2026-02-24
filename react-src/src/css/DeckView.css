@@ -14,367 +14,198 @@
   margin-bottom: 28px;
 }
 
-/* Back button */
-.deck-view-back {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: #8a99af;
-  font-size: 0.9rem;
-  padding: 7px 16px;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: background 0.2s, color 0.2s;
-}
-.deck-view-back:hover {
-  background: rgba(255, 255, 255, 0.07);
-  color: #dbeafa;
-}
+/* Buttons styles (Back, Edit, Save, Cancel) - Unchanged */
+.deck-view-back { display: inline-flex; align-items: center; gap: 6px; background: transparent; border: 1px solid rgba(255, 255, 255, 0.2); color: #8a99af; font-size: 0.9rem; padding: 7px 16px; border-radius: 8px; cursor: pointer; transition: background 0.2s, color 0.2s; }
+.deck-view-back:hover { background: rgba(255, 255, 255, 0.07); color: #dbeafa; }
 
-/* Save / Cancel buttons (shown inline in action bar when editing) */
-.deck-view-save-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  background: #2563eb;
-  border: 1px solid #3b82f6;
-  color: #fff;
-  font-size: 0.9rem;
-  font-weight: 700;
-  padding: 7px 18px;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-.deck-view-save-btn:hover:not(:disabled) {
-  background: #1d4ed8;
-}
-.deck-view-save-btn:disabled {
-  opacity: 0.5;
-  cursor: default;
-}
+.deck-view-save-btn { display: inline-flex; align-items: center; gap: 6px; background: #2563eb; border: 1px solid #3b82f6; color: #fff; font-size: 0.9rem; font-weight: 700; padding: 7px 18px; border-radius: 8px; cursor: pointer; transition: background 0.2s; }
+.deck-view-save-btn:hover:not(:disabled) { background: #1d4ed8; }
+.deck-view-save-btn:disabled { opacity: 0.5; cursor: default; }
 
-.deck-view-cancel-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  color: #8a99af;
-  font-size: 0.9rem;
-  padding: 7px 16px;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: background 0.2s, color 0.2s;
-}
-.deck-view-cancel-btn:hover {
-  background: rgba(255, 255, 255, 0.07);
-  color: #dbeafa;
-}
+.deck-view-cancel-btn { display: inline-flex; align-items: center; gap: 6px; background: transparent; border: 1px solid rgba(255, 255, 255, 0.15); color: #8a99af; font-size: 0.9rem; padding: 7px 16px; border-radius: 8px; cursor: pointer; transition: background 0.2s, color 0.2s; }
+.deck-view-cancel-btn:hover { background: rgba(255, 255, 255, 0.07); color: #dbeafa; }
 
-.deck-view-save-error {
-  color: #f87171;
-  font-size: 0.82rem;
-  align-self: center;
-}
+.deck-view-edit { display: inline-flex; align-items: center; gap: 6px; background: rgba(99, 179, 237, 0.12); border: 1px solid rgba(99, 179, 237, 0.35); color: #63b3ed; font-size: 0.9rem; padding: 7px 16px; border-radius: 8px; cursor: pointer; transition: background 0.2s, color 0.2s; }
+.deck-view-edit:hover { background: rgba(99, 179, 237, 0.22); color: #bee3f8; }
 
-/* Edit button */
-.deck-view-edit {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  background: rgba(99, 179, 237, 0.12);
-  border: 1px solid rgba(99, 179, 237, 0.35);
-  color: #63b3ed;
-  font-size: 0.9rem;
-  padding: 7px 16px;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: background 0.2s, color 0.2s;
-}
-.deck-view-edit:hover {
-  background: rgba(99, 179, 237, 0.22);
-  color: #bee3f8;
-}
+.deck-view-save-error { color: #f87171; font-size: 0.82rem; align-self: center; }
 
 /* ── Banner ───────────────────────────────────────── */
 .deck-view-banner {
   position: relative;
-  background: #10203a;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 14px;
-  overflow: hidden;
+  background: #0f172a; /* Fond uni sombre */
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 16px;
+  height: 260px; /* Hauteur fixe pour le positionnement des cartes */
   display: flex;
-  align-items: stretch;
-  gap: 0;
-  margin-bottom: 24px;
-}
-
-/* Voile sombre pour lisibilité du texte */
-.deck-view-banner::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.48);
-  z-index: 0;
-}
-
-.deck-view-banner-info {
-  flex: 1;
-  min-width: 0;
-  position: relative;
-  z-index: 1;
-  padding: 12px 20px;
-  display: flex;
-  flex-direction: column;
+  align-items: center;
   justify-content: center;
+  margin-bottom: 70px; /* Marge pour compenser le dépassement des cartes en bas */
+  overflow: visible; /* CRUCIAL : Laisse dépasser les cartes */
 }
 
-/* Zone images */
-.deck-view-banner-images {
-  flex-shrink: 0;
+/* Zone d'information (Texte au dessus des cartes) */
+.deck-view-banner-info {
+  position: relative;
+  z-index: 10;
+  background: rgba(15, 23, 42, 0.85); /* Semi-transparent pour la lisibilité */
+  backdrop-filter: blur(8px);
+  padding: 20px 40px;
+  border-radius: 12px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: 0;
-  position: relative;
-  z-index: 1;
-  padding: 8px 14px 8px 0;
-}
-
-.deck-view-banner-heroname {
-  font-size: 0.75rem;
-  font-weight: 700;
-  color: #dbeafa;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
   text-align: center;
-  opacity: 0.85;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  max-width: 600px;
 }
 
-.deck-view-banner-thumbs {
-  display: flex;
-  flex-direction: row;
-  align-items: flex-end;
-  gap: 6px;
+/* ── Système de Cartes Flottantes (Les 5 Images) ── */
+.banner-cards-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none; /* Ne bloque pas le clic sur les boutons éventuels en dessous */
 }
 
-/* Image carte complète portrait */
-.deck-view-banner-thumb {
-  height: 80px;
-  width: auto;
-  object-fit: contain;
-  border-radius: 5px;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.7);
-  display: block;
-  transition: transform 0.2s;
+.banner-card {
+  position: absolute;
+  width: 170px; /* Taille augmentée */
+  height: auto;
+  border-radius: 10px;
+  box-shadow: 0 15px 35px rgba(0,0,0,0.6);
+  pointer-events: auto; /* Active le hover sur chaque carte */
+  transition: all 0.35s cubic-bezier(0.25, 0.8, 0.25, 1);
+  transform-origin: center bottom;
 }
 
-.deck-view-banner-thumb:hover {
-  transform: scale(1.06) translateY(-4px);
+/* Effet de survol partagé : Agrandissement et passage au premier plan */
+.banner-card:hover {
+  z-index: 100 !important;
+  transform: scale(1.2) translateY(-15px) rotate(0deg) !important;
+  box-shadow: 0 25px 50px rgba(0,0,0,0.8);
+  filter: brightness(1) !important;
 }
 
-/* Ligne 1 : Titre + Updated inline */
+/* Positions spécifiques des 5 cartes */
+
+/* Héros (Bas Gauche) - Dépasse vers le bas et la gauche */
+.card-hero {
+  bottom: -40px;
+  left: 3%;
+  transform: rotate(-8deg);
+  z-index: 5;
+}
+
+/* Alter Ego (Bas Droite) - Dépasse vers le bas et la droite */
+.card-alterego {
+  bottom: -40px;
+  right: 3%;
+  transform: rotate(8deg);
+  z-index: 5;
+}
+
+/* Set 1 (Haut Gauche) - Arrière plan */
+.card-set-1 {
+  top: -30px;
+  left: 20%;
+  transform: rotate(-15deg);
+  z-index: 2;
+  filter: brightness(0.65);
+}
+
+/* Set 2 (Haut Milieu) - Arrière plan */
+.card-set-2 {
+  top: -50px;
+  left: 50%;
+  margin-left: -85px; /* Compense la moitié de la largeur (170/2) */
+  transform: rotate(0deg);
+  z-index: 1;
+  filter: brightness(0.65);
+}
+
+/* Set 3 (Haut Droite) - Arrière plan */
+.card-set-3 {
+  top: -30px;
+  right: 20%;
+  transform: rotate(15deg);
+  z-index: 2;
+  filter: brightness(0.65);
+}
+
+/* ── Textes du Header ────────────────────────────── */
 .deck-view-title-row {
   display: flex;
-  align-items: baseline;
-  gap: 10px;
-  flex-wrap: wrap;
-  margin-bottom: 4px;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 8px;
 }
 
-.deck-view-title {
-  font-size: 1.4rem;
-  font-weight: 800;
-  color: #fff;
-  margin: 0;
-  line-height: 1.2;
-  word-break: break-word;
-}
+.deck-view-title { font-size: 1.8rem; font-weight: 800; color: #fff; margin: 0; }
 
-/* Ligne 2 : private | version | aspect | auteur | stats */
 .deck-view-subtitle {
   display: flex;
   align-items: center;
+  justify-content: center;
   flex-wrap: wrap;
   gap: 8px;
-  margin-bottom: 0;
+  margin-bottom: 8px;
 }
 
-.deck-view-version {
-  font-size: 0.8rem;
-  color: #60a5fa;
-  font-weight: 600;
-  background: rgba(96, 165, 250, 0.12);
-  border: 1px solid rgba(96, 165, 250, 0.25);
-  border-radius: 5px;
-  padding: 2px 8px;
-}
-
-.deck-view-updated {
-  font-size: 0.75rem;
-  color: #8a99af;
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-
-.deck-view-meta {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-bottom: 12px;
-}
-
-.deck-view-hero {
-  font-size: 1rem;
-  font-weight: 600;
-  color: #dbeafa;
-  background: rgba(255, 255, 255, 0.08);
-  padding: 3px 10px;
-  border-radius: 6px;
-}
-
-.deck-view-aspect-dot {
-  display: inline-block;
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-
-.deck-view-aspect-name {
-  font-size: 0.88rem;
-  color: #8a99af;
-  font-weight: 500;
-}
-
-.deck-view-author {
-  font-size: 0.88rem;
-  color: #8a99af;
-}
-
-.deck-view-private-badge {
-  font-size: 0.8rem;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: 20px;
-  padding: 2px 10px;
-  color: #8a99af;
-}
+.deck-view-version { font-size: 0.8rem; color: #60a5fa; font-weight: 600; background: rgba(96, 165, 250, 0.12); border: 1px solid rgba(96, 165, 250, 0.25); border-radius: 5px; padding: 2px 8px; }
+.deck-view-updated { font-size: 0.75rem; color: #8a99af; white-space: nowrap; margin-right: 10px; }
+.deck-view-hero { font-size: 1rem; font-weight: 600; color: #dbeafa; background: rgba(255, 255, 255, 0.08); padding: 3px 10px; border-radius: 6px; }
+.deck-view-aspect-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; }
+.deck-view-aspect-name { font-size: 0.88rem; color: #8a99af; font-weight: 500; }
+.deck-view-author { font-size: 0.88rem; color: #8a99af; }
+.deck-view-private-badge { font-size: 0.8rem; background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 20px; padding: 2px 10px; color: #8a99af; }
 
 .deck-view-stats {
   display: flex;
   align-items: center;
+  justify-content: center;
   flex-wrap: wrap;
   gap: 14px;
 }
 
-.deck-view-stat {
-  font-size: 0.78rem;
-  color: #8a99af;
-  border-left: 1px solid rgba(255,255,255,0.12);
-  padding-left: 8px;
-}
-
-.deck-view-stat--highlight {
-  font-size: 0.93rem;
-  color: #dbeafa;
-  font-weight: 600;
-}
-
-.deck-view-stat--date {
-  margin-left: auto;
-}
+.deck-view-stat { font-size: 0.85rem; color: #8a99af; }
+.mt-2 { margin-top: 10px; }
 
 /* ── Content area ─────────────────────────────────── */
-.deck-view-body {
-  display: flex;
-  align-items: flex-start;
-  gap: 24px;
-}
-
-/* Editing mode: wider container, deck panel compact on left */
-.deck-view-body--editing {
-  max-width: 100%;
-}
-
-.deck-view-left {
-  flex: 1;
-  min-width: 0;
-}
-
-/* Deck panel when editor is open — 50% */
-.deck-view-left--compact {
-  flex: 0 0 50%;
-  min-width: 0;
-  font-size: 0.82rem;
-}
-
-/* Editor panel — 50% */
-.deck-view-editor-panel {
-  flex: 0 0 50%;
-  min-width: 0;
-  overflow: hidden;
-}
-
-.deck-view-right {
-  flex-shrink: 0;
-  width: 300px;
-}
+.deck-view-body { display: flex; align-items: flex-start; gap: 20px; }
+.deck-view-body--editing { max-width: 100%; }
+.deck-view-left { flex: 1; min-width: 320px; }
+.deck-view-left--compact { flex: 0 0 50%; min-width: 0; font-size: 0.82rem; }
+.deck-view-history-col { flex: 0 0 320px; }
+.deck-view-editor-panel { flex: 0 0 50%; min-width: 0; overflow: hidden; }
+.deck-view-right { flex: 0 0 300px; }
 
 /* ── States ───────────────────────────────────────── */
 .deck-view-loading,
-.deck-view-error {
-  text-align: center;
-  padding: 60px 0;
-  color: #8a99af;
-  font-size: 1rem;
-}
-
-.deck-view-error {
-  color: #e06c75;
-}
+.deck-view-error { text-align: center; padding: 60px 0; color: #8a99af; font-size: 1rem; }
+.deck-view-error { color: #e06c75; }
 
 /* ── Responsive ───────────────────────────────────── */
 @media (max-width: 1100px) {
-  .deck-view-body--editing {
-    flex-direction: column;
-  }
-  .deck-view-left--compact {
-    flex: unset;
-    width: 100%;
-  }
+  .deck-view-body--editing { flex-direction: column; }
+  .deck-view-left--compact { flex: unset; width: 100%; }
+  .banner-card { width: 130px; } /* Réduit les cartes sur écran moyen */
+}
+
+@media (max-width: 1200px) {
+  .deck-view-history-col { display: none; }
 }
 
 @media (max-width: 900px) {
-  .deck-view-body {
-    flex-direction: column;
-  }
-  .deck-view-right {
-    width: 100%;
-  }
+  .deck-view-body { flex-direction: column; }
+  .deck-view-left, .deck-view-right { width: 100%; flex: unset; }
+  
+  /* Sur petits écrans, on cache les cartes du set de fond car il n'y a plus de place */
+  .card-set-1, .card-set-2, .card-set-3 { display: none; }
 }
 
 @media (max-width: 640px) {
-  .deck-view-banner {
-    flex-direction: column;
-  }
-  .deck-view-banner-images {
-    padding: 0 0 12px 16px;
-    align-self: flex-start;
-  }
-  .deck-view-title {
-    font-size: 1.4rem;
-  }
-}
-
-/* ── Inline DeckEditor section (legacy, kept for safety) ─ */
-.deck-view-editor-section {
-  margin-top: 40px;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-  padding-top: 32px;
+  .deck-view-banner { height: auto; padding: 20px 10px; margin-bottom: 20px; overflow: hidden; }
+  .banner-cards-layer { position: static; display: flex; justify-content: center; gap: 10px; margin-top: 20px; }
+  .banner-card { position: static; transform: none !important; width: 100px; filter: none; }
+  .deck-view-title { font-size: 1.4rem; }
 }

@@ -264,7 +264,7 @@ router.get('/user/:userId/decks/:deckId', async (req, res) => {
   }
 });
 
-// 2C. Sauvegarder les slots d'un deck privé
+// 2C. Sauvegarder les slots d'un deck privé (avec versioning et deckchange)
 router.put('/user/:userId/decks/:deckId/slots', async (req, res) => {
   try {
     const userId = parseInt(req.params.userId, 10);
@@ -281,12 +281,35 @@ router.put('/user/:userId/decks/:deckId/slots', async (req, res) => {
     // Ne garder que les slots avec quantity > 0
     const toInsert = slots.filter(s => s.quantity > 0);
 
-    // Résoudre card_id depuis les codes
-    const codes = toInsert.map(s => s.code);
-    const cardRows = codes.length > 0
-      ? await db('card').whereIn('code', codes).select('id', 'code')
+    // Anciens slots pour calculer le diff
+    const oldSlotRows = await db('deckslot as s')
+      .join('card as c', 's.card_id', 'c.id')
+      .where('s.deck_id', deckId)
+      .select('c.code', 's.quantity');
+    const oldMap = Object.fromEntries(oldSlotRows.map(r => [r.code, r.quantity]));
+
+    // Résoudre card_id depuis les codes (anciens + nouveaux)
+    const allCodes = [...new Set([...toInsert.map(s => s.code), ...Object.keys(oldMap)])];
+    const cardRows = allCodes.length > 0
+      ? await db('card').whereIn('code', allCodes).select('id', 'code')
       : [];
     const codeToId = Object.fromEntries(cardRows.map(r => [r.code, r.id]));
+
+    // Calcul du diff (variation)
+    const newMap = Object.fromEntries(toInsert.map(s => [s.code, s.quantity]));
+    const variation = {};
+    const allCodeSet = new Set([...Object.keys(oldMap), ...Object.keys(newMap)]);
+    for (const code of allCodeSet) {
+      const diff = (newMap[code] || 0) - (oldMap[code] || 0);
+      if (diff !== 0) variation[code] = diff;
+    }
+    const hasChanges = Object.keys(variation).length > 0;
+
+    // Version courante du deck
+    const currentMajor  = deck.major_version || 0;
+    const currentMinor  = deck.minor_version  || 0;
+    const versionString = `${currentMajor}.${currentMinor}`;
+    const nextMinor     = currentMinor + 1;
 
     await db.transaction(async trx => {
       // Supprimer tous les slots existants
@@ -300,13 +323,123 @@ router.put('/user/:userId/decks/:deckId/slots', async (req, res) => {
         if (rows.length > 0) await trx('deckslot').insert(rows);
       }
 
-      // Mettre à jour date_update
-      await trx('deck').where('id', deckId).update({ date_update: new Date() });
+      // Insérer un deckchange si des modifications ont eu lieu
+      if (hasChanges) {
+        await trx('deckchange').insert({
+          deck_id:       deckId,
+          date_creation: new Date(),
+          variation:     JSON.stringify(variation),
+          is_saved:      true,
+          version:       versionString,
+        });
+        // Incrémenter minor_version
+        await trx('deck').where('id', deckId).update({
+          date_update:   new Date(),
+          minor_version: nextMinor,
+        });
+      } else {
+        await trx('deck').where('id', deckId).update({ date_update: new Date() });
+      }
     });
 
     return res.json({ ok: true });
   } catch (err) {
     console.error('PUT /user/:userId/decks/:deckId/slots error', err);
+    return res.status(500).json({ error: 'Internal error' });
+  }
+});
+
+// 2D. Historique des changements d'un deck privé
+router.get('/user/:userId/decks/:deckId/history', async (req, res) => {
+  try {
+    const userId = parseInt(req.params.userId, 10);
+    const deckId = parseInt(req.params.deckId, 10);
+    const locale = (req.query.locale || 'en').toLowerCase();
+    if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+
+    const deck = await db('deck').where({ id: deckId, user_id: userId }).first();
+    if (!deck) return res.status(404).json({ error: 'Deck not found or unauthorized' });
+
+    const changes = await db('deckchange')
+      .where('deck_id', deckId)
+      .orderBy('date_creation', 'desc')
+      .select('id', 'date_creation', 'variation', 'is_saved', 'version');
+
+    if (changes.length === 0) return res.json({ ok: true, data: [] });
+
+    // Gère deux formats :
+    //   Ancien PHP : [{"code": qty}, {"code": qty}]  — [ajouts, suppressions]
+    //   Nouveau    : {"code": qty_delta}
+    function parseVariation(raw) {
+      const v = typeof raw === 'string' ? JSON.parse(raw) : raw;
+      if (!v) return {};
+      if (Array.isArray(v)) {
+        const added   = (v[0] && !Array.isArray(v[0])) ? v[0] : {};
+        const removed = (v[1] && !Array.isArray(v[1])) ? v[1] : {};
+        const merged  = {};
+        for (const [c, q] of Object.entries(added))   merged[c] =  Number(q) || 0;
+        for (const [c, q] of Object.entries(removed)) merged[c] = -Number(q) || 0;
+        return merged;
+      }
+      return v;
+    }
+
+    // Collecter tous les codes via parseVariation
+    const allCodes = new Set();
+    for (const c of changes) {
+      try { Object.keys(parseVariation(c.variation)).forEach(code => allCodes.add(code)); }
+      catch (_) {}
+    }
+
+    // Charger les noms et factions de cartes
+    const codeList = [...allCodes];
+    let nameMap = {};
+    let factionMap = {};
+    if (codeList.length > 0) {
+      const cardRows = await db('card as c')
+        .leftJoin('faction as f', 'c.faction_id', 'f.id')
+        .whereIn('c.code', codeList)
+        .select('c.code', 'c.name', 'f.code as faction_code');
+      for (const r of cardRows) {
+        nameMap[r.code]    = r.name;
+        factionMap[r.code] = r.faction_code || 'basic';
+      }
+      if (locale !== 'en') {
+        const transNames = await db('card_translation')
+          .whereIn('code', codeList)
+          .where('locale', locale)
+          .select('code', 'name');
+        for (const t of transNames) {
+          if (t.name) nameMap[t.code] = t.name;
+        }
+      }
+    }
+
+    const data = changes.map(c => {
+      let entries = [];
+      try {
+        const v = parseVariation(c.variation);
+        entries = Object.entries(v)
+          .filter(([, qty]) => Number(qty) !== 0)
+          .map(([code, qty]) => ({ code, qty: Number(qty), name: nameMap[code] || code, faction_code: factionMap[code] || 'basic' }))
+          .sort((a, b) => {
+            if (a.qty > 0 && b.qty <= 0) return -1;
+            if (a.qty <= 0 && b.qty > 0) return 1;
+            return a.name.localeCompare(b.name);
+          });
+      } catch (_) {}
+      return {
+        id:       c.id,
+        date:     c.date_creation,
+        version:  c.version || '0.0',
+        is_saved: c.is_saved,
+        changes:  entries,
+      };
+    });
+
+    return res.json({ ok: true, data });
+  } catch (err) {
+    console.error('GET /user/:userId/decks/:deckId/history error', err);
     return res.status(500).json({ error: 'Internal error' });
   }
 });

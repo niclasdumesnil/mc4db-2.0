@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import DeckContent from '@components/DeckContent';
 import DeckStatistics from '@components/DeckStatistics';
+import DeckHistory from '@components/DeckHistory';
 import DeckEditor from '@components/DeckEditor';
 import { getFactionColor } from '@utils/dataUtils';
 import '@css/DeckView.css';
@@ -20,6 +21,7 @@ export default function DeckView() {
   const [liveSlots, setLiveSlots] = useState(null); // preview en temps réel
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState(null);
+  const [historyRefreshKey, setHistoryRefreshKey] = useState(0);
   const editorRef = useRef(null);
   const [locale, setLocale] = useState(
     () => localStorage.getItem('mc_locale') || window.__MC_LOCALE__ || 'en'
@@ -108,23 +110,8 @@ export default function DeckView() {
   } catch (_) {}
   const headerColor = getFactionColor(aspect);
 
-  // Gradient depuis les couleurs meta du héros (1=gauche, 2=droite, 3=centre)
-  let bannerGradient = null;
-  try {
-    const heroMeta = typeof deck.hero_meta === 'string' ? JSON.parse(deck.hero_meta) : deck.hero_meta;
-    if (heroMeta && Array.isArray(heroMeta.colors) && heroMeta.colors.length >= 2) {
-      const c = heroMeta.colors;
-      const left   = c[0];
-      const right  = c[1];
-      const center = c[2] || c[0];
-      bannerGradient = `linear-gradient(to right, ${left}, ${center}, ${right})`;
-    }
-  } catch (_) {}
-
   const heroImage    = deck.hero_imagesrc    || null;
   const alterImage   = deck.alter_ego_imagesrc || null;
-  const packsCount   = deck.packs_required   ?? null;
-  const totalCards   = Array.isArray(deck.slots) ? deck.slots.filter(s => !s.permanent).reduce((n, s) => n + s.quantity, 0) : null;
 
   const updatedAt = deck.date_update || deck.date_creation
     ? new Date(deck.date_update || deck.date_creation).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
@@ -158,19 +145,20 @@ export default function DeckView() {
         )}
       </div>
 
-      {/* Hero banner */}
-      <div
-        className="deck-view-banner"
-        style={bannerGradient ? { backgroundImage: bannerGradient } : undefined}
-      >
-        {/* Infos à gauche */}
-        <div className="deck-view-banner-info">
-          {/* Ligne 1 : titre + updated inline */}
+      {/* Hero banner repensé */}
+      <div className="deck-view-banner">
+        
+        {/* Calque des images */}
+        <div className="banner-cards-layer">
+          {heroImage && <img className="banner-card card-hero" src={heroImage} alt={deck.hero_name} />}
+          {alterImage && <img className="banner-card card-alterego" src={alterImage} alt="Alter-Ego" />}
+        </div>
+
+        {/* Infos textuelles centrées */}
+        <div className="deck-view-banner-info" style={{ borderTop: `4px solid ${headerColor}` }}>
           <div className="deck-view-title-row">
             <h1 className="deck-view-title">{deck.name}</h1>
-            {updatedAt && <span className="deck-view-updated">Updated {updatedAt}</span>}
           </div>
-          {/* Ligne 2 : private | hero | version | aspect | auteur | stats */}
           <div className="deck-view-subtitle">
             {deck.hero_name && <span className="deck-view-hero">{deck.hero_name}</span>}
             {deck.version && <span className="deck-view-version">v{deck.version}</span>}
@@ -178,21 +166,15 @@ export default function DeckView() {
             <span className="deck-view-aspect-name">{aspect.charAt(0).toUpperCase() + aspect.slice(1)}</span>
             {isPrivate && <span className="deck-view-private-badge">🔒 Private</span>}
             {deck.author_name && <span className="deck-view-author">by {deck.author_name}</span>}
+          </div>
+          <div className="deck-view-stats mt-2">
+            {updatedAt && <span className="deck-view-updated">Updated {updatedAt}</span>}
             {deck.likes     != null && <span className="deck-view-stat">♥ {deck.likes}</span>}
             {deck.favorites != null && <span className="deck-view-stat">★ {deck.favorites}</span>}
             {deck.comments  != null && <span className="deck-view-stat">💬 {deck.comments}</span>}
           </div>
         </div>
 
-        {/* Images héros + alter-ego */}
-        {(heroImage || alterImage) && (
-          <div className="deck-view-banner-images">
-            <div className="deck-view-banner-thumbs">
-              {alterImage && <img className="deck-view-banner-thumb" src={alterImage} alt="Alter-Ego" />}
-              {heroImage  && <img className="deck-view-banner-thumb" src={heroImage}  alt={deck.hero_name} />}
-            </div>
-          </div>
-        )}
       </div>
 
       {/* Corps : layout conditionnel selon mode édition */}
@@ -203,6 +185,16 @@ export default function DeckView() {
         {!showEditor && (
           <div className="deck-view-right">
             <DeckStatistics slots={liveSlots ?? deck.slots ?? []} packsRequired={deck.packs_required} />
+          </div>
+        )}
+        {!showEditor && (
+          <div className="deck-view-history-col">
+            <DeckHistory
+              deckId={deckId}
+              isPrivate={isPrivate}
+              locale={locale}
+              refreshKey={historyRefreshKey}
+            />
           </div>
         )}
         {showEditor && (
@@ -218,6 +210,7 @@ export default function DeckView() {
                 setShowEditor(false);
                 setLiveSlots(null);
                 setSaveError(null);
+                setHistoryRefreshKey(k => k + 1);
                 window.location.reload();
               }}
             />

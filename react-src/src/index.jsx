@@ -92,19 +92,41 @@ try{
   }
 }catch(e){ console.error('Failed to mount Menu', e); }
 
+// Error boundary to surface React render errors visibly in production
+class AppErrorBoundary extends React.Component {
+  constructor(props) { super(props); this.state = { error: null }; }
+  static getDerivedStateFromError(e) { return { error: e }; }
+  componentDidCatch(e, info) { console.error('[AppErrorBoundary]', e, info); }
+  render() {
+    if (this.state.error) {
+      return React.createElement('div', {
+        style: { padding: '40px 24px', color: '#f87171', fontFamily: 'monospace', background: '#0f1e35', borderRadius: 8, margin: 24 }
+      },
+        React.createElement('b', null, 'Render error: '),
+        React.createElement('pre', { style: { whiteSpace: 'pre-wrap', marginTop: 12 } },
+          String(this.state.error?.message || this.state.error)
+        )
+      );
+    }
+    return this.props.children;
+  }
+}
+
 // Mount app container for landing/dashboard
 try{
   const appContainer = document.getElementById('mc-app');
   if (appContainer){
     const appRoot = createRoot(appContainer);
     const path = window.location.pathname || '/';
-    if (path === '/' || path === '/index.html') appRoot.render(<Landing />);
-    else if (path.startsWith('/dashboard')) appRoot.render(<Dashboard />);
-    else if (path.startsWith('/card-list')) appRoot.render(<CardList />);
-    else if (path.startsWith('/card')) appRoot.render(<CardPage />);
-    else if (/^\/decklists\/\d+/.test(path)) appRoot.render(<DeckView />);
-    else if (path.startsWith('/decklists')) appRoot.render(<PublicDeckList />);
-    else if (/^\/my-decks\/\d+/.test(path)) appRoot.render(<DeckView />);
-    else if (path.startsWith('/my-decks')) appRoot.render(<MyDecks />);
+    let PageComponent = null;
+    if (path === '/' || path === '/index.html') PageComponent = React.createElement(Landing);
+    else if (path.startsWith('/dashboard')) PageComponent = React.createElement(Dashboard);
+    else if (path.startsWith('/card-list')) PageComponent = React.createElement(CardList);
+    else if (path.startsWith('/card')) PageComponent = React.createElement(CardPage);
+    else if (/^\/decklists\/\d+/.test(path)) PageComponent = React.createElement(DeckView);
+    else if (path.startsWith('/decklists')) PageComponent = React.createElement(PublicDeckList);
+    else if (/^\/my-decks\/\d+/.test(path)) PageComponent = React.createElement(DeckView);
+    else if (path.startsWith('/my-decks')) PageComponent = React.createElement(MyDecks);
+    if (PageComponent) appRoot.render(React.createElement(AppErrorBoundary, null, PageComponent));
   }
 }catch(e){ console.error('Failed to mount app container', e); }
