@@ -7,7 +7,7 @@ export default function PrivateDeck({ deck }) {
   try {
     const meta = typeof deck.meta === 'string' ? JSON.parse(deck.meta) : deck.meta;
     if (meta && meta.aspect) aspect = meta.aspect;
-  } catch (_) {}
+  } catch (_) { }
   const headerColor = getFactionColor(aspect);
   const headerFaint = getFactionFaintColor(aspect);
 
@@ -27,10 +27,10 @@ export default function PrivateDeck({ deck }) {
   const updatedAt = deck.date_update
     ? new Date(deck.date_update).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
     : deck.date_creation
-    ? new Date(deck.date_creation).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
-    : null;
+      ? new Date(deck.date_creation).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+      : null;
 
-  const handleClick = () => { window.location.href = `/my-decks/${deck.id}`; };
+  const handleClick = () => { window.location.href = `/deck/view/${deck.id}`; };
 
   return (
     <div className="deck-card" onClick={handleClick} style={{ cursor: 'pointer' }}>

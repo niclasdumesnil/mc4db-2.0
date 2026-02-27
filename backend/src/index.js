@@ -490,8 +490,14 @@ app.get(['/rules', '/rules/'], (req, res) => {
   res.type('html').send(html);
 });
 
+// Redirect legacy plural decklist URL to singular
+app.get(['/decklists/:id(\\d+)', '/decklists/:id(\\d+).json'], (req, res) => {
+  const isJson = req.path.endsWith('.json');
+  res.redirect(301, `/decklist/${req.params.id}${isJson ? '.json' : ''}`);
+});
+
 // Public Deck View page (client-side rendered)
-app.get('/decklists/:id', (req, res) => {
+app.get(['/decklist/:id', '/decklist/view/:id'], (req, res) => {
   const localeRaw = (req.acceptsLanguages && req.acceptsLanguages()[0]) || 'en';
   const locale = localeRaw.split('-')[0].toLowerCase() || 'en';
   const html = `<!doctype html>
@@ -514,7 +520,7 @@ app.get('/decklists/:id', (req, res) => {
 });
 
 // My Deck View page (client-side rendered — requires login)
-app.get('/my-decks/:id', (req, res) => {
+app.get(['/my-decks/:id', '/deck/view/:id'], (req, res) => {
   const localeRaw = (req.acceptsLanguages && req.acceptsLanguages()[0]) || 'en';
   const locale = localeRaw.split('-')[0].toLowerCase() || 'en';
   const html = `<!doctype html>

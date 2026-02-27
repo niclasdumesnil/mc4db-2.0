@@ -8,19 +8,29 @@ const router = Router();
 // 🛠️ FONCTIONS UTILITAIRES
 // ==========================================
 
+function formatLegacyDate(d) {
+  if (!d) return null;
+  const date = new Date(d);
+  const pad = n => n.toString().padStart(2, '0');
+  const tz = -date.getTimezoneOffset();
+  const sign = tz >= 0 ? '+' : '-';
+  const absTz = Math.abs(tz);
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}${sign}${pad(Math.floor(absTz / 60))}:${pad(absTz % 60)}`;
+}
+
 /**
  * Applique les filtres communs (Héros, Aspects, Tags) aux listes de decks.
  */
 function applyCommonFilters(queryBuilder, reqQuery) {
   const { hero, aspect, tag } = reqQuery;
   const aspects = aspect ? (Array.isArray(aspect) ? aspect : [aspect]) : [];
-  const tags    = tag    ? (Array.isArray(tag)    ? tag    : [tag])    : [];
+  const tags = tag ? (Array.isArray(tag) ? tag : [tag]) : [];
 
   if (hero) queryBuilder.where('c.code', hero);
-  
+
   if (aspects.length) {
     const includesBasic = aspects.includes('basic');
-    queryBuilder.where(function() {
+    queryBuilder.where(function () {
       this.whereIn(
         db.raw("JSON_UNQUOTE(JSON_EXTRACT(d.meta, '$.aspect'))"),
         aspects
@@ -31,7 +41,7 @@ function applyCommonFilters(queryBuilder, reqQuery) {
       }
     });
   }
-  
+
   if (tags.length) {
     queryBuilder.where(function () {
       tags.forEach(t => this.orWhereRaw("FIND_IN_SET(?, d.tags)", [t]));
@@ -94,8 +104,8 @@ async function fetchDeckSlots(tableName, foreignKey, parentId, locale = 'en') {
 // 1A. Liste des decks publics
 router.get('/decks', async (req, res) => {
   try {
-    const page   = parseInt(req.query.page)  || 1;
-    const limit  = parseInt(req.query.limit) || 20;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 20;
     const offset = (page - 1) * limit;
 
     const baseQuery = () => db('decklist as d')
@@ -159,19 +169,227 @@ router.get('/decks/:id', async (req, res) => {
     const heroCode = deck.hero_code || '';
     const alterEgoCode = heroCode.endsWith('b') ? heroCode.slice(0, -1) + 'a' : heroCode.endsWith('a') ? heroCode.slice(0, -1) + 'b' : heroCode + 'b';
 
-    return res.json({ ok: true, data: {
-      ...deck,
-      slots,
-      packs_required,
-      hero_imagesrc: resolveImage(heroCode),
-      alter_ego_imagesrc: resolveImage(alterEgoCode),
-    }});
+    return res.json({
+      ok: true, data: {
+        ...deck,
+        slots,
+        packs_required,
+        hero_imagesrc: resolveImage(heroCode),
+        alter_ego_imagesrc: resolveImage(alterEgoCode),
+      }
+    });
   } catch (err) {
     console.error('GET /decks/:id error', err);
     return res.status(500).json({ error: 'Internal error' });
   }
 });
 
+
+// 1C. Détail d'un decklist format Legacy (Symfony)
+router.get(['/decklist/:id.json', '/decklist/:id'], async (req, res) => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    const deck = await db('decklist as d')
+      .join('user as u', 'd.user_id', 'u.id')
+      .join('card as c', 'd.card_id', 'c.id')
+      .select('d.*', 'c.name as character_name', 'c.code as character_code')
+      .where('d.id', id)
+      .first();
+
+    if (!deck) return res.status(404).json({ error: 'Decklist not found' });
+
+    const slotsRows = await db('decklistslot as s')
+      .join('card as c', 's.card_id', 'c.id')
+      .select('s.quantity', 'c.code')
+      .where('s.decklist_id', id);
+
+    const slotsMap = {};
+    const sortedRows = slotsRows.sort((a, b) => a.code.localeCompare(b.code));
+    for (const row of sortedRows) slotsMap[row.code] = row.quantity;
+
+    const legacyFormat = {
+      id: deck.id,
+      name: deck.name,
+      date_creation: formatLegacyDate(deck.date_creation),
+      date_update: formatLegacyDate(deck.date_update),
+      description_md: deck.description_md,
+      user_id: deck.user_id,
+      hero_code: deck.character_code,
+      hero_name: deck.character_name,
+      signature_code: deck.signature,
+      slots: slotsMap,
+      ignoreDeckLimitSlots: null,
+      version: deck.version,
+      exiles: deck.exiles,
+      meta: deck.meta,
+      tags: deck.tags || "",
+      nb_votes: deck.nb_votes,
+      nb_favorites: deck.nb_favorites,
+      nb_comments: deck.nb_comments
+    };
+
+    return res.json(legacyFormat);
+  } catch (err) {
+    console.error('GET /decklist/:id error', err);
+    return res.status(500).json({ error: 'Internal error' });
+  }
+});
+
+// 1D. Liste des decklists publiés à une date donnée (Legacy format)
+router.get(['/decklists/:date.json', '/decklists/:date'], async (req, res) => {
+  try {
+    const dateStr = req.params.date;
+    if (dateStr === 'popular') return next(); // Fallthrough to popular route if somehow routed here
+
+    if (!/^\\d{4}-\\d{2}-\\d{2}$/.test(dateStr)) {
+      return res.status(400).json({ error: 'Invalid date format' });
+    }
+    const start = new Date(dateStr);
+    const end = new Date(start);
+    end.setDate(end.getDate() + 1);
+
+    const decklists = await db('decklist as d')
+      .join('user as u', 'd.user_id', 'u.id')
+      .join('card as c', 'd.card_id', 'c.id')
+      .where('d.date_creation', '>=', start)
+      .andWhere('d.date_creation', '<', end)
+      .select('d.*', 'c.name as character_name', 'c.code as character_code')
+      .orderBy('d.date_creation', 'desc');
+
+    if (decklists.length === 0) return res.json([]);
+
+    const decklistIds = decklists.map(d => d.id);
+    const slotsRows = await db('decklistslot as s')
+      .join('card as c', 's.card_id', 'c.id')
+      .select('s.decklist_id', 's.quantity', 'c.code')
+      .whereIn('s.decklist_id', decklistIds);
+
+    const slotsByDecklist = {};
+    const sortedSlotsRows = slotsRows.sort((a, b) => a.code.localeCompare(b.code));
+    for (const row of sortedSlotsRows) {
+      if (!slotsByDecklist[row.decklist_id]) slotsByDecklist[row.decklist_id] = {};
+      slotsByDecklist[row.decklist_id][row.code] = row.quantity;
+    }
+
+    const legacyArray = decklists.map(deck => ({
+      id: deck.id,
+      name: deck.name,
+      date_creation: formatLegacyDate(deck.date_creation),
+      date_update: formatLegacyDate(deck.date_update),
+      description_md: deck.description_md,
+      user_id: deck.user_id,
+      hero_code: deck.character_code,
+      hero_name: deck.character_name,
+      signature_code: deck.signature,
+      slots: slotsByDecklist[deck.id] || {},
+      ignoreDeckLimitSlots: null,
+      version: deck.version,
+      exiles: deck.exiles,
+      meta: deck.meta,
+      tags: deck.tags || "",
+      nb_votes: deck.nb_votes,
+      nb_favorites: deck.nb_favorites,
+      nb_comments: deck.nb_comments
+    }));
+
+    return res.json(legacyArray);
+  } catch (err) {
+    console.error('GET /decklists/:date error', err);
+    return res.status(500).json({ error: 'Internal error' });
+  }
+});
+
+// 1E. Decklists populaires (Legacy format)
+router.get('/decklists/popular', async (req, res) => {
+  try {
+    // Legacy returned up to 8 trending ones (for array $decklists_by_popular)
+    const decklists = await db('decklist as d')
+      .join('user as u', 'd.user_id', 'u.id')
+      .join('card as c', 'd.card_id', 'c.id')
+      .leftJoin('faction as f', 'c.faction_id', 'f.id')
+      .where('d.date_creation', '>=', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000))
+      .select(
+        'd.*',
+        'c.name as character_name',
+        'c.code as character_code',
+        'c.meta as hero_meta',
+        'f.code as faction_code'
+      )
+      .orderBy('d.nb_votes', 'desc')
+      .limit(8);
+
+    const result = decklists.map(deck => ({
+      hero_meta: deck.hero_meta ? JSON.parse(deck.hero_meta) : null,
+      faction: deck.faction_code,
+      meta: deck.meta ? JSON.parse(deck.meta) : null,
+      decklist: {
+        id: deck.id,
+        name: deck.name,
+        date_creation: deck.date_creation,
+        description_md: deck.description_md,
+        user_id: deck.user_id,
+        character_code: deck.character_code,
+        character_name: deck.character_name,
+        nb_votes: deck.nb_votes,
+        nb_favorites: deck.nb_favorites,
+        nb_comments: deck.nb_comments
+      }
+    }));
+    return res.json(result);
+  } catch (err) {
+    console.error('GET /decklists/popular error', err);
+    return res.status(500).json({ error: 'Internal error' });
+  }
+});
+
+// 1F. Deck Public - Récupérer un deck si partagé par l'utilisateur
+router.get(['/deck/:id.json', '/deck/:id'], async (req, res) => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    const deck = await db('deck as d')
+      .join('user as u', 'd.user_id', 'u.id')
+      .join('card as c', 'd.character_id', 'c.id')
+      .select('d.*', 'u.is_share_decks', 'c.name as character_name', 'c.code as character_code')
+      .where('d.id', id)
+      .first();
+
+    if (!deck || !deck.user_id || !deck.is_share_decks) {
+      return res.status(403).json({ error: 'Access denied to this object.' });
+    }
+
+    const slotsRows = await db('deckslot as s')
+      .join('card as c', 's.card_id', 'c.id')
+      .select('s.quantity', 'c.code')
+      .where('s.deck_id', id);
+
+    const slotsMap = {};
+    const sortedRows = slotsRows.sort((a, b) => a.code.localeCompare(b.code));
+    for (const row of sortedRows) slotsMap[row.code] = row.quantity;
+
+    const legacyFormat = {
+      id: deck.id,
+      name: deck.name,
+      date_creation: formatLegacyDate(deck.date_creation),
+      date_update: formatLegacyDate(deck.date_update),
+      description_md: deck.description_md,
+      user_id: null, // Legacy behavior (Privacy)
+      hero_code: deck.character_code,
+      hero_name: deck.character_name,
+      signature_code: deck.signature,
+      slots: slotsMap,
+      ignoreDeckLimitSlots: null,
+      version: `${deck.major_version}.${deck.minor_version}`,
+      exiles: deck.exiles,
+      meta: deck.meta,
+      tags: deck.tags || ""
+    };
+
+    return res.json(legacyFormat);
+  } catch (err) {
+    console.error('GET /deck/:id error', err);
+    return res.status(500).json({ error: 'Internal error' });
+  }
+});
 
 // ==========================================
 // 🔒 2. DECKS PRIVÉS (Mes Decks)
@@ -183,8 +401,8 @@ router.get('/user/:id/decks', async (req, res) => {
     const userId = parseInt(req.params.id, 10);
     if (!userId) return res.status(401).json({ error: 'Unauthorized. User ID is required.' });
 
-    const page   = parseInt(req.query.page)  || 1;
-    const limit  = parseInt(req.query.limit) || 20;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 20;
     const offset = (page - 1) * limit;
 
     const baseQuery = () => db('deck as d')
@@ -251,13 +469,15 @@ router.get('/user/:userId/decks/:deckId', async (req, res) => {
     const heroCode = deck.hero_code || '';
     const alterEgoCode = heroCode.endsWith('b') ? heroCode.slice(0, -1) + 'a' : heroCode.endsWith('a') ? heroCode.slice(0, -1) + 'b' : heroCode + 'b';
 
-    return res.json({ ok: true, data: {
-      ...deck,
-      slots,
-      packs_required,
-      hero_imagesrc: resolveImage(heroCode),
-      alter_ego_imagesrc: resolveImage(alterEgoCode),
-    }});
+    return res.json({
+      ok: true, data: {
+        ...deck,
+        slots,
+        packs_required,
+        hero_imagesrc: resolveImage(heroCode),
+        alter_ego_imagesrc: resolveImage(alterEgoCode),
+      }
+    });
   } catch (err) {
     console.error('GET /user/:userId/decks/:deckId error', err);
     return res.status(500).json({ error: 'Internal error' });
@@ -307,10 +527,10 @@ router.put('/user/:userId/decks/:deckId/slots', async (req, res) => {
     const hasChanges = Object.keys(variation).length > 0;
 
     // Version courante du deck
-    const currentMajor  = deck.major_version || 0;
-    const currentMinor  = deck.minor_version  || 0;
+    const currentMajor = deck.major_version || 0;
+    const currentMinor = deck.minor_version || 0;
     const versionString = `${currentMajor}.${currentMinor}`;
-    const nextMinor     = currentMinor + 1;
+    const nextMinor = currentMinor + 1;
 
     await db.transaction(async trx => {
       // Supprimer tous les slots existants
@@ -327,15 +547,15 @@ router.put('/user/:userId/decks/:deckId/slots', async (req, res) => {
       // Insérer un deckchange si des modifications ont eu lieu
       if (hasChanges) {
         await trx('deckchange').insert({
-          deck_id:       deckId,
+          deck_id: deckId,
           date_creation: new Date(),
-          variation:     JSON.stringify(variation),
-          is_saved:      true,
-          version:       versionString,
+          variation: JSON.stringify(variation),
+          is_saved: true,
+          version: versionString,
         });
         // Incrémenter minor_version
         await trx('deck').where('id', deckId).update({
-          date_update:   new Date(),
+          date_update: new Date(),
           minor_version: nextMinor,
           ...(newName ? { name: newName } : {}),
         });
@@ -379,10 +599,10 @@ router.get('/user/:userId/decks/:deckId/history', async (req, res) => {
       const v = typeof raw === 'string' ? JSON.parse(raw) : raw;
       if (!v) return {};
       if (Array.isArray(v)) {
-        const added   = (v[0] && !Array.isArray(v[0])) ? v[0] : {};
+        const added = (v[0] && !Array.isArray(v[0])) ? v[0] : {};
         const removed = (v[1] && !Array.isArray(v[1])) ? v[1] : {};
-        const merged  = {};
-        for (const [c, q] of Object.entries(added))   merged[c] =  Number(q) || 0;
+        const merged = {};
+        for (const [c, q] of Object.entries(added)) merged[c] = Number(q) || 0;
         for (const [c, q] of Object.entries(removed)) merged[c] = -Number(q) || 0;
         return merged;
       }
@@ -393,7 +613,7 @@ router.get('/user/:userId/decks/:deckId/history', async (req, res) => {
     const allCodes = new Set();
     for (const c of changes) {
       try { Object.keys(parseVariation(c.variation)).forEach(code => allCodes.add(code)); }
-      catch (_) {}
+      catch (_) { }
     }
 
     // Charger les noms et factions de cartes
@@ -406,7 +626,7 @@ router.get('/user/:userId/decks/:deckId/history', async (req, res) => {
         .whereIn('c.code', codeList)
         .select('c.code', 'c.name', 'f.code as faction_code');
       for (const r of cardRows) {
-        nameMap[r.code]    = r.name;
+        nameMap[r.code] = r.name;
         factionMap[r.code] = r.faction_code || 'basic';
       }
       if (locale !== 'en') {
@@ -432,13 +652,13 @@ router.get('/user/:userId/decks/:deckId/history', async (req, res) => {
             if (a.qty <= 0 && b.qty > 0) return 1;
             return a.name.localeCompare(b.name);
           });
-      } catch (_) {}
+      } catch (_) { }
       return {
-        id:       c.id,
-        date:     c.date_creation,
-        version:  c.version || '0.0',
+        id: c.id,
+        date: c.date_creation,
+        version: c.version || '0.0',
         is_saved: c.is_saved,
-        changes:  entries,
+        changes: entries,
       };
     });
 
@@ -479,24 +699,24 @@ router.post('/user/:userId/decks/:deckId/clone', async (req, res) => {
     if (!deck) return res.status(404).json({ error: 'Deck not found or unauthorized' });
 
     const [newId] = await db('deck').insert({
-      user_id:            deck.user_id,
-      character_id:       deck.character_id,
-      last_pack_id:       deck.last_pack_id,
-      uuid:               require('crypto').randomUUID(),
-      name:               `${deck.name} (Clone)`,
-      description_md:     deck.description_md,
-      problem:            deck.problem,
-      tags:               deck.tags,
-      major_version:      0,
-      minor_version:      0,
-      xp:                 deck.xp,
-      xp_spent:           deck.xp_spent,
-      xp_adjustment:      deck.xp_adjustment,
-      upgrades:           deck.upgrades,
-      exiles:             deck.exiles,
-      meta:               deck.meta,
-      date_creation:      db.fn.now(),
-      date_update:        db.fn.now(),
+      user_id: deck.user_id,
+      character_id: deck.character_id,
+      last_pack_id: deck.last_pack_id,
+      uuid: require('crypto').randomUUID(),
+      name: `${deck.name} (Clone)`,
+      description_md: deck.description_md,
+      problem: deck.problem,
+      tags: deck.tags,
+      major_version: 0,
+      minor_version: 0,
+      xp: deck.xp,
+      xp_spent: deck.xp_spent,
+      xp_adjustment: deck.xp_adjustment,
+      upgrades: deck.upgrades,
+      exiles: deck.exiles,
+      meta: deck.meta,
+      date_creation: db.fn.now(),
+      date_update: db.fn.now(),
     });
 
     const slots = await db('deckslot').where({ deck_id: deckId });
@@ -520,7 +740,7 @@ router.put('/user/:userId/decks/:deckId/publish', async (req, res) => {
     const deck = await db('deck').where({ id: deckId, user_id: userId }).first();
     if (!deck) return res.status(404).json({ error: 'Deck not found or unauthorized' });
 
-    const newMajor  = deck.major_version + 1;
+    const newMajor = deck.major_version + 1;
     const newVersion = `${newMajor}.0`;
     const nameCanonical = (deck.name || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 
@@ -532,37 +752,37 @@ router.put('/user/:userId/decks/:deckId/publish', async (req, res) => {
 
     // Créer l'entrée dans decklist
     const [newDecklistId] = await db('decklist').insert({
-      user_id:               userId,
-      card_id:               deck.character_id,
-      last_pack_id:          deck.last_pack_id,
-      parent_deck_id:        prevDecklist ? prevDecklist.id : null,
+      user_id: userId,
+      card_id: deck.character_id,
+      last_pack_id: deck.last_pack_id,
+      parent_deck_id: prevDecklist ? prevDecklist.id : null,
       precedent_decklist_id: prevDecklist ? prevDecklist.id : null,
-      uuid:                  require('crypto').randomUUID(),
-      name:                  deck.name,
-      name_canonical:        nameCanonical,
-      description_md:        deck.description_md || '',
-      description_html:      '',
-      tags:                  deck.tags || '',
-      xp:                    deck.xp || 0,
-      xp_spent:              deck.xp_spent || 0,
-      xp_adjustment:         deck.xp_adjustment || 0,
-      exiles:                deck.exiles || null,
-      meta:                  deck.meta || null,
-      version:               newVersion,
-      nb_votes:              0,
-      nb_favorites:          0,
-      nb_comments:           0,
-      date_creation:         db.fn.now(),
-      date_update:           db.fn.now(),
+      uuid: require('crypto').randomUUID(),
+      name: deck.name,
+      name_canonical: nameCanonical,
+      description_md: deck.description_md || '',
+      description_html: '',
+      tags: deck.tags || '',
+      xp: deck.xp || 0,
+      xp_spent: deck.xp_spent || 0,
+      xp_adjustment: deck.xp_adjustment || 0,
+      exiles: deck.exiles || null,
+      meta: deck.meta || null,
+      version: newVersion,
+      nb_votes: 0,
+      nb_favorites: 0,
+      nb_comments: 0,
+      date_creation: db.fn.now(),
+      date_update: db.fn.now(),
     });
 
     // Copier les slots deck → decklistslot
     const slots = await db('deckslot').where({ deck_id: deckId });
     if (slots.length > 0) {
       await db('decklistslot').insert(slots.map(s => ({
-        decklist_id:       newDecklistId,
-        card_id:           s.card_id,
-        quantity:          s.quantity,
+        decklist_id: newDecklistId,
+        card_id: s.card_id,
+        quantity: s.quantity,
         ignore_deck_limit: s.ignore_deck_limit,
       })));
     }
@@ -571,7 +791,7 @@ router.put('/user/:userId/decks/:deckId/publish', async (req, res) => {
     await db('deck').where({ id: deckId }).update({
       major_version: newMajor,
       minor_version: 0,
-      date_update:   db.fn.now(),
+      date_update: db.fn.now(),
     });
 
     return res.json({ ok: true, data: { decklistId: newDecklistId, version: newVersion } });

@@ -154,11 +154,11 @@ router.get('/cards/search', async (req, res, next) => {
       ])
       .where('c.hidden', 0);
 
-    if (name)       q = q.whereRaw('c.name LIKE ?', [`%${name}%`]);
-    if (text)       q = q.whereRaw('(c.text LIKE ? OR c.real_text LIKE ?)', [`%${text}%`, `%${text}%`]);
-    if (flavor)     q = q.whereRaw('c.flavor LIKE ?', [`%${flavor}%`]);
-    if (pack)       q = q.where('p.code', pack);
-    if (faction)    q = q.where(function () { this.where('f.code', faction).orWhere('f2.code', faction); });
+    if (name) q = q.whereRaw('c.name LIKE ?', [`%${name}%`]);
+    if (text) q = q.whereRaw('(c.text LIKE ? OR c.real_text LIKE ?)', [`%${text}%`, `%${text}%`]);
+    if (flavor) q = q.whereRaw('c.flavor LIKE ?', [`%${flavor}%`]);
+    if (pack) q = q.where('p.code', pack);
+    if (faction) q = q.where(function () { this.where('f.code', faction).orWhere('f2.code', faction); });
     // Multi-faction filter: `factions` param is a comma-separated list → OR logic
     const factionsList = req.query.factions ? req.query.factions.split(',').map(s => s.trim()).filter(Boolean) : [];
     if (!faction && factionsList.length > 0) {
@@ -168,9 +168,9 @@ router.get('/cards/search', async (req, res, next) => {
         });
       });
     }
-    if (type)       q = q.where('t.code', type);
-    if (subtype)    q = q.where('st.code', subtype);
-    if (traits)     q = q.whereRaw('c.traits LIKE ?', [`%${traits}%`]);
+    if (type) q = q.where('t.code', type);
+    if (subtype) q = q.where('st.code', subtype);
+    if (traits) q = q.whereRaw('c.traits LIKE ?', [`%${traits}%`]);
     if (illustrator) q = q.whereRaw('c.illustrator LIKE ?', [`%${illustrator}%`]);
     if (is_unique === '1') q = q.where('c.is_unique', 1);
     if (is_unique === '0') q = q.where('c.is_unique', 0);
@@ -188,9 +188,9 @@ router.get('/cards/search', async (req, res, next) => {
     q = applyNumeric('c.health', health, health_op);
 
     if (res_physical) q = q.where('c.resource_physical', '>=', parseInt(res_physical, 10));
-    if (res_mental)   q = q.where('c.resource_mental',   '>=', parseInt(res_mental,   10));
-    if (res_energy)   q = q.where('c.resource_energy',   '>=', parseInt(res_energy,   10));
-    if (res_wild)     q = q.where('c.resource_wild',     '>=', parseInt(res_wild,     10));
+    if (res_mental) q = q.where('c.resource_mental', '>=', parseInt(res_mental, 10));
+    if (res_energy) q = q.where('c.resource_energy', '>=', parseInt(res_energy, 10));
+    if (res_wild) q = q.where('c.resource_wild', '>=', parseInt(res_wild, 10));
 
     if (hide_duplicates === '1') {
       if (show_alt_art === '1') {
@@ -203,15 +203,15 @@ router.get('/cards/search', async (req, res, next) => {
       }
     }
     if (creator_filter === 'official') q = q.whereNull('p.creator');
-    if (creator_filter === 'fanmade')  q = q.whereNotNull('p.creator');
+    if (creator_filter === 'fanmade') q = q.whereNotNull('p.creator');
 
-    if (sort === 'pack')    q = q.orderBy([{ column: 'p.position', order: dir }, { column: 'c.position', order: dir }]);
+    if (sort === 'pack') q = q.orderBy([{ column: 'p.position', order: dir }, { column: 'c.position', order: dir }]);
     else if (sort === 'cost') q = q.orderByRaw(`c.cost IS NULL, c.cost ${dir.toUpperCase()}, c.name ASC`);
     else if (sort === 'faction') q = q.orderBy([{ column: 'f.name', order: dir }, { column: 'c.name', order: dir }]);
     else q = q.orderBy('c.name', dir); // default: name
 
     // Pagination
-    const pageNum  = Math.max(1, parseInt(page,  10) || 1);
+    const pageNum = Math.max(1, parseInt(page, 10) || 1);
     const limitNum = Math.min(200, Math.max(10, parseInt(limit, 10) || 50));
 
     const statsRow = await q.clone().clearSelect().clearOrder().select(
@@ -220,9 +220,9 @@ router.get('/cards/search', async (req, res, next) => {
       db.raw('SUM(p.creator IS NOT NULL) as fanmade'),
       db.raw('SUM(c.duplicate_id IS NOT NULL) as duplicates'),
     ).first();
-    const totalItems   = Number(statsRow?.total      ?? 0);
-    const totalOfficial = Number(statsRow?.official   ?? 0);
-    const totalFanmade  = Number(statsRow?.fanmade    ?? 0);
+    const totalItems = Number(statsRow?.total ?? 0);
+    const totalOfficial = Number(statsRow?.official ?? 0);
+    const totalFanmade = Number(statsRow?.fanmade ?? 0);
     const totalDuplicates = Number(statsRow?.duplicates ?? 0);
     const totalPages = Math.ceil(totalItems / limitNum);
 
@@ -315,6 +315,37 @@ router.get(['/cards/:pack.json', '/cards/:pack'], async (req, res, next) => {
       })
     );
     res.json(cards);
+  } catch (err) {
+    next(err);
+  }
+});
+
+/**
+ * GET /api/public/faq/:code[.json]
+ */
+router.get(['/faq/:code.json', '/faq/:code'], async (req, res, next) => {
+  try {
+    const code = req.params.code;
+    const db = require('../config/database');
+    const Card = require('../models/Card');
+    const row = await Card.findByCode(code);
+    if (!row) {
+      return res.status(404).json({ error: { status: 404, message: `Card ${code} not found` } });
+    }
+
+    const reviews = await db('review')
+      .where({ card_id: row.id, faq: 1 })
+      .orderBy('nb_votes', 'desc')
+      .select('text_html', 'text_md', 'date_update');
+
+    const faqs = reviews.map(r => ({
+      code: code,
+      html: r.text_html,
+      text: r.text_md,
+      updated: r.date_update
+    }));
+
+    res.json(faqs);
   } catch (err) {
     next(err);
   }

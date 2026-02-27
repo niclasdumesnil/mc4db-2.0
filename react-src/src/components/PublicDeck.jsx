@@ -5,7 +5,7 @@ import { getFactionColor, getFactionFaintColor, DECK_TAGS } from '@utils/dataUti
 const MEDAL_STYLES = {
   bronze: { fill: '#cd7f32', stroke: '#8b4513', label: 'Bronze' },
   silver: { fill: '#c0c0c0', stroke: '#808080', label: 'Silver' },
-  gold:   { fill: '#ffd700', stroke: '#b8860b', label: 'Gold'   },
+  gold: { fill: '#ffd700', stroke: '#b8860b', label: 'Gold' },
 };
 function MedalIcon({ fill, stroke, title }) {
   return (
@@ -35,7 +35,7 @@ export default function PublicDeck({ deck }) {
   try {
     const meta = typeof deck.meta === 'string' ? JSON.parse(deck.meta) : deck.meta;
     if (meta && meta.aspect) aspect = meta.aspect;
-  } catch (_) {}
+  } catch (_) { }
   const headerColor = getFactionColor(aspect);
   const headerFaint = getFactionFaintColor(aspect);
 
@@ -53,7 +53,7 @@ export default function PublicDeck({ deck }) {
   // Tags utilisateur
   const tags = deck.tags ? deck.tags.split(',').map(t => t.trim()).filter(Boolean) : [];
 
-  const handleClick = () => { window.location.href = `/decklists/${deck.id}`; };
+  const handleClick = () => { window.location.href = `/decklist/view/${deck.id}`; };
 
   return (
     <div className="deck-card" onClick={handleClick} style={{ cursor: 'pointer' }}>

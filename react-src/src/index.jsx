@@ -83,15 +83,15 @@ if (document.readyState === 'loading') {
 }
 
 // Mount global menu into body
-try{
+try {
   // If server injected header elements, skip mounting the client Menu to avoid duplicates
-  if (!(document.getElementById && (document.getElementById('mc-login-btn') || document.getElementById('mc-username') || document.getElementById('mc-logout-btn')))){
+  if (!(document.getElementById && (document.getElementById('mc-login-btn') || document.getElementById('mc-username') || document.getElementById('mc-logout-btn')))) {
     let menuRoot = document.getElementById('mc-menu-root');
-    if (!menuRoot){ menuRoot = document.createElement('div'); menuRoot.id = 'mc-menu-root'; document.body.appendChild(menuRoot); }
+    if (!menuRoot) { menuRoot = document.createElement('div'); menuRoot.id = 'mc-menu-root'; document.body.appendChild(menuRoot); }
     const menuRootApp = createRoot(menuRoot);
     menuRootApp.render(<Menu />);
   }
-}catch(e){ console.error('Failed to mount Menu', e); }
+} catch (e) { console.error('Failed to mount Menu', e); }
 
 // Error boundary to surface React render errors visibly in production
 class AppErrorBoundary extends React.Component {
@@ -114,9 +114,9 @@ class AppErrorBoundary extends React.Component {
 }
 
 // Mount app container for landing/dashboard
-try{
+try {
   const appContainer = document.getElementById('mc-app');
-  if (appContainer){
+  if (appContainer) {
     const appRoot = createRoot(appContainer);
     const path = window.location.pathname || '/';
     let PageComponent = null;
@@ -125,10 +125,13 @@ try{
     else if (path.startsWith('/card-list')) PageComponent = React.createElement(CardList);
     else if (path.startsWith('/card')) PageComponent = React.createElement(CardPage);
     else if (/^\/decklists\/\d+/.test(path)) PageComponent = React.createElement(DeckView);
+    else if (/^\/decklist\/\d+/.test(path)) PageComponent = React.createElement(DeckView);
+    else if (/^\/decklist\/view\/\d+/.test(path)) PageComponent = React.createElement(DeckView);
     else if (path.startsWith('/decklists')) PageComponent = React.createElement(PublicDeckList);
     else if (/^\/my-decks\/\d+/.test(path)) PageComponent = React.createElement(DeckView);
+    else if (/^\/deck\/view\/\d+/.test(path)) PageComponent = React.createElement(DeckView);
     else if (path.startsWith('/my-decks')) PageComponent = React.createElement(MyDecks);
     else if (path.startsWith('/rules')) PageComponent = React.createElement(RulesPage);
     if (PageComponent) appRoot.render(React.createElement(AppErrorBoundary, null, PageComponent));
   }
-}catch(e){ console.error('Failed to mount app container', e); }
+} catch (e) { console.error('Failed to mount app container', e); }

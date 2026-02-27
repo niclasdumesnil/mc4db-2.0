@@ -24,7 +24,7 @@ export default function DeckView() {
   const [historyRefreshKey, setHistoryRefreshKey] = useState(0);
   const [liveTitle, setLiveTitle] = useState(null);
   const [deleting, setDeleting] = useState(false);
-  const [cloning, setCloning]   = useState(false);
+  const [cloning, setCloning] = useState(false);
   const [publishing, setPublishing] = useState(false);
   const editorRef = useRef(null);
   const [locale, setLocale] = useState(
@@ -42,7 +42,7 @@ export default function DeckView() {
 
   // Determine if public or private from URL
   const path = window.location.pathname;
-  const isPrivate = path.startsWith('/my-decks/');
+  const isPrivate = path.startsWith('/my-decks/') || path.startsWith('/deck/view/');
   const idMatch = path.match(/\/(\d+)(?:\/|$)/);
   const deckId = idMatch ? parseInt(idMatch[1], 10) : null;
 
@@ -148,11 +148,11 @@ export default function DeckView() {
   try {
     const meta = typeof deck.meta === 'string' ? JSON.parse(deck.meta) : deck.meta;
     if (meta && meta.aspect) aspect = meta.aspect;
-  } catch (_) {}
+  } catch (_) { }
   const headerColor = getFactionColor(aspect);
 
-  const heroImage    = deck.hero_imagesrc    || null;
-  const alterImage   = deck.alter_ego_imagesrc || null;
+  const heroImage = deck.hero_imagesrc || null;
+  const alterImage = deck.alter_ego_imagesrc || null;
 
   const updatedAt = deck.date_update || deck.date_creation
     ? new Date(deck.date_update || deck.date_creation).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
@@ -191,9 +191,9 @@ export default function DeckView() {
             </div>
             <div className="deck-view-stats mt-2">
               {updatedAt && <span className="deck-view-updated">Updated {updatedAt}</span>}
-              {deck.likes     != null && <span className="deck-view-stat">♥ {deck.likes}</span>}
+              {deck.likes != null && <span className="deck-view-stat">♥ {deck.likes}</span>}
               {deck.favorites != null && <span className="deck-view-stat">★ {deck.favorites}</span>}
-              {deck.comments  != null && <span className="deck-view-stat">💬 {deck.comments}</span>}
+              {deck.comments != null && <span className="deck-view-stat">💬 {deck.comments}</span>}
             </div>
           </div>
 
