@@ -22,6 +22,36 @@
   top: 100px;
 }
 
+/* --- DECK NAME ROW --- */
+.editor-name-row {
+  margin-bottom: 10px;
+}
+
+.editor-name-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 7px 14px;
+  border-radius: 7px;
+  border: 1px solid rgba(99, 179, 237, 0.28);
+  background: rgba(255, 255, 255, 0.05);
+  color: #e8f0fa;
+  font-size: 1.05rem;
+  font-weight: 600;
+  outline: none;
+  transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
+}
+
+.editor-name-input::placeholder {
+  color: #3d5166;
+  font-weight: 400;
+}
+
+.editor-name-input:focus {
+  border-color: rgba(99, 179, 237, 0.6);
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 0 0 3px rgba(99, 179, 237, 0.1);
+}
+
 /* --- HORIZONTAL FILTER BAR --- */
 .editor-filter-bar {
   background: #161f2e;
@@ -59,6 +89,69 @@
   flex-wrap: wrap;
   gap: 5px;
   align-items: center;
+}
+
+/* Text / Traits filter input */
+.editor-filter-text-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex: 1 1 160px;
+  max-width: 260px;
+}
+
+.editor-filter-bar-label--inline {
+  border-right: none;
+  border-left: 2px solid rgba(255, 255, 255, 0.07);
+  padding-right: 0;
+  padding-left: 8px;
+  margin-left: 4px;
+}
+
+.editor-filter-text-input {
+  width: 100%;
+  height: 26px;
+  padding: 0 28px 0 10px;
+  border-radius: 5px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.06);
+  color: #e2e8f0;
+  font-size: 0.78rem;
+  outline: none;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.editor-filter-text-input::placeholder {
+  color: #536478;
+}
+
+.editor-filter-text-input:focus {
+  border-color: rgba(99, 179, 237, 0.5);
+  background: rgba(255, 255, 255, 0.09);
+}
+
+.editor-filter-text-clear {
+  position: absolute;
+  right: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border: none;
+  background: transparent;
+  color: #7a8fa8;
+  font-size: 0.65rem;
+  cursor: pointer;
+  border-radius: 50%;
+  padding: 0;
+  line-height: 1;
+  transition: color 0.15s, background 0.15s;
+}
+
+.editor-filter-text-clear:hover {
+  color: #e2e8f0;
+  background: rgba(255, 255, 255, 0.12);
 }
 
 /* Type filter button */

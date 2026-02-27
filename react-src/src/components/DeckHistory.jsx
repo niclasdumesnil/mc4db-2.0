@@ -17,7 +17,7 @@ function formatDate(dateStr) {
   if (diffH < 24) {
     return `Today at ${d.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}`;
   }
-  return d.toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' });
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 }
 
 export default function DeckHistory({ deckId, isPrivate, locale = 'en', refreshKey = 0 }) {

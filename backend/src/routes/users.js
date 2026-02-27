@@ -93,6 +93,7 @@ router.get('/user/:id', async (req, res) => {
       // UI & Settings
       is_share_decks: !!row.is_share_decks,
       is_new_ui: !!row.is_new_ui,
+      is_admin: !!row.is_admin,
 
       // Notification Settings
       notifications: {

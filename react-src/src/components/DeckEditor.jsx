@@ -31,11 +31,12 @@ function currentUserId() {
  *   onSaved       â€” callback appelÃ© aprÃ¨s save rÃ©ussi
  *   onClose       â€” callback pour fermer l'Ã©diteur
  */
-export default forwardRef(function DeckEditor({ deck, deckId, isPrivate, onSlotsChange, onSaved, onClose }, ref) {
+export default forwardRef(function DeckEditor({ deck, deckId, isPrivate, onSlotsChange, onSaved, onClose, onNameChange }, ref) {
   const [allCards, setAllCards] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState(null);
+  const [deckName, setDeckName] = useState(deck?.name || '');
 
   // slotsMap : { cardCode â†’ quantity }
   const [slotsMap, setSlotsMap] = useState(() => {
@@ -61,6 +62,8 @@ export default forwardRef(function DeckEditor({ deck, deckId, isPrivate, onSlots
   });
   const [sortBy,    setSortBy]    = useState('name');   // 'name' | 'cost'
   const [sortOrder, setSortOrder] = useState('asc');
+  const [traitFilter, setTraitFilter] = useState('');
+  const [textFilter,  setTextFilter]  = useState('');
 
   // Sync with global locale switcher (header badge)
   useEffect(() => {
@@ -162,6 +165,18 @@ export default forwardRef(function DeckEditor({ deck, deckId, isPrivate, onSlots
       if (!filters.showFanMade && card.creator && card.creator !== 'FFG') return false;
       // Current: when active, only show cards from the current format
       if (filters.showCurrent && card.pack_environment !== 'current') return false;
+      // Traits filter
+      if (traitFilter.trim()) {
+        const needle = traitFilter.trim().toLowerCase();
+        const haystack = (card.traits || '').toLowerCase();
+        if (!haystack.includes(needle)) return false;
+      }
+      // Text filter
+      if (textFilter.trim()) {
+        const needle = textFilter.trim().toLowerCase();
+        const haystack = (card.text || '').toLowerCase();
+        if (!haystack.includes(needle)) return false;
+      }
       return true;
     }).sort((a, b) => {
       if (sortBy === 'cost') {
@@ -173,7 +188,7 @@ export default forwardRef(function DeckEditor({ deck, deckId, isPrivate, onSlots
       const cmp = (a.name || '').localeCompare(b.name || '');
       return sortOrder === 'asc' || sortBy !== 'name' ? cmp : -cmp;
     });
-  }, [allCards, selectedFaction, selectedType, filters, sortBy, sortOrder]);
+  }, [allCards, selectedFaction, selectedType, filters, sortBy, sortOrder, traitFilter, textFilter]);
 
   const handleSort = useCallback((col) => {
     setSortBy(prev => {
@@ -199,7 +214,7 @@ export default forwardRef(function DeckEditor({ deck, deckId, isPrivate, onSlots
       const res = await fetch(`/api/public/user/${userId}/decks/${deckId}/slots`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ slots }),
+        body: JSON.stringify({ slots, name: deckName.trim() || undefined }),
       });
       const data = await res.json();
       if (data.ok) {
@@ -223,6 +238,21 @@ export default forwardRef(function DeckEditor({ deck, deckId, isPrivate, onSlots
     <div className="editor-container">
       {/* ── Main area: filter bar + card list ── */}
       <main className="editor-main">
+
+        {/* ── Deck name ── */}
+        <div className="editor-name-row">
+          <input
+            className="editor-name-input"
+            type="text"
+            value={deckName}
+            onChange={e => {
+              setDeckName(e.target.value);
+              onNameChange && onNameChange(e.target.value);
+            }}
+            placeholder="Deck name…"
+            maxLength={120}
+          />
+        </div>
 
         {/* ── Horizontal filter bar ── */}
         <div className="editor-filter-bar">
@@ -269,6 +299,40 @@ export default forwardRef(function DeckEditor({ deck, deckId, isPrivate, onSlots
                   </button>
                 );
               })}
+            </div>
+          </div>
+
+          {/* Traits + Text filter row */}
+          <div className="editor-filter-row">
+            <span className="editor-filter-bar-label">Traits</span>
+            <div className="editor-filter-text-wrap">
+              <input
+                className="editor-filter-text-input"
+                type="text"
+                placeholder="Filter by traits…"
+                value={traitFilter}
+                onChange={e => setTraitFilter(e.target.value)}
+              />
+              {traitFilter && (
+                <button className="editor-filter-text-clear" onClick={() => setTraitFilter('')} title="Clear">
+                  ✕
+                </button>
+              )}
+            </div>
+            <span className="editor-filter-bar-label editor-filter-bar-label--inline">Text</span>
+            <div className="editor-filter-text-wrap">
+              <input
+                className="editor-filter-text-input"
+                type="text"
+                placeholder="Filter by card text…"
+                value={textFilter}
+                onChange={e => setTextFilter(e.target.value)}
+              />
+              {textFilter && (
+                <button className="editor-filter-text-clear" onClick={() => setTextFilter('')} title="Clear">
+                  ✕
+                </button>
+              )}
             </div>
           </div>
 

@@ -6,12 +6,30 @@
   min-height: calc(100vh - 80px);
 }
 
-/* Actions row (Back + Edit) */
+/* Actions row (Back only) */
 .deck-view-actions {
   display: flex;
   align-items: center;
   gap: 12px;
   margin-bottom: 28px;
+}
+
+/* Wrapper central : encart + boutons, ensemble centré dans le banner */
+.deck-view-banner-center {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+/* Colonne de boutons à droite de l'encart */
+.deck-view-banner-btns {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: stretch;
+  min-width: 110px;
 }
 
 /* Buttons styles (Back, Edit, Save, Cancel) - Unchanged */
@@ -25,8 +43,22 @@
 .deck-view-cancel-btn { display: inline-flex; align-items: center; gap: 6px; background: transparent; border: 1px solid rgba(255, 255, 255, 0.15); color: #8a99af; font-size: 0.9rem; padding: 7px 16px; border-radius: 8px; cursor: pointer; transition: background 0.2s, color 0.2s; }
 .deck-view-cancel-btn:hover { background: rgba(255, 255, 255, 0.07); color: #dbeafa; }
 
-.deck-view-edit { display: inline-flex; align-items: center; gap: 6px; background: rgba(99, 179, 237, 0.12); border: 1px solid rgba(99, 179, 237, 0.35); color: #63b3ed; font-size: 0.9rem; padding: 7px 16px; border-radius: 8px; cursor: pointer; transition: background 0.2s, color 0.2s; }
+.deck-view-edit { display: inline-flex; align-items: center; justify-content: center; gap: 6px; background: rgba(99, 179, 237, 0.12); border: 1px solid rgba(99, 179, 237, 0.35); color: #63b3ed; font-size: 0.85rem; padding: 7px 16px; border-radius: 8px; cursor: pointer; transition: background 0.2s, color 0.2s; }
 .deck-view-edit:hover { background: rgba(99, 179, 237, 0.22); color: #bee3f8; }
+
+.deck-view-delete-btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; background: rgba(248, 113, 113, 0.1); border: 1px solid rgba(248, 113, 113, 0.35); color: #f87171; font-size: 0.85rem; padding: 7px 16px; border-radius: 8px; cursor: pointer; transition: background 0.2s, color 0.2s; }
+.deck-view-delete-btn:hover:not(:disabled) { background: rgba(248, 113, 113, 0.22); color: #fca5a5; }
+.deck-view-delete-btn:disabled { opacity: 0.5; cursor: default; }
+
+.deck-view-clone-btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.18); color: #c8d8f0; font-size: 0.85rem; padding: 7px 16px; border-radius: 8px; cursor: pointer; transition: background 0.2s, color 0.2s; }
+.deck-view-clone-btn:hover:not(:disabled) { background: rgba(255, 255, 255, 0.12); color: #fff; }
+.deck-view-clone-btn:disabled { opacity: 0.5; cursor: default; }
+
+.deck-view-publish-btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; background: rgba(74, 222, 128, 0.1); border: 1px solid rgba(74, 222, 128, 0.35); color: #4ade80; font-size: 0.85rem; padding: 7px 16px; border-radius: 8px; cursor: pointer; transition: background 0.2s, color 0.2s; }
+.deck-view-publish-btn:hover:not(:disabled) { background: rgba(74, 222, 128, 0.2); color: #86efac; }
+.deck-view-publish-btn:disabled { opacity: 0.5; cursor: default; }
+
+.deck-view-published-badge { display: inline-flex; align-items: center; justify-content: center; font-size: 0.8rem; color: #4ade80; border: 1px solid rgba(74, 222, 128, 0.3); background: rgba(74, 222, 128, 0.07); border-radius: 8px; padding: 7px 12px; white-space: nowrap; }
 
 .deck-view-save-error { color: #f87171; font-size: 0.82rem; align-self: center; }
 

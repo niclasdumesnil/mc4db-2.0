@@ -22,6 +22,10 @@ export default function DeckView() {
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState(null);
   const [historyRefreshKey, setHistoryRefreshKey] = useState(0);
+  const [liveTitle, setLiveTitle] = useState(null);
+  const [deleting, setDeleting] = useState(false);
+  const [cloning, setCloning]   = useState(false);
+  const [publishing, setPublishing] = useState(false);
   const editorRef = useRef(null);
   const [locale, setLocale] = useState(
     () => localStorage.getItem('mc_locale') || window.__MC_LOCALE__ || 'en'
@@ -85,6 +89,43 @@ export default function DeckView() {
     window.history.back();
   };
 
+  const handleDelete = async () => {
+    if (!window.confirm(`Delete "${deck?.name}"? This cannot be undone.`)) return;
+    setDeleting(true);
+    const userId = currentUserId();
+    try {
+      const r = await fetch(`/api/public/user/${userId}/decks/${deckId}`, { method: 'DELETE' });
+      const data = await r.json();
+      if (data.ok) window.location.href = '/my-decks';
+      else alert(data.error || 'Delete failed.');
+    } catch { alert('Network error.'); }
+    finally { setDeleting(false); }
+  };
+
+  const handleClone = async () => {
+    setCloning(true);
+    const userId = currentUserId();
+    try {
+      const r = await fetch(`/api/public/user/${userId}/decks/${deckId}/clone`, { method: 'POST' });
+      const data = await r.json();
+      if (data.ok) window.location.href = `/my-decks/${data.data.id}`;
+      else alert(data.error || 'Clone failed.');
+    } catch { alert('Network error.'); }
+    finally { setCloning(false); }
+  };
+
+  const handlePublish = async () => {
+    setPublishing(true);
+    const userId = currentUserId();
+    try {
+      const r = await fetch(`/api/public/user/${userId}/decks/${deckId}/publish`, { method: 'PUT' });
+      const data = await r.json();
+      if (data.ok) window.location.reload();
+      else alert(data.error || 'Publish failed.');
+    } catch { alert('Network error.'); }
+    finally { setPublishing(false); }
+  };
+
   if (loading) {
     return (
       <div className="deck-view-container">
@@ -121,58 +162,77 @@ export default function DeckView() {
     <div className="deck-view-container">
       <div className="deck-view-actions">
         <button className="deck-view-back" onClick={handleBack}>← Back</button>
-        <button className="deck-view-edit" onClick={() => {
-          if (showEditor) { setShowEditor(false); setLiveSlots(null); setSaveError(null); }
-          else setShowEditor(true);
-        }}>
-          {showEditor ? 'Close Editor' : 'Edit'}
-        </button>
-        {showEditor && (
-          <>
-            {saveError && <span className="deck-view-save-error">{saveError}</span>}
-            <button
-              className="deck-view-save-btn"
-              disabled={saving}
-              onClick={async () => {
-                setSaving(true); setSaveError(null);
-                try { await editorRef.current?.save(); }
-                catch (e) { setSaveError(e?.message || 'Save failed.'); }
-                finally { setSaving(false); }
-              }}
-            >{saving ? 'Saving…' : 'Save'}</button>
-            <button className="deck-view-cancel-btn" onClick={() => { setShowEditor(false); setLiveSlots(null); setSaveError(null); }}>Cancel</button>
-          </>
-        )}
       </div>
 
       {/* Hero banner repensé */}
       <div className="deck-view-banner">
-        
+
         {/* Calque des images */}
         <div className="banner-cards-layer">
           {heroImage && <img className="banner-card card-hero" src={heroImage} alt={deck.hero_name} />}
           {alterImage && <img className="banner-card card-alterego" src={alterImage} alt="Alter-Ego" />}
         </div>
 
-        {/* Infos textuelles centrées */}
-        <div className="deck-view-banner-info" style={{ borderTop: `4px solid ${headerColor}` }}>
-          <div className="deck-view-title-row">
-            <h1 className="deck-view-title">{deck.name}</h1>
+        {/* Centre : encart + boutons côte à côte, ensemble centré */}
+        <div className="deck-view-banner-center">
+
+          {/* Infos textuelles */}
+          <div className="deck-view-banner-info" style={{ borderTop: `4px solid ${headerColor}` }}>
+            <div className="deck-view-title-row">
+              <h1 className="deck-view-title">{liveTitle ?? deck.name}</h1>
+            </div>
+            <div className="deck-view-subtitle">
+              {deck.hero_name && <span className="deck-view-hero">{deck.hero_name}</span>}
+              {deck.version && <span className="deck-view-version">v{deck.version}</span>}
+              <span className="deck-view-aspect-dot" style={{ background: headerColor }} />
+              <span className="deck-view-aspect-name">{aspect.charAt(0).toUpperCase() + aspect.slice(1)}</span>
+              {isPrivate && <span className="deck-view-private-badge">🔒 Private</span>}
+              {deck.author_name && <span className="deck-view-author">by {deck.author_name}</span>}
+            </div>
+            <div className="deck-view-stats mt-2">
+              {updatedAt && <span className="deck-view-updated">Updated {updatedAt}</span>}
+              {deck.likes     != null && <span className="deck-view-stat">♥ {deck.likes}</span>}
+              {deck.favorites != null && <span className="deck-view-stat">★ {deck.favorites}</span>}
+              {deck.comments  != null && <span className="deck-view-stat">💬 {deck.comments}</span>}
+            </div>
           </div>
-          <div className="deck-view-subtitle">
-            {deck.hero_name && <span className="deck-view-hero">{deck.hero_name}</span>}
-            {deck.version && <span className="deck-view-version">v{deck.version}</span>}
-            <span className="deck-view-aspect-dot" style={{ background: headerColor }} />
-            <span className="deck-view-aspect-name">{aspect.charAt(0).toUpperCase() + aspect.slice(1)}</span>
-            {isPrivate && <span className="deck-view-private-badge">🔒 Private</span>}
-            {deck.author_name && <span className="deck-view-author">by {deck.author_name}</span>}
-          </div>
-          <div className="deck-view-stats mt-2">
-            {updatedAt && <span className="deck-view-updated">Updated {updatedAt}</span>}
-            {deck.likes     != null && <span className="deck-view-stat">♥ {deck.likes}</span>}
-            {deck.favorites != null && <span className="deck-view-stat">★ {deck.favorites}</span>}
-            {deck.comments  != null && <span className="deck-view-stat">💬 {deck.comments}</span>}
-          </div>
+
+          {/* Boutons à droite (seulement si deck privé) */}
+          {isPrivate && (
+            <div className="deck-view-banner-btns">
+              {!showEditor && (
+                <>
+                  <button className="deck-view-edit" onClick={() => setShowEditor(true)}>Edit</button>
+                  <button className="deck-view-clone-btn" disabled={cloning} onClick={handleClone}>
+                    {cloning ? 'Cloning…' : 'Clone'}
+                  </button>
+                  <button className="deck-view-publish-btn" disabled={publishing} onClick={handlePublish}>
+                    {publishing ? 'Publishing…' : 'Publish'}
+                  </button>
+                  <button className="deck-view-delete-btn" disabled={deleting} onClick={handleDelete}>
+                    {deleting ? 'Deleting…' : 'Delete'}
+                  </button>
+                </>
+              )}
+              {showEditor && (
+                <>
+                  {saveError && <span className="deck-view-save-error">{saveError}</span>}
+                  <button
+                    className="deck-view-save-btn"
+                    disabled={saving}
+                    onClick={async () => {
+                      setSaving(true); setSaveError(null);
+                      try { await editorRef.current?.save(); }
+                      catch (e) { setSaveError(e?.message || 'Save failed.'); }
+                      finally { setSaving(false); }
+                    }}
+                  >{saving ? 'Saving…' : 'Save'}</button>
+                  <button className="deck-view-cancel-btn" onClick={() => { setShowEditor(false); setLiveSlots(null); setSaveError(null); setLiveTitle(null); }}>Cancel</button>
+                </>
+              )}
+            </div>
+          )}
+
         </div>
 
       </div>
@@ -205,7 +265,8 @@ export default function DeckView() {
               deckId={deckId}
               isPrivate={isPrivate}
               onSlotsChange={slots => setLiveSlots(slots)}
-              onClose={() => { setShowEditor(false); setLiveSlots(null); setSaveError(null); }}
+              onNameChange={name => setLiveTitle(name)}
+              onClose={() => { setShowEditor(false); setLiveSlots(null); setSaveError(null); setLiveTitle(null); }}
               onSaved={() => {
                 setShowEditor(false);
                 setLiveSlots(null);

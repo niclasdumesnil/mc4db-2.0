@@ -275,8 +275,9 @@ router.put('/user/:userId/decks/:deckId/slots', async (req, res) => {
     const deck = await db('deck').where({ id: deckId, user_id: userId }).first();
     if (!deck) return res.status(404).json({ error: 'Deck not found or unauthorized' });
 
-    const { slots } = req.body; // [{ code, quantity }]
+    const { slots, name } = req.body; // slots: [{ code, quantity }], name?: string
     if (!Array.isArray(slots)) return res.status(400).json({ error: 'Invalid slots' });
+    const newName = (typeof name === 'string' && name.trim()) ? name.trim() : null;
 
     // Ne garder que les slots avec quantity > 0
     const toInsert = slots.filter(s => s.quantity > 0);
@@ -336,9 +337,13 @@ router.put('/user/:userId/decks/:deckId/slots', async (req, res) => {
         await trx('deck').where('id', deckId).update({
           date_update:   new Date(),
           minor_version: nextMinor,
+          ...(newName ? { name: newName } : {}),
         });
       } else {
-        await trx('deck').where('id', deckId).update({ date_update: new Date() });
+        await trx('deck').where('id', deckId).update({
+          date_update: new Date(),
+          ...(newName ? { name: newName } : {}),
+        });
       }
     });
 
@@ -440,6 +445,138 @@ router.get('/user/:userId/decks/:deckId/history', async (req, res) => {
     return res.json({ ok: true, data });
   } catch (err) {
     console.error('GET /user/:userId/decks/:deckId/history error', err);
+    return res.status(500).json({ error: 'Internal error' });
+  }
+});
+
+// ── DELETE /user/:userId/decks/:deckId ──────────────────────────────────────
+router.delete('/user/:userId/decks/:deckId', async (req, res) => {
+  try {
+    const userId = parseInt(req.params.userId, 10);
+    const deckId = parseInt(req.params.deckId, 10);
+
+    const deck = await db('deck').where({ id: deckId, user_id: userId }).first();
+    if (!deck) return res.status(404).json({ error: 'Deck not found or unauthorized' });
+
+    await db('deckslot').where({ deck_id: deckId }).delete();
+    await db('deckchange').where({ deck_id: deckId }).delete();
+    await db('deck').where({ id: deckId }).delete();
+
+    return res.json({ ok: true });
+  } catch (err) {
+    console.error('DELETE /user/:userId/decks/:deckId error', err);
+    return res.status(500).json({ error: 'Internal error' });
+  }
+});
+
+// ── POST /user/:userId/decks/:deckId/clone ──────────────────────────────────
+router.post('/user/:userId/decks/:deckId/clone', async (req, res) => {
+  try {
+    const userId = parseInt(req.params.userId, 10);
+    const deckId = parseInt(req.params.deckId, 10);
+
+    const deck = await db('deck').where({ id: deckId, user_id: userId }).first();
+    if (!deck) return res.status(404).json({ error: 'Deck not found or unauthorized' });
+
+    const [newId] = await db('deck').insert({
+      user_id:            deck.user_id,
+      character_id:       deck.character_id,
+      last_pack_id:       deck.last_pack_id,
+      uuid:               require('crypto').randomUUID(),
+      name:               `${deck.name} (Clone)`,
+      description_md:     deck.description_md,
+      problem:            deck.problem,
+      tags:               deck.tags,
+      major_version:      0,
+      minor_version:      0,
+      xp:                 deck.xp,
+      xp_spent:           deck.xp_spent,
+      xp_adjustment:      deck.xp_adjustment,
+      upgrades:           deck.upgrades,
+      exiles:             deck.exiles,
+      meta:               deck.meta,
+      date_creation:      db.fn.now(),
+      date_update:        db.fn.now(),
+    });
+
+    const slots = await db('deckslot').where({ deck_id: deckId });
+    if (slots.length > 0) {
+      await db('deckslot').insert(slots.map(({ id: _sid, ...s }) => ({ ...s, deck_id: newId })));
+    }
+
+    return res.json({ ok: true, data: { id: newId } });
+  } catch (err) {
+    console.error('POST /user/:userId/decks/:deckId/clone error', err);
+    return res.status(500).json({ error: 'Internal error' });
+  }
+});
+
+// ── PUT /user/:userId/decks/:deckId/publish ─────────────────────────────────
+router.put('/user/:userId/decks/:deckId/publish', async (req, res) => {
+  try {
+    const userId = parseInt(req.params.userId, 10);
+    const deckId = parseInt(req.params.deckId, 10);
+
+    const deck = await db('deck').where({ id: deckId, user_id: userId }).first();
+    if (!deck) return res.status(404).json({ error: 'Deck not found or unauthorized' });
+
+    const newMajor  = deck.major_version + 1;
+    const newVersion = `${newMajor}.0`;
+    const nameCanonical = (deck.name || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+
+    // Trouver le decklist précédent pour cet utilisateur / ce héros (pour chaîner les versions)
+    const prevDecklist = await db('decklist')
+      .where({ user_id: userId, card_id: deck.character_id })
+      .orderBy('date_creation', 'desc')
+      .first();
+
+    // Créer l'entrée dans decklist
+    const [newDecklistId] = await db('decklist').insert({
+      user_id:               userId,
+      card_id:               deck.character_id,
+      last_pack_id:          deck.last_pack_id,
+      parent_deck_id:        prevDecklist ? prevDecklist.id : null,
+      precedent_decklist_id: prevDecklist ? prevDecklist.id : null,
+      uuid:                  require('crypto').randomUUID(),
+      name:                  deck.name,
+      name_canonical:        nameCanonical,
+      description_md:        deck.description_md || '',
+      description_html:      '',
+      tags:                  deck.tags || '',
+      xp:                    deck.xp || 0,
+      xp_spent:              deck.xp_spent || 0,
+      xp_adjustment:         deck.xp_adjustment || 0,
+      exiles:                deck.exiles || null,
+      meta:                  deck.meta || null,
+      version:               newVersion,
+      nb_votes:              0,
+      nb_favorites:          0,
+      nb_comments:           0,
+      date_creation:         db.fn.now(),
+      date_update:           db.fn.now(),
+    });
+
+    // Copier les slots deck → decklistslot
+    const slots = await db('deckslot').where({ deck_id: deckId });
+    if (slots.length > 0) {
+      await db('decklistslot').insert(slots.map(s => ({
+        decklist_id:       newDecklistId,
+        card_id:           s.card_id,
+        quantity:          s.quantity,
+        ignore_deck_limit: s.ignore_deck_limit,
+      })));
+    }
+
+    // Incrémenter la version majeure du deck privé
+    await db('deck').where({ id: deckId }).update({
+      major_version: newMajor,
+      minor_version: 0,
+      date_update:   db.fn.now(),
+    });
+
+    return res.json({ ok: true, data: { decklistId: newDecklistId, version: newVersion } });
+  } catch (err) {
+    console.error('PUT /user/:userId/decks/:deckId/publish error', err);
     return res.status(500).json({ error: 'Internal error' });
   }
 });

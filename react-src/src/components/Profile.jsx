@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 
 // ── Reputation thresholds ──────────────────────────────────────────────────
 const REP_THRESHOLDS = {
@@ -58,17 +58,102 @@ function ReputationBadge({ reputation }) {
 export default function Profile({ user }) {
   if (!user) return null;
 
+  const [showPwd, setShowPwd]         = useState(false);
+  const [pwdForm, setPwdForm]         = useState({ current: '', newPwd: '', confirm: '' });
+  const [pwdStatus, setPwdStatus]     = useState(null); // {ok, msg}
+  const [pwdLoading, setPwdLoading]   = useState(false);
+
+  async function handleChangePassword(e) {
+    e.preventDefault();
+    if (pwdForm.newPwd !== pwdForm.confirm) {
+      setPwdStatus({ ok: false, msg: 'The new passwords do not match.' });
+      return;
+    }
+    if (pwdForm.newPwd.length < 6) {
+      setPwdStatus({ ok: false, msg: 'Password must be at least 6 characters.' });
+      return;
+    }
+    setPwdLoading(true);
+    setPwdStatus(null);
+    try {
+      const res = await fetch(`/api/public/user/${user.id}/password`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          current_password: pwdForm.current,
+          new_password:     pwdForm.newPwd,
+          confirm_password: pwdForm.confirm,
+        }),
+      });
+      const data = await res.json();
+      if (data.ok) {
+        setPwdStatus({ ok: true, msg: 'Password updated!' });
+        setPwdForm({ current: '', newPwd: '', confirm: '' });
+        setShowPwd(false);
+      } else {
+        setPwdStatus({ ok: false, msg: data.error || 'Error while changing password.' });
+      }
+    } catch {
+      setPwdStatus({ ok: false, msg: 'Network error.' });
+    } finally {
+      setPwdLoading(false);
+    }
+  }
+
   return (
     <div className="db-panel">
       <div className="panel-title-row">
         <h3 className="panel-title">Profile</h3>
-        {user.donation > 0 && <span className="donation-badge">💎 Supporter</span>}
+        <div className="badges-row">
+          {user.is_admin    && <span className="admin-badge">🛡️ Admin</span>}
+          {user.donation > 0 && <span className="donation-badge">💎 Supporter</span>}
+        </div>
       </div>
 
       <div className="profile-header">
         <div className="profile-name-row">
           <h2 className="user-name">{user.username || user.login}</h2>
           <ReputationBadge reputation={user.reputation} />
+        </div>
+        {/* ── Change password ──────────────────── */}
+        <div className="pwd-change-section">
+          <button className="btn-toggle-pwd" onClick={() => { setShowPwd(v => !v); setPwdStatus(null); }}>
+            {showPwd ? '✕ Cancel' : '🔑 Change password'}
+          </button>
+          {showPwd && (
+            <form className="pwd-change-form" onSubmit={handleChangePassword}>
+              <input
+                className="pwd-input"
+                type="password"
+                placeholder="Current password"
+                value={pwdForm.current}
+                onChange={e => setPwdForm(f => ({ ...f, current: e.target.value }))}
+                required
+              />
+              <input
+                className="pwd-input"
+                type="password"
+                placeholder="New password"
+                value={pwdForm.newPwd}
+                onChange={e => setPwdForm(f => ({ ...f, newPwd: e.target.value }))}
+                required
+              />
+              <input
+                className="pwd-input"
+                type="password"
+                placeholder="Confirm new password"
+                value={pwdForm.confirm}
+                onChange={e => setPwdForm(f => ({ ...f, confirm: e.target.value }))}
+                required
+              />
+              {pwdStatus && (
+                <div className={`pwd-msg pwd-msg--${pwdStatus.ok ? 'ok' : 'err'}`}>{pwdStatus.msg}</div>
+              )}
+              <button className="btn-save-pwd" type="submit" disabled={pwdLoading}>
+                {pwdLoading ? 'Saving…' : 'Save'}
+              </button>
+            </form>
+          )}
         </div>
       </div>
 

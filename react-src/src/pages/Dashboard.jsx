@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import Profile from '../components/Profile';
 import Collection from '../components/Collection';
 import Parameters from '../components/Parameters';
+import AdminPanel from '../components/AdminPanel';
 import '../css/Dashboard.css';
 
 function currentUserId() {
@@ -54,6 +55,11 @@ export default function Dashboard() {
         {!id && <div className="db-status">Please log in to view your dashboard.</div>}
         {id && loading && <div className="db-status">Loading data...</div>}
         {id && !loading && !user && <div className="db-status">User not found.</div>}
+
+        {/* Admin Panel — pleine largeur, au-dessus des panneaux */}
+        {id && !loading && user?.is_admin && (
+          <AdminPanel />
+        )}
 
         {/* 3-Column Grid */}
         {id && !loading && user && (

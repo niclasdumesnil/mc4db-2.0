@@ -9,6 +9,8 @@ const factionsRoutes = require('./factions');
 const authRoutes = require('./auth');
 const usersRoutes = require('./users');
 const decksRoutes = require('./decks');
+const rulesRoutes = require('./rules');
+const adminRoutes = require('./admin');
 
 const router = Router();
 
@@ -18,5 +20,7 @@ router.use(factionsRoutes);
 router.use(authRoutes);
 router.use(usersRoutes);
 router.use(decksRoutes);
+router.use(rulesRoutes);
+router.use(adminRoutes);
 
 module.exports = router;
