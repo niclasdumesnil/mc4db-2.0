@@ -232,7 +232,7 @@ function ResetPasswordModal({ targetUser, onClose }) {
 
 // ── Main component ─────────────────────────────────────────────────────────
 
-export default function AdminPanel() {
+export default function AdminPanel({ onUserUpdate }) {
   const [stats, setStats]             = useState(null);
   const [users, setUsers]             = useState([]);
   const [loading, setLoading]         = useState(true);
@@ -277,6 +277,7 @@ export default function AdminPanel() {
               donation:     field === 'is_supporter' ? (value ? 1 : 0) : u.donation }
           : u
       ));
+      if (typeof onUserUpdate === 'function') onUserUpdate();
     } catch { /* ignore */ }
     setRoleLoading(prev => ({ ...prev, [`${userId}-${field}`]: false }));
   }

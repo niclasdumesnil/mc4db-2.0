@@ -58,7 +58,7 @@ export default function Dashboard() {
 
         {/* Admin Panel — pleine largeur, au-dessus des panneaux */}
         {id && !loading && user?.is_admin && (
-          <AdminPanel />
+          <AdminPanel onUserUpdate={refreshUser} />
         )}
 
         {/* 3-Column Grid */}
