@@ -51,19 +51,19 @@ export default forwardRef(function DeckEditor({ deck, deckId, isPrivate, onSlots
 
   // --- FILTRES --- (Basic par defaut)
   const [selectedFaction, setSelectedFaction] = useState('basic');
-  const [selectedType, setSelectedType]       = useState(null);
+  const [selectedType, setSelectedType] = useState(null);
   const [lang, setLang] = useState(
     () => localStorage.getItem('mc_locale') || 'en'
   );
   const [filters, setFilters] = useState({
     showFanMade: true,
     showCurrent: false,
-    showAltArt:  true,
+    showAltArt: true,
   });
-  const [sortBy,    setSortBy]    = useState('name');   // 'name' | 'cost'
+  const [sortBy, setSortBy] = useState('name');   // 'name' | 'cost'
   const [sortOrder, setSortOrder] = useState('asc');
   const [traitFilter, setTraitFilter] = useState('');
-  const [textFilter,  setTextFilter]  = useState('');
+  const [textFilter, setTextFilter] = useState('');
 
   // Sync with global locale switcher (header badge)
   useEffect(() => {
@@ -110,9 +110,12 @@ export default forwardRef(function DeckEditor({ deck, deckId, isPrivate, onSlots
           permanent: card.permanent || false,
           cost: card.cost,
           resource_physical: card.resource_physical,
-          resource_energy:   card.resource_energy,
-          resource_mental:   card.resource_mental,
-          resource_wild:     card.resource_wild,
+          resource_energy: card.resource_energy,
+          resource_mental: card.resource_mental,
+          resource_wild: card.resource_wild,
+          imagesrc: card.imagesrc,
+          pack_environment: card.pack_environment,
+          alt_art: card.alt_art,
         };
       })
       .filter(Boolean);
@@ -271,8 +274,8 @@ export default forwardRef(function DeckEditor({ deck, deckId, isPrivate, onSlots
                     style={{
                       '--fac-color': color,
                       borderColor: active ? color : `${color}55`,
-                      background:  active ? color : `${color}18`,
-                      color:       active ? '#fff' : `${color}cc`,
+                      background: active ? color : `${color}18`,
+                      color: active ? '#fff' : `${color}cc`,
                     }}
                     onClick={() => setSelectedFaction(prev => prev === fac ? null : fac)}
                   >

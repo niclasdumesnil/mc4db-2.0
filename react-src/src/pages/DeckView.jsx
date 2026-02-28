@@ -244,23 +244,21 @@ export default function DeckView() {
       <div className={`deck-view-body${showEditor ? ' deck-view-body--editing' : ''}`}>
         <div className={`deck-view-left${showEditor ? ' deck-view-left--compact' : ''}`}>
 
-          {/* Display mode toggles (moved above the card list, aligned right) */}
-          {!showEditor && (
-            <div className="deck-view-display-modes">
-              <button
-                className={`deck-view-mode-btn${displayMode === 'list' ? ' active' : ''}`}
-                onClick={() => setDisplayMode('list')}
-              >
-                ☰ List
-              </button>
-              <button
-                className={`deck-view-mode-btn${displayMode === 'grid' ? ' active' : ''}`}
-                onClick={() => setDisplayMode('grid')}
-              >
-                ⊞ Scan
-              </button>
-            </div>
-          )}
+          {/* Display mode toggles */}
+          <div className="deck-view-display-modes">
+            <button
+              className={`deck-view-mode-btn${displayMode === 'list' ? ' active' : ''}`}
+              onClick={() => setDisplayMode('list')}
+            >
+              ☰ List
+            </button>
+            <button
+              className={`deck-view-mode-btn${displayMode === 'grid' ? ' active' : ''}`}
+              onClick={() => setDisplayMode('grid')}
+            >
+              ⊞ Scan
+            </button>
+          </div>
 
           <DeckContent slots={liveSlots ?? deck.slots ?? []} mode={displayMode} />
         </div>
