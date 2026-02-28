@@ -173,7 +173,7 @@ export default function CardListDisplay({ cards, mode = 'checklist', sort, onSor
                 '--tooltip-faction': factionColor || '#374151',
               }}
             >
-              <TooltipContent card={card} />
+              <TooltipContent card={card} isLink={true} />
             </div>
           );
         })}

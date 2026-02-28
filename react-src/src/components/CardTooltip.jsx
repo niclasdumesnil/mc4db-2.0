@@ -115,7 +115,7 @@ export default function CardTooltip() {
     );
 }
 
-export function TooltipContent({ card }) {
+export function TooltipContent({ card, isLink = false }) {
     const factionColor = getFactionColor(card.faction_code);
     const factionFgColor = getFactionFgColor(card.faction_code);
 
@@ -128,7 +128,13 @@ export function TooltipContent({ card }) {
                 <div className="card-tooltip__title-block">
                     <h4 className="card-tooltip__title tw-flex tw-items-center tw-flex-wrap tw-gap-1" style={{ color: factionFgColor }}>
                         {card.is_unique ? <span className="icon-unique cl-unique-icon text-[14px]" title="Unique" /> : null}
-                        {card.name}
+                        {isLink ? (
+                            <a href={`/card/${card.code}`} className="tw-no-underline hover:tw-underline" style={{ color: factionFgColor }}>
+                                {card.name}
+                            </a>
+                        ) : (
+                            card.name
+                        )}
                         {(!card.is_unique && card.quantity > 0) ? <span className="cl-qty tw-ml-1 tw-text-gray-400 tw-text-sm">(x{card.quantity})</span> : null}
                         {card.subname ? <span className="card-tooltip__subname tw-mr-1"> {card.subname}</span> : null}
                         {card.pack_environment === 'current' ? (
