@@ -99,7 +99,11 @@ export default function CardTooltip() {
     return createPortal(
         <div
             className="card-tooltip"
-            style={{ left: position.x, top: position.y }}
+            style={{
+                left: position.x,
+                top: position.y,
+                '--tooltip-faction': data ? getFactionColor(data.faction_code) : '#374151'
+            }}
         >
             {!data ? (
                 <div className="card-tooltip__loading">Loading...</div>
@@ -121,11 +125,34 @@ function TooltipContent({ card }) {
     return (
         <>
             <div className="card-tooltip__header">
-                <h4 className="card-tooltip__title" style={{ color: factionFgColor }}>
-                    {card.name}
-                    {card.subname && <span className="card-tooltip__subname"> {card.subname}</span>}
-                </h4>
-                <div className="card-tooltip__image-box" style={{ borderColor: factionFgColor }}>
+                <div className="card-tooltip__title-block">
+                    <h4 className="card-tooltip__title tw-flex tw-items-center tw-gap-1" style={{ color: factionFgColor }}>
+                        {card.is_unique ? <span className="icon-unique cl-unique-icon text-[14px]" title="Unique" /> : null}
+                        {card.name}
+                        {(!card.is_unique && card.quantity > 0) ? <span className="cl-qty tw-ml-1 tw-text-gray-400 tw-text-sm">(x{card.quantity})</span> : null}
+                        {card.subname && <span className="card-tooltip__subname"> {card.subname}</span>}
+                    </h4>
+
+                    {/* Badges placed explicitly below the title/subname */}
+                    <div className="card-tooltip__badges tw-mt-1 tw-flex tw-gap-1 tw-flex-wrap">
+                        {card.pack_environment === 'current' && (
+                            <span className="mc-badge mc-badge-current">Current</span>
+                        )}
+                        {card.alt_art && (
+                            <span className="mc-badge mc-badge-altart">Alt Art</span>
+                        )}
+                        {card.pack_creator && (
+                            <span className="mc-badge mc-badge-creator">{card.pack_creator}</span>
+                        )}
+                    </div>
+
+                    {/* Stats moved beneath the card title */}
+                    <div className="card-tooltip__stats tw-mt-2">
+                        <CardInfo card={card} showSpoilers={false} />
+                    </div>
+                </div>
+
+                <div className="card-tooltip__image-box">
                     <ImageWithWebp
                         src={card.imagesrc}
                         alt={card.name}
@@ -136,15 +163,6 @@ function TooltipContent({ card }) {
             </div>
 
             <div className="card-tooltip__body">
-                <div className="card-tooltip__type-row">
-                    <span className="card-tooltip__type">{card.type_name}.</span>
-                    {card.traits && <span className="card-tooltip__traits"> {card.traits}</span>}
-                </div>
-
-                <div className="card-tooltip__stats">
-                    <CardInfo card={card} showSpoilers={false} showType={false} />
-                </div>
-
                 <div className="card-tooltip__text-box">
                     <CardText card={card} showSpoilers={false} />
                 </div>

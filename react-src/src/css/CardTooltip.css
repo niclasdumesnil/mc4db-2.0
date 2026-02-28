@@ -4,12 +4,15 @@
   width: 380px;
   background-color: var(--mc-bg-color, #1a202c);
   color: #fff;
-  border: 1px solid #374151; /* gray-700 */
-  border-left: 4px solid;
-  border-radius: 6px;
+  border: 1px solid #374151;
+  /* gray-700 */
+  border-left: 4px solid var(--tooltip-faction, #374151);
+  /* Default fallback */
+  border-radius: 4px;
   box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4), 0 8px 10px -6px rgba(0, 0, 0, 0.2);
   padding: 12px;
-  pointer-events: none; /* Let mouse pass through to elements below */
+  pointer-events: none;
+  /* Let mouse pass through to elements below */
   font-family: inherit;
   font-size: 14px;
   line-height: 1.4;
@@ -17,8 +20,15 @@
 }
 
 @keyframes tooltipFadeIn {
-  from { opacity: 0; transform: translateY(4px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .card-tooltip__loading {
@@ -53,19 +63,19 @@
 }
 
 .card-tooltip__image-box {
-  width: 70px;
-  height: 98px;
-  border: 1px solid #4b5563;
+  width: 84px;
+  height: auto;
   border-radius: 4px;
   overflow: hidden;
   flex-shrink: 0;
-  background: #111;
+  background: transparent;
 }
 
 .card-tooltip__image-box img {
   width: 100%;
-  height: 100%;
-  object-fit: contain;
+  height: auto;
+  display: block;
+  border-radius: 4px !important;
 }
 
 .card-tooltip__body {
@@ -94,6 +104,7 @@
   margin-bottom: 6px;
   color: #d1d5db;
 }
+
 .card-tooltip__stats .mc-card-props {
   display: flex;
   flex-wrap: wrap;
@@ -102,18 +113,72 @@
 
 .card-tooltip__text-box {
   background: rgba(255, 255, 255, 0.04);
-  border-left: 2px solid #4b5563;
   padding: 8px 10px;
   margin-top: 4px;
-  border-radius: 0 4px 4px 0;
+  border-radius: 4px;
   font-size: 13.5px;
   color: #e5e7eb;
+}
+
+/* Remove inherited card text border from global mc4db.css */
+.card-tooltip .mc-card-text {
+  border-left: none !important;
+  padding-left: 0 !important;
+}
+
+/* Override Resource Icon Display inside Tooltip to match cl-res-icon style */
+.card-tooltip .mc-resource-bar {
+  border-left: none;
+  background: transparent;
+  padding: 0;
+  gap: 6px;
+  align-items: center;
+}
+
+.card-tooltip .mc-resource-bar>span:first-child {
+  font-weight: normal;
+  color: #9ca3af;
+}
+
+.card-tooltip .mc-resource-bar .icon {
+  width: 17px;
+  height: 17px;
+  border-radius: 3px;
+  background: transparent;
+  border-width: 1px;
+  border-style: solid;
+  font-size: 11px;
+  box-shadow: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.card-tooltip .mc-resource-bar .icon-energy {
+  color: #ffc107;
+  border-color: #ffc107;
+}
+
+.card-tooltip .mc-resource-bar .icon-physical {
+  color: #dc3545;
+  border-color: #dc3545;
+}
+
+.card-tooltip .mc-resource-bar .icon-mental {
+  color: #007bff;
+  border-color: #007bff;
+}
+
+.card-tooltip .mc-resource-bar .icon-wild {
+  color: #28a745;
+  border-color: #28a745;
 }
 
 /* Ensure paragraph margins inside tooltip text box aren't too large */
 .card-tooltip__text-box p {
   margin-bottom: 6px;
 }
+
 .card-tooltip__text-box p:last-child {
   margin-bottom: 0;
 }
