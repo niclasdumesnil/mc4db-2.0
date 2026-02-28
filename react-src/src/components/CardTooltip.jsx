@@ -115,7 +115,7 @@ export default function CardTooltip() {
     );
 }
 
-function TooltipContent({ card }) {
+export function TooltipContent({ card }) {
     const factionColor = getFactionColor(card.faction_code);
     const factionFgColor = getFactionFgColor(card.faction_code);
 
@@ -130,16 +130,16 @@ function TooltipContent({ card }) {
                         {card.is_unique ? <span className="icon-unique cl-unique-icon text-[14px]" title="Unique" /> : null}
                         {card.name}
                         {(!card.is_unique && card.quantity > 0) ? <span className="cl-qty tw-ml-1 tw-text-gray-400 tw-text-sm">(x{card.quantity})</span> : null}
-                        {card.subname && <span className="card-tooltip__subname tw-mr-1"> {card.subname}</span>}
-                        {card.pack_environment === 'current' && (
+                        {card.subname ? <span className="card-tooltip__subname tw-mr-1"> {card.subname}</span> : null}
+                        {card.pack_environment === 'current' ? (
                             <span className="mc-badge mc-badge-current tw-ml-1">Current</span>
-                        )}
-                        {card.alt_art && (
+                        ) : null}
+                        {card.alt_art ? (
                             <span className="mc-badge mc-badge-altart tw-ml-1">Alt Art</span>
-                        )}
-                        {(card.pack_creator || (card.creator && card.creator !== 'FFG')) && (
+                        ) : null}
+                        {(card.pack_creator || (card.creator && card.creator !== 'FFG')) ? (
                             <span className="mc-badge mc-badge-creator tw-ml-1">{card.pack_creator || card.creator}</span>
-                        )}
+                        ) : null}
                     </h4>
 
                     {/* Stats moved beneath the card title */}

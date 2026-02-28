@@ -945,3 +945,35 @@
     padding-right: 0;
   }
 }
+
+/* ───────── Preview View ───────── */
+
+.cl-preview-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  padding: 16px 0;
+}
+
+.cl-preview-grid .cl-preview-item.card-tooltip {
+  position: relative !important;
+  left: auto !important;
+  top: auto !important;
+  z-index: 1;
+  pointer-events: auto;
+  /* Allow text selection/clicking within the card list */
+  max-width: none;
+  width: 100%;
+}
+
+@media (max-width: 1200px) {
+  .cl-preview-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .cl-preview-grid {
+    grid-template-columns: 1fr;
+  }
+}

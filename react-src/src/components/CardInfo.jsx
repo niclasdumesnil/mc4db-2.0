@@ -14,6 +14,12 @@ export default function CardInfo({ card, showSpoilers, showType = true }) {
         </div>
       )}
 
+      {card.cost != null && card.cost !== '' && (
+        <div className="mc-card-cost">
+          Cost: {card.cost}
+        </div>
+      )}
+
       {card.traits && (
         <div className="mc-card-traits">
           {card.traits}

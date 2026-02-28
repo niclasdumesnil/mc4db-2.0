@@ -1,6 +1,6 @@
-import React from 'react';
 import { getFactionColor } from '@utils/dataUtils';
 import ImageWithWebp from '@components/ImageWithWebp';
+import { TooltipContent } from './CardTooltip';
 
 /**
  * Faction dot — coloured circle for aspect cards, person icon for hero cards.
@@ -156,6 +156,27 @@ export default function CardListDisplay({ cards, mode = 'checklist', sort, onSor
             </a>
           </div>
         ))}
+      </div>
+    );
+  }
+
+  if (mode === 'preview') {
+    return (
+      <div className="cl-preview-grid">
+        {cards.map(card => {
+          const factionColor = getFactionColor(card.faction_code);
+          return (
+            <div
+              key={card.code}
+              className="card-tooltip cl-preview-item"
+              style={{
+                '--tooltip-faction': factionColor || '#374151',
+              }}
+            >
+              <TooltipContent card={card} />
+            </div>
+          );
+        })}
       </div>
     );
   }

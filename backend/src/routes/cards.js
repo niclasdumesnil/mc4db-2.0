@@ -142,6 +142,7 @@ router.get('/cards/search', async (req, res, next) => {
       .select([
         'c.code', 'c.name', 'c.cost', 'c.position', 'c.hidden', 'c.is_unique',
         'c.traits', 'c.quantity', 'c.deck_limit', 'c.alt_art', db.raw('IF(c.duplicate_id IS NOT NULL, 1, 0) as is_duplicate'),
+        'c.text', 'c.real_text',
         'c.resource_energy', 'c.resource_physical', 'c.resource_mental', 'c.resource_wild',
         'c.attack', 'c.thwart', 'c.defense', 'c.health',
         'p.code as pack_code', 'p.name as pack_name',
