@@ -140,7 +140,12 @@ export default function CardListDisplay({ cards, mode = 'checklist', sort, onSor
       <div className="cl-grid">
         {cards.map(card => (
           <div key={card.code} className="cl-grid-item">
-            <a href={`/card/${card.code}`} className="cl-grid-link">
+            <a
+              href={`/card/${card.code}`}
+              className="cl-grid-link"
+              style={{ '--hover-border-color': getFactionColor(card.faction_code) }}
+            >
+              {(!card.is_unique && card.quantity > 1) && <span className="cl-grid-qty">{card.quantity}x</span>}
               <ImageWithWebp
                 src={card.imagesrc}
                 alt={card.name}
