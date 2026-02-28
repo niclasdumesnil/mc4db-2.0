@@ -31,10 +31,10 @@ function ResourceIcons({ card }) {
     for (let i = 0; i < (count || 0); i++)
       icons.push(<span key={`${cls}-${i}`} className={`cl-res-icon ${cls}`} />);
   };
-  push(card.resource_energy,   'icon-energy');
+  push(card.resource_energy, 'icon-energy');
   push(card.resource_physical, 'icon-physical');
-  push(card.resource_mental,   'icon-mental');
-  push(card.resource_wild,     'icon-wild');
+  push(card.resource_mental, 'icon-mental');
+  push(card.resource_wild, 'icon-wild');
   return <div className="cl-resources">{icons}</div>;
 }
 
@@ -115,7 +115,7 @@ export default function AvailableCardList({ cards, slotsMap = {}, onSetQty, sort
                   <div className="cl-card-name">
                     <FactionDot card={card} />
                     {card.is_unique ? <span className="icon-unique cl-unique-icon" title="Unique" /> : null}
-                    <span style={{ color: 'var(--cl-text)', fontWeight: 500 }}>{card.name}</span>
+                    <span className="card-tip" data-code={card.code} style={{ color: 'var(--cl-text)', fontWeight: 500, cursor: 'pointer' }}>{card.name}</span>
                     {card.alt_art && <span className="mc-badge mc-badge-altart" title="Alternative art">Alt Art</span>}
                     {card.pack_environment === 'current' && <span className="mc-badge mc-badge-current" title="Standard format">Current</span>}
                     {creator && <span className="mc-badge mc-badge-creator" title={`Created by ${creator}`}>{creator}</span>}

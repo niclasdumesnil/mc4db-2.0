@@ -126,7 +126,8 @@ export default function DeckContent({ slots, mode = 'list' }) {
                     <div key={card.code} className="dc-grid-item">
                       <a
                         href={`/card/${card.code}`}
-                        className="dc-grid-link"
+                        className="dc-grid-link card-tip"
+                        data-code={card.code}
                         style={{ '--hover-border-color': getFactionColor(card.faction_code) }}
                       >
                         {card.quantity > 1 && <span className="dc-grid-qty">{card.quantity}x</span>}
@@ -172,7 +173,8 @@ export default function DeckContent({ slots, mode = 'list' }) {
                     <div key={`${card.code}-${i}`} className="dc-grid-item">
                       <a
                         href={`/card/${card.code}`}
-                        className="dc-grid-link"
+                        className="dc-grid-link card-tip"
+                        data-code={card.code}
                         style={{ '--hover-border-color': getFactionColor(card.faction_code) }}
                       >
                         <ImageWithWebp src={card.imagesrc} alt={card.name} className="dc-grid-img" />
