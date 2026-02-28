@@ -1,5 +1,6 @@
 import React from 'react';
 import { getFactionColor } from '@utils/dataUtils';
+import ImageWithWebp from '@components/ImageWithWebp';
 
 /**
  * Faction dot — coloured circle for aspect cards, person icon for hero cards.
@@ -46,10 +47,10 @@ function ResourceIcons({ card }) {
       icons.push(<span key={`${iconCls}-${i}`} className={`cl-res-icon ${iconCls}`} />);
     }
   };
-  push(card.resource_energy,   'icon-energy');
+  push(card.resource_energy, 'icon-energy');
   push(card.resource_physical, 'icon-physical');
-  push(card.resource_mental,   'icon-mental');
-  push(card.resource_wild,     'icon-wild');
+  push(card.resource_mental, 'icon-mental');
+  push(card.resource_wild, 'icon-wild');
   return <div className="cl-resources">{icons}</div>;
 }
 
@@ -71,6 +72,8 @@ function CostCell({ cost }) {
  *   onSort  — callback(newSort) when a column header is clicked
  */
 export default function CardListDisplay({ cards, mode = 'checklist', sort, onSort }) {
+  const locale = localStorage.getItem('mc_locale') || window.__MC_LOCALE__ || 'en';
+  const langDir = locale.toUpperCase() === 'FR' ? 'FR' : 'EN';
   if (!cards || cards.length === 0) return null;
 
   if (mode === 'checklist') {
@@ -79,12 +82,12 @@ export default function CardListDisplay({ cards, mode = 'checklist', sort, onSor
         <table className="cl-checklist">
           <thead>
             <tr>
-              <ColHeader label="Name"    col="name"    current={sort} onSort={onSort} />
-              <ColHeader label="Cost"    col="cost"    current={sort} onSort={onSort} />
+              <ColHeader label="Name" col="name" current={sort} onSort={onSort} />
+              <ColHeader label="Cost" col="cost" current={sort} onSort={onSort} />
               <th>Type</th>
               <th>Resources</th>
               <th>Traits</th>
-              <ColHeader label="Pack"    col="pack"    current={sort} onSort={onSort} />
+              <ColHeader label="Pack" col="pack" current={sort} onSort={onSort} />
               <th>Set</th>
             </tr>
           </thead>
@@ -96,7 +99,7 @@ export default function CardListDisplay({ cards, mode = 'checklist', sort, onSor
                   <div className="cl-card-name">
                     <FactionDot card={card} />
                     {card.is_unique ? <span className="icon-unique cl-unique-icon" title="Unique" /> : null}
-                    <a href={`/card/${card.code}`}>{card.name}</a>
+                    <a href={`/card/${card.code}`} className="card-tip" data-code={card.code}>{card.name}</a>
                     {(!card.is_unique && card.quantity > 0) ? <span className="cl-qty">(x{card.quantity})</span> : null}
                     {card.pack_environment === 'current' ? <span className="mc-badge mc-badge-current" title="Standard format">Current</span> : null}
                     {card.alt_art ? <span className="mc-badge mc-badge-altart" title="Alternative art">Alt Art</span> : null}
@@ -132,12 +135,28 @@ export default function CardListDisplay({ cards, mode = 'checklist', sort, onSor
     );
   }
 
+  if (mode === 'grid') {
+    return (
+      <div className="cl-grid">
+        {cards.map(card => (
+          <div key={card.code} className="cl-grid-item">
+            <a href={`/card/${card.code}`} className="cl-grid-link">
+              <ImageWithWebp
+                src={card.imagesrc}
+                alt={card.name}
+                className="cl-grid-img"
+                locale={locale}
+                langDir={langDir}
+              />
+            </a>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
   // Placeholder for future display modes
-  return (
-    <div style={{ color: '#94a3b8', padding: 32, textAlign: 'center' }}>
-      Display mode "{mode}" coming soon.
-    </div>
-  );
+  return null;
 }
 
 function ColHeader({ label, col, current, onSort }) {

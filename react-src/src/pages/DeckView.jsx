@@ -18,6 +18,7 @@ export default function DeckView() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showEditor, setShowEditor] = useState(false);
+  const [displayMode, setDisplayMode] = useState('list'); // 'list' | 'grid'
   const [liveSlots, setLiveSlots] = useState(null); // preview en temps réel
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState(null);
@@ -103,6 +104,7 @@ export default function DeckView() {
   };
 
   const handleClone = async () => {
+    if (!window.confirm('Are you sure you want to clone this deck?')) return;
     setCloning(true);
     const userId = currentUserId();
     try {
@@ -115,6 +117,7 @@ export default function DeckView() {
   };
 
   const handlePublish = async () => {
+    if (!window.confirm('Are you sure you want to publish this deck?')) return;
     setPublishing(true);
     const userId = currentUserId();
     try {
@@ -240,7 +243,26 @@ export default function DeckView() {
       {/* Corps : layout conditionnel selon mode édition */}
       <div className={`deck-view-body${showEditor ? ' deck-view-body--editing' : ''}`}>
         <div className={`deck-view-left${showEditor ? ' deck-view-left--compact' : ''}`}>
-          <DeckContent slots={liveSlots ?? deck.slots ?? []} />
+
+          {/* Display mode toggles (moved above the card list, aligned right) */}
+          {!showEditor && (
+            <div className="deck-view-display-modes">
+              <button
+                className={`deck-view-mode-btn${displayMode === 'list' ? ' active' : ''}`}
+                onClick={() => setDisplayMode('list')}
+              >
+                ☰ List
+              </button>
+              <button
+                className={`deck-view-mode-btn${displayMode === 'grid' ? ' active' : ''}`}
+                onClick={() => setDisplayMode('grid')}
+              >
+                ⊞ Scan
+              </button>
+            </div>
+          )}
+
+          <DeckContent slots={liveSlots ?? deck.slots ?? []} mode={displayMode} />
         </div>
         {!showEditor && (
           <div className="deck-view-right">

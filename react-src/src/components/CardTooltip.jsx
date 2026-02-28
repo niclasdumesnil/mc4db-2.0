@@ -1,0 +1,158 @@
+import React, { useEffect, useState, useRef } from 'react';
+import { createPortal } from 'react-dom';
+import CardInfo from './CardInfo';
+import CardText from './CardText';
+import ImageWithWebp from './ImageWithWebp';
+import { getFactionColor, getFactionFgColor } from '../utils/dataUtils';
+import '../css/CardTooltip.css';
+
+/**
+ * Global provider for the Card Hover Modal tooltip.
+ * It listens for mouseover on elements matching `.card-tip[data-code]`
+ * and displays a styled hovering tooltip.
+ */
+export default function CardTooltip() {
+    const [hoverCode, setHoverCode] = useState(null);
+    const [position, setPosition] = useState({ x: 0, y: 0 });
+    const [data, setData] = useState(null);
+
+    const cache = useRef({});
+    const timeoutId = useRef(null);
+    const activeCode = useRef(null);
+
+    useEffect(() => {
+        function onMouseOver(e) {
+            const target = e.target.closest('.card-tip[data-code]');
+            if (!target) return;
+
+            const code = target.getAttribute('data-code');
+            if (!code) return;
+
+            if (timeoutId.current) clearTimeout(timeoutId.current);
+
+            activeCode.current = code;
+
+            // Small delay before showing to prevent flashing when passing over links
+            timeoutId.current = setTimeout(() => {
+                if (activeCode.current !== code) return;
+
+                // Calculate Position
+                const rect = target.getBoundingClientRect();
+                // Position normally to the right
+                let x = rect.right + 15;
+                let y = rect.top + window.scrollY - 30;
+
+                // If too far right, flip to the left
+                if (x + 350 > window.innerWidth) {
+                    x = rect.left - 365;
+                }
+
+                // Don't go above screen or below screen easily (approximate bounds)
+                if (y < window.scrollY + 10) y = window.scrollY + 10;
+
+                setPosition({ x, y });
+                setHoverCode(code);
+
+                // Fetch Data
+                if (cache.current[code]) {
+                    setData(cache.current[code]);
+                } else {
+                    setData(null); // Show loading state briefly
+                    const locale = localStorage.getItem('mc_locale') || 'en';
+                    const localeParam = locale !== 'en' ? `?locale=${locale}` : '';
+
+                    fetch(`/api/public/card/${code}${localeParam}`)
+                        .then(res => res.json())
+                        .then(json => {
+                            if (!json.error) {
+                                cache.current[code] = json;
+                                if (activeCode.current === code) {
+                                    setData(json);
+                                }
+                            }
+                        })
+                        .catch(err => console.error('Failed to load card tooltip', err));
+                }
+            }, 300);
+        }
+
+        function onMouseOut(e) {
+            const target = e.target.closest('.card-tip[data-code]');
+            if (!target) return;
+            activeCode.current = null;
+            if (timeoutId.current) clearTimeout(timeoutId.current);
+            setHoverCode(null);
+        }
+
+        document.body.addEventListener('mouseover', onMouseOver, true);
+        document.body.addEventListener('mouseout', onMouseOut, true);
+
+        return () => {
+            document.body.removeEventListener('mouseover', onMouseOver, true);
+            document.body.removeEventListener('mouseout', onMouseOut, true);
+            if (timeoutId.current) clearTimeout(timeoutId.current);
+        };
+    }, []);
+
+    if (!hoverCode) return null;
+
+    return createPortal(
+        <div
+            className="card-tooltip"
+            style={{ left: position.x, top: position.y }}
+        >
+            {!data ? (
+                <div className="card-tooltip__loading">Loading...</div>
+            ) : (
+                <TooltipContent card={data} />
+            )}
+        </div>,
+        document.body
+    );
+}
+
+function TooltipContent({ card }) {
+    const factionColor = getFactionColor(card.faction_code);
+    const factionFgColor = getFactionFgColor(card.faction_code);
+
+    const locale = localStorage.getItem('mc_locale') || 'en';
+    const langDir = locale === 'fr' ? 'FR' : 'EN';
+
+    return (
+        <>
+            <div className="card-tooltip__header">
+                <h4 className="card-tooltip__title" style={{ color: factionFgColor }}>
+                    {card.name}
+                    {card.subname && <span className="card-tooltip__subname"> {card.subname}</span>}
+                </h4>
+                <div className="card-tooltip__image-box" style={{ borderColor: factionFgColor }}>
+                    <ImageWithWebp
+                        src={card.imagesrc}
+                        alt={card.name}
+                        locale={locale}
+                        langDir={langDir}
+                    />
+                </div>
+            </div>
+
+            <div className="card-tooltip__body">
+                <div className="card-tooltip__type-row">
+                    <span className="card-tooltip__type">{card.type_name}.</span>
+                    {card.traits && <span className="card-tooltip__traits"> {card.traits}</span>}
+                </div>
+
+                <div className="card-tooltip__stats">
+                    <CardInfo card={card} showSpoilers={false} showType={false} />
+                </div>
+
+                <div className="card-tooltip__text-box">
+                    <CardText card={card} showSpoilers={false} />
+                </div>
+
+                <div className="card-tooltip__footer">
+                    {card.pack_name} #{card.position}
+                </div>
+            </div>
+        </>
+    );
+}

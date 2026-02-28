@@ -6,6 +6,7 @@ import PackNav from './components/PackNav';
 import '@css/mc4db.css';
 import LoginMenu from './components/LoginMenu';
 import Menu from './components/Menu';
+import CardTooltip from './components/CardTooltip';
 import Landing from './components/Landing';
 import Dashboard from './pages/Dashboard';
 import CardPage from './pages/CardPage';
@@ -70,7 +71,12 @@ function mountAllCards() {
       document.body.appendChild(loginRoot);
     }
     const root = createRoot(loginRoot);
-    root.render(<LoginMenu />);
+    root.render(
+      <>
+        <LoginMenu />
+        <CardTooltip />
+      </>
+    );
   } catch (e) {
     console.error('Failed to mount LoginMenu:', e);
   }

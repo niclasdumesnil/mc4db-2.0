@@ -249,8 +249,14 @@ router.get('/cards/search', async (req, res, next) => {
       });
     }
 
+    const { resolveImage } = require('../utils/cardSerializer');
+    const finalCards = cards.map(c => ({
+      ...c,
+      imagesrc: resolveImage(c.code, '', localeClean)
+    }));
+
     res.json({
-      cards,
+      cards: finalCards,
       meta: {
         page: pageNum, limit: limitNum, total_pages: totalPages, total_items: totalItems,
         total_official: totalOfficial, total_fanmade: totalFanmade, total_duplicates: totalDuplicates,

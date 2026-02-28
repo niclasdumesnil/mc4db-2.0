@@ -79,7 +79,9 @@ async function fetchDeckSlots(tableName, foreignKey, parentId, locale = 'en') {
     .where(`s.${foreignKey}`, parentId)
     .orderBy('c.name', 'asc');
 
-  if (!locale || locale === 'en' || rows.length === 0) return rows;
+  if (!locale || locale === 'en' || rows.length === 0) {
+    return rows.map(r => ({ ...r, imagesrc: resolveImage(r.code, '', locale) }));
+  }
 
   // Overlay card_translation for name
   const codes = rows.map(r => r.code);
@@ -90,9 +92,10 @@ async function fetchDeckSlots(tableName, foreignKey, parentId, locale = 'en') {
   const transMap = Object.fromEntries(transRows.map(t => [t.code, t]));
 
   return rows.map(r => {
+    const base = { ...r, imagesrc: resolveImage(r.code, '', locale) };
     const t = transMap[r.code];
-    if (!t || !t.name) return r;
-    return { ...r, name: t.name };
+    if (!t || !t.name) return base;
+    return { ...base, name: t.name };
   });
 }
 

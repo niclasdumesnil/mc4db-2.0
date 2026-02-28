@@ -12,7 +12,7 @@ const _INIT_FILTERS = { ...EMPTY_FILTERS };
 
 const DISPLAY_MODES = [
   { key: 'checklist', icon: '☰', label: 'Checklist' },
-  // Future: { key: 'grid', icon: '⊞', label: 'Cards' },
+  { key: 'grid', icon: '⊞', label: 'Scan' },
 ];
 
 /**
@@ -26,17 +26,17 @@ function buildSearchUrl(filters, page, sort, order, showDuplicates, showAltArt, 
   params.set('order', order);
   if (!showDuplicates) params.set('hide_duplicates', '1');
   if (showAltArt) params.set('show_alt_art', '1');
-  if (showOfficial && !showFanmade)  params.set('creator_filter', 'official');
-  if (!showOfficial && showFanmade)  params.set('creator_filter', 'fanmade');
+  if (showOfficial && !showFanmade) params.set('creator_filter', 'official');
+  if (!showOfficial && showFanmade) params.set('creator_filter', 'fanmade');
   if (locale && locale !== 'en') params.set('locale', locale);
 
-  if (filters.name)    params.set('name',    filters.name);
-  if (filters.text)    params.set('text',    filters.text);
-  if (filters.flavor)  params.set('flavor',  filters.flavor);
-  if (filters.pack)    params.set('pack',    filters.pack);
-  if (filters.type)    params.set('type',    filters.type);
+  if (filters.name) params.set('name', filters.name);
+  if (filters.text) params.set('text', filters.text);
+  if (filters.flavor) params.set('flavor', filters.flavor);
+  if (filters.pack) params.set('pack', filters.pack);
+  if (filters.type) params.set('type', filters.type);
   if (filters.subtype) params.set('subtype', filters.subtype);
-  if (filters.traits)  params.set('traits',  filters.traits);
+  if (filters.traits) params.set('traits', filters.traits);
   if (filters.is_unique !== '') params.set('is_unique', filters.is_unique);
   if (filters.illustrator) params.set('illustrator', filters.illustrator);
 
@@ -53,11 +53,11 @@ function buildSearchUrl(filters, page, sort, order, showDuplicates, showAltArt, 
   }
 
   const numPairs = [
-    ['cost',   'cost_op'],
-    ['qty',    'qty_op'],
-    ['atk',    'atk_op'],
-    ['thw',    'thw_op'],
-    ['def',    'def_op'],
+    ['cost', 'cost_op'],
+    ['qty', 'qty_op'],
+    ['atk', 'atk_op'],
+    ['thw', 'thw_op'],
+    ['def', 'def_op'],
     ['health', 'health_op'],
   ];
   for (const [val, op] of numPairs) {
@@ -83,7 +83,7 @@ function Pagination({ page, totalPages, onPage }) {
 
   const pages = [];
   const start = Math.max(1, page - 2);
-  const end   = Math.min(totalPages, page + 2);
+  const end = Math.min(totalPages, page + 2);
 
   for (let p = start; p <= end; p++) pages.push(p);
 
@@ -102,7 +102,7 @@ function Pagination({ page, totalPages, onPage }) {
         title="Previous"
       >‹</button>
 
-      {start > 1 && <span style={{ color:'#94a3b8', fontSize:'0.8rem' }}>…</span>}
+      {start > 1 && <span style={{ color: '#94a3b8', fontSize: '0.8rem' }}>…</span>}
       {pages.map(p => (
         <button
           key={p}
@@ -110,7 +110,7 @@ function Pagination({ page, totalPages, onPage }) {
           onClick={() => onPage(p)}
         >{p}</button>
       ))}
-      {end < totalPages && <span style={{ color:'#94a3b8', fontSize:'0.8rem' }}>…</span>}
+      {end < totalPages && <span style={{ color: '#94a3b8', fontSize: '0.8rem' }}>…</span>}
 
       <button
         className="cardlist-pagination-btn"
@@ -143,22 +143,22 @@ export default function CardList() {
     window.addEventListener('mc_locale_changed', onLocaleChange);
     return () => window.removeEventListener('mc_locale_changed', onLocaleChange);
   }, []);
-  const [cards, setCards]         = useState([]);
-  const [loading, setLoading]     = useState(true);
-  const [page, setPage]           = useState(1);
+  const [cards, setCards] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
   const [totalOfficial, setTotalOfficial] = useState(0);
-  const [totalFanmade, setTotalFanmade]   = useState(0);
+  const [totalFanmade, setTotalFanmade] = useState(0);
   const [totalDuplicates, setTotalDuplicates] = useState(0);
-  const [sort, setSort]           = useState('pack');
-  const [order, setOrder]         = useState('asc');
+  const [sort, setSort] = useState('pack');
+  const [order, setOrder] = useState('asc');
   const [showDuplicates, setShowDuplicates] = useState(false);
-  const [showAltArt, setShowAltArt]         = useState(true);
-  const [showOfficial, setShowOfficial]     = useState(true);
-  const [showFanmade,  setShowFanmade]      = useState(true);
-  const [mode, setMode]           = useState('checklist');
-  const [filters, setFilters]     = useState(_INIT_FILTERS);
+  const [showAltArt, setShowAltArt] = useState(true);
+  const [showOfficial, setShowOfficial] = useState(true);
+  const [showFanmade, setShowFanmade] = useState(true);
+  const [mode, setMode] = useState('checklist');
+  const [filters, setFilters] = useState(_INIT_FILTERS);
   const [attributes, setAttributes] = useState({ types: [], subtypes: [], illustrators: [] });
 
   // Debounce text filters so we don't fire on every keystroke
@@ -172,7 +172,7 @@ export default function CardList() {
     fetch('/api/public/cards/attributes')
       .then(r => r.json())
       .then(data => setAttributes(data))
-      .catch(() => {});
+      .catch(() => { });
   }, []);
 
   // Debounce text field changes
@@ -286,7 +286,7 @@ export default function CardList() {
                 <span className="cardlist-count-official" title="Official">{totalOfficial.toLocaleString()} official</span>
                 {showDuplicates && totalDuplicates > 0 && (
                   <><span className="cardlist-count-sep">/</span>
-                  <span className="cardlist-count-dup" title="Duplicates">{totalDuplicates.toLocaleString()} Duplicate{totalDuplicates !== 1 ? 's' : ''}</span></>
+                    <span className="cardlist-count-dup" title="Duplicates">{totalDuplicates.toLocaleString()} Duplicate{totalDuplicates !== 1 ? 's' : ''}</span></>
                 )}
                 <span className="cardlist-count-sep">/</span>
                 <span className="cardlist-count-fanmade" title="Fan-made">{totalFanmade.toLocaleString()} fan-made</span>

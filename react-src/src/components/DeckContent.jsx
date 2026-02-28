@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import { getFactionColor } from '@utils/dataUtils';
+import ImageWithWebp from '@components/ImageWithWebp';
 import '../css/DeckContent.css';
 
 // Faction dot — même logique que CardListDisplay
@@ -34,7 +35,10 @@ function FactionDot({ card }) {
   );
 }
 
-export default function DeckContent({ slots }) {
+export default function DeckContent({ slots, mode = 'list' }) {
+  const locale = localStorage.getItem('mc_locale') || window.__MC_LOCALE__ || 'en';
+  const langDir = locale.toUpperCase() === 'FR' ? 'FR' : 'EN';
+
   // 1. Grouper les cartes par Type (Ally, Event, Support...) et calculer les totaux
   // Les cartes Permanent sont isolées dans un groupe à part et exclues du total
   const { groupedSlots, permanentSlots, totalCards } = useMemo(() => {
@@ -65,7 +69,7 @@ export default function DeckContent({ slots }) {
   // 3. Fonction pour générer les icônes de ressources (basée sur mc4db.css)
   const renderResources = (card) => {
     const resources = [];
-    
+
     for (let i = 0; i < (card.resource_physical || 0); i++) {
       resources.push(<span key={`p${i}`} className="cl-res-icon icon-physical" title="Physical"></span>);
     }
@@ -78,7 +82,7 @@ export default function DeckContent({ slots }) {
     for (let i = 0; i < (card.resource_wild || 0); i++) {
       resources.push(<span key={`w${i}`} className="cl-res-icon icon-wild" title="Wild"></span>);
     }
-    
+
     return <div className="slot-resources">{resources}</div>;
   };
 
@@ -94,22 +98,44 @@ export default function DeckContent({ slots }) {
             <h5 className="slot-group-title">
               {type} <span className="slot-group-count">({groupedSlots[type].count})</span>
             </h5>
-            <ul className="slot-list">
-              {[...groupedSlots[type].cards]
-                .sort((a, b) => (a.name || '').localeCompare(b.name || ''))
-                .map(card => (
-                <li key={card.code} className="slot-item">
-                  <div className="slot-main-info">
-                    <span className="slot-qty">{card.quantity}x</span>
-                    <FactionDot card={card} />
-                    <span className="slot-name">{card.name}</span>
-                    {card.pack_environment === 'current' ? <span className="mc-badge mc-badge-current" title="Standard format">Current</span> : null}
-                    {card.alt_art ? <span className="mc-badge mc-badge-altart" title="Alternative art">Alt Art</span> : null}
-                  </div>
-                  {renderResources(card)}
-                </li>
-              ))}
-            </ul>
+            {mode === 'list' && (
+              <ul className="slot-list">
+                {[...groupedSlots[type].cards]
+                  .sort((a, b) => (a.name || '').localeCompare(b.name || ''))
+                  .map(card => (
+                    <li key={card.code} className="slot-item">
+                      <div className="slot-main-info">
+                        <span className="slot-qty">{card.quantity}x</span>
+                        <FactionDot card={card} />
+                        <span className="slot-name card-tip" data-code={card.code}>{card.name}</span>
+                        {card.pack_environment === 'current' ? <span className="mc-badge mc-badge-current" title="Standard format">Current</span> : null}
+                        {card.alt_art ? <span className="mc-badge mc-badge-altart" title="Alternative art">Alt Art</span> : null}
+                      </div>
+                      {renderResources(card)}
+                    </li>
+                  ))}
+              </ul>
+            )}
+
+            {/* Grid rendering injected next to the list, visually toggled via CSS or conditionally */}
+            {mode === 'grid' && (
+              <div className="dc-grid">
+                {[...groupedSlots[type].cards]
+                  .sort((a, b) => (a.name || '').localeCompare(b.name || ''))
+                  .map(card => (
+                    <div key={card.code} className="dc-grid-item">
+                      <a
+                        href={`/card/${card.code}`}
+                        className="dc-grid-link"
+                        style={{ '--hover-border-color': getFactionColor(card.faction_code) }}
+                      >
+                        {card.quantity > 1 && <span className="dc-grid-qty">{card.quantity}x</span>}
+                        <ImageWithWebp src={card.imagesrc} alt={card.name} className="dc-grid-img" locale={locale} langDir={langDir} />
+                      </a>
+                    </div>
+                  ))}
+              </div>
+            )}
           </div>
         ))}
 
@@ -119,22 +145,43 @@ export default function DeckContent({ slots }) {
             <h5 className="slot-group-title">
               Permanent <span className="slot-group-count">({permanentSlots.count})</span>
             </h5>
-            <ul className="slot-list">
-              {[...permanentSlots.cards]
-                .sort((a, b) => (a.name || '').localeCompare(b.name || ''))
-                .map(card => (
-                <li key={card.code} className="slot-item">
-                  <div className="slot-main-info">
-                    <span className="slot-qty">{card.quantity}x</span>
-                    <FactionDot card={card} />
-                    <span className="slot-name">{card.name}</span>
-                    {card.pack_environment === 'current' ? <span className="mc-badge mc-badge-current" title="Standard format">Current</span> : null}
-                    {card.alt_art ? <span className="mc-badge mc-badge-altart" title="Alternative art">Alt Art</span> : null}
-                  </div>
-                  {renderResources(card)}
-                </li>
-              ))}
-            </ul>
+            {mode === 'list' && (
+              <ul className="slot-list">
+                {[...permanentSlots.cards]
+                  .sort((a, b) => (a.name || '').localeCompare(b.name || ''))
+                  .map(card => (
+                    <li key={card.code} className="slot-item">
+                      <div className="slot-main-info">
+                        <span className="slot-qty">{card.quantity}x</span>
+                        <FactionDot card={card} />
+                        <span className="slot-name card-tip" data-code={card.code}>{card.name}</span>
+                        {card.pack_environment === 'current' ? <span className="mc-badge mc-badge-current" title="Standard format">Current</span> : null}
+                        {card.alt_art ? <span className="mc-badge mc-badge-altart" title="Alternative art">Alt Art</span> : null}
+                      </div>
+                      {renderResources(card)}
+                    </li>
+                  ))}
+              </ul>
+            )}
+
+            {mode === 'grid' && (
+              <div className="dc-grid">
+                {[...permanentSlots.cards]
+                  .sort((a, b) => (a.name || '').localeCompare(b.name || ''))
+                  .flatMap(card => Array.from({ length: card.quantity || 1 }, (_, i) => (
+                    <div key={`${card.code}-${i}`} className="dc-grid-item">
+                      <a
+                        href={`/card/${card.code}`}
+                        className="dc-grid-link"
+                        style={{ '--hover-border-color': getFactionColor(card.faction_code) }}
+                      >
+                        <ImageWithWebp src={card.imagesrc} alt={card.name} className="dc-grid-img" />
+                      </a>
+                    </div>
+                  )))
+                }
+              </div>
+            )}
           </div>
         )}
       </div>

@@ -1,12 +1,12 @@
 /* ── Card List Page ───────────────────────────────────────────── */
 
 :root {
-  --cl-bg:          #0d1629;
-  --cl-surface:     #111d35;
-  --cl-border:      rgba(255,255,255,0.08);
-  --cl-text:        #e2e8f0;
-  --cl-text-muted:  #94a3b8;
-  --cl-accent:      #3b82f6;
+  --cl-bg: #0d1629;
+  --cl-surface: #111d35;
+  --cl-border: rgba(255, 255, 255, 0.08);
+  --cl-text: #e2e8f0;
+  --cl-text-muted: #94a3b8;
+  --cl-accent: #3b82f6;
 }
 
 /* ── Outer layout ────────────────────────────────── */
@@ -172,33 +172,36 @@
 
 /* Official = actif par défaut : blanc */
 .cardlist-filtertype-btn--official {
-  background: rgba(226,232,240,0.08);
-  border-color: rgba(226,232,240,0.35);
+  background: rgba(226, 232, 240, 0.08);
+  border-color: rgba(226, 232, 240, 0.35);
   color: #e2e8f0;
 }
+
 .cardlist-filtertype-btn--official:hover {
-  background: rgba(226,232,240,0.14);
+  background: rgba(226, 232, 240, 0.14);
 }
 
 /* Fan-Made = actif par défaut : bleu creator */
 .cardlist-filtertype-btn--fanmade {
-  background: rgba(18,120,216,0.12);
-  border-color: rgba(18,120,216,0.4);
+  background: rgba(18, 120, 216, 0.12);
+  border-color: rgba(18, 120, 216, 0.4);
   color: #93caff;
 }
+
 .cardlist-filtertype-btn--fanmade:hover {
-  background: rgba(18,120,216,0.2);
+  background: rgba(18, 120, 216, 0.2);
 }
 
 /* État off : très atténué */
 .cardlist-filtertype-btn--off {
   background: transparent !important;
   border-color: transparent !important;
-  color: rgba(148,163,184,0.35) !important;
+  color: rgba(148, 163, 184, 0.35) !important;
   text-decoration: line-through;
 }
+
 .cardlist-filtertype-btn--off:hover {
-  color: rgba(148,163,184,0.6) !important;
+  color: rgba(148, 163, 184, 0.6) !important;
 }
 
 .cardlist-sort {
@@ -344,13 +347,13 @@
 }
 
 .cardlist-pagination-btn:hover:not(:disabled) {
-  background: rgba(59,130,246,0.15);
-  border-color: rgba(59,130,246,0.4);
+  background: rgba(59, 130, 246, 0.15);
+  border-color: rgba(59, 130, 246, 0.4);
 }
 
 .cardlist-pagination-btn--active {
-  background: rgba(59,130,246,0.25);
-  border-color: rgba(59,130,246,0.6);
+  background: rgba(59, 130, 246, 0.25);
+  border-color: rgba(59, 130, 246, 0.6);
   color: #93c5fd;
   font-weight: 700;
 }
@@ -373,7 +376,7 @@
 .cl-checklist th {
   text-align: left;
   padding: 8px 10px;
-  border-bottom: 2px solid rgba(255,255,255,0.12);
+  border-bottom: 2px solid rgba(255, 255, 255, 0.12);
   color: var(--cl-text-muted);
   font-weight: 600;
   font-size: 0.75rem;
@@ -401,16 +404,16 @@
 }
 
 .cl-checklist tr:nth-child(even) td {
-  background: rgba(255,255,255,0.02);
+  background: rgba(255, 255, 255, 0.02);
 }
 
 .cl-checklist tr:hover td {
-  background: rgba(59,130,246,0.06);
+  background: rgba(59, 130, 246, 0.06);
 }
 
 .cl-checklist td {
   padding: 7px 10px;
-  border-bottom: 1px solid rgba(255,255,255,0.05);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
   vertical-align: middle;
 }
 
@@ -560,10 +563,10 @@
 
 .card-search-reset {
   padding: 1px 5px;
-  border: 1px solid rgba(160,160,160,0.35);
+  border: 1px solid rgba(160, 160, 160, 0.35);
   border-radius: 4px;
-  background: rgba(255,255,255,0.05);
-  color: rgba(180,180,180,0.7);
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(180, 180, 180, 0.7);
   font-size: 0.65rem;
   line-height: 1.4;
   cursor: pointer;
@@ -571,7 +574,7 @@
 }
 
 .card-search-reset:hover {
-  background: rgba(255,255,255,0.12);
+  background: rgba(255, 255, 255, 0.12);
   color: #d1d5db;
 }
 
@@ -599,7 +602,7 @@
 
 .card-search__input {
   width: 100%;
-  background: rgba(0,0,0,0.3);
+  background: rgba(0, 0, 0, 0.3);
   border: 1px solid var(--cl-border);
   border-radius: 5px;
   color: var(--cl-text);
@@ -610,12 +613,12 @@
 }
 
 .card-search__input:focus {
-  border-color: rgba(59,130,246,0.5);
+  border-color: rgba(59, 130, 246, 0.5);
 }
 
 .card-search__select {
   width: 100%;
-  background: rgba(0,0,0,0.3);
+  background: rgba(0, 0, 0, 0.3);
   border: 1px solid var(--cl-border);
   border-radius: 5px;
   color: var(--cl-text);
@@ -636,7 +639,7 @@
 
 .card-search__op-select {
   width: 56px;
-  background: rgba(0,0,0,0.3);
+  background: rgba(0, 0, 0, 0.3);
   border: 1px solid var(--cl-border);
   border-radius: 5px;
   color: var(--cl-text);
@@ -647,7 +650,7 @@
 
 .card-search__number {
   flex: 1;
-  background: rgba(0,0,0,0.3);
+  background: rgba(0, 0, 0, 0.3);
   border: 1px solid var(--cl-border);
   border-radius: 5px;
   color: var(--cl-text);
@@ -659,7 +662,7 @@
 }
 
 .card-search__number:focus {
-  border-color: rgba(59,130,246,0.5);
+  border-color: rgba(59, 130, 246, 0.5);
 }
 
 /* Resource row */
@@ -685,7 +688,7 @@
   padding: 3px 7px;
   border: 1px solid var(--cl-border);
   border-radius: 5px;
-  background: rgba(255,255,255,0.04);
+  background: rgba(255, 255, 255, 0.04);
   color: var(--cl-text-muted);
   font-size: 0.73rem;
   font-weight: 600;
@@ -696,13 +699,13 @@
 }
 
 .card-search__res-qty-btn:hover {
-  background: rgba(59,130,246,0.1);
+  background: rgba(59, 130, 246, 0.1);
   color: var(--cl-text);
 }
 
 .card-search__res-qty-btn--active {
-  background: rgba(59,130,246,0.2);
-  border-color: rgba(59,130,246,0.5);
+  background: rgba(59, 130, 246, 0.2);
+  border-color: rgba(59, 130, 246, 0.5);
   color: #93c5fd;
   font-weight: 700;
 }
@@ -741,7 +744,7 @@
   padding: 5px 0;
   border: 1px solid var(--cl-border);
   border-radius: 5px;
-  background: rgba(255,255,255,0.04);
+  background: rgba(255, 255, 255, 0.04);
   color: var(--cl-text-muted);
   font-size: 0.78rem;
   font-weight: 500;
@@ -751,13 +754,13 @@
 }
 
 .card-search__radio-btn:hover {
-  background: rgba(59,130,246,0.1);
+  background: rgba(59, 130, 246, 0.1);
   color: var(--cl-text);
 }
 
 .card-search__radio-btn--active {
-  background: rgba(59,130,246,0.2);
-  border-color: rgba(59,130,246,0.5);
+  background: rgba(59, 130, 246, 0.2);
+  border-color: rgba(59, 130, 246, 0.5);
   color: #93c5fd;
   font-weight: 700;
 }
@@ -785,10 +788,10 @@
 
 .card-search__section-reset {
   padding: 1px 5px;
-  border: 1px solid rgba(160,160,160,0.35);
+  border: 1px solid rgba(160, 160, 160, 0.35);
   border-radius: 4px;
-  background: rgba(255,255,255,0.05);
-  color: rgba(180,180,180,0.7);
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(180, 180, 180, 0.7);
   font-size: 0.65rem;
   line-height: 1.4;
   cursor: pointer;
@@ -796,8 +799,57 @@
 }
 
 .card-search__section-reset:hover {
-  background: rgba(255,255,255,0.12);
+  background: rgba(255, 255, 255, 0.12);
   color: #d1d5db;
+}
+
+/* ═══════════════════════════════════════════════════
+   GRID DISPLAY (Image mode)
+═══════════════════════════════════════════════════ */
+
+.cl-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 16px;
+  padding: 16px 0;
+}
+
+.cl-grid-item {
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.2s ease;
+  position: relative;
+}
+
+.cl-grid-item:hover {
+  z-index: 10;
+}
+
+.cl-grid-link {
+  display: flex;
+  justify-content: center;
+  text-decoration: none;
+  outline: none;
+  border-radius: 3px;
+  transition: transform 0.2s ease;
+  overflow: hidden;
+  background: transparent;
+}
+
+.cl-grid-link:hover,
+.cl-grid-link:focus {
+  transform: translateY(-8px) scale(1.15);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.25);
+  outline: 2px solid var(--cl-accent);
+  outline-offset: 4px;
+  z-index: 10;
+}
+
+.cl-grid-img {
+  width: 100%;
+  height: auto;
+  display: block;
+  border-radius: 3px;
 }
 
 .card-search__chevron {
@@ -830,27 +882,31 @@
   justify-content: space-between;
   margin-bottom: 4px;
 }
+
 .card-search__unique-row .card-search__numeric-label {
   margin-bottom: 0;
 }
+
 .card-search__unique-toggle {
   padding: 4px 14px;
   border: 1px solid var(--cl-border);
   border-radius: 5px;
-  background: rgba(255,255,255,0.04);
+  background: rgba(255, 255, 255, 0.04);
   color: var(--cl-text-muted);
   font-size: 0.78rem;
   font-weight: 500;
   cursor: pointer;
   transition: background 0.12s, color 0.12s, border-color 0.12s;
 }
+
 .card-search__unique-toggle:hover {
-  background: rgba(59,130,246,0.1);
+  background: rgba(59, 130, 246, 0.1);
   color: var(--cl-text);
 }
+
 .card-search__unique-toggle--active {
-  background: rgba(59,130,246,0.2);
-  border-color: rgba(59,130,246,0.5);
+  background: rgba(59, 130, 246, 0.2);
+  border-color: rgba(59, 130, 246, 0.5);
   color: #93c5fd;
   font-weight: 700;
 }

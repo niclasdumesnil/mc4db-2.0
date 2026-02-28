@@ -1,0 +1,128 @@
+.card-tooltip {
+  position: absolute;
+  z-index: 10000;
+  width: 380px;
+  background-color: var(--mc-bg-color, #1a202c);
+  color: #fff;
+  border: 1px solid #374151; /* gray-700 */
+  border-left: 4px solid;
+  border-radius: 6px;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4), 0 8px 10px -6px rgba(0, 0, 0, 0.2);
+  padding: 12px;
+  pointer-events: none; /* Let mouse pass through to elements below */
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 1.4;
+  animation: tooltipFadeIn 0.15s ease-out forwards;
+}
+
+@keyframes tooltipFadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.card-tooltip__loading {
+  text-align: center;
+  padding: 16px;
+  color: #9ca3af;
+  font-style: italic;
+}
+
+.card-tooltip__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 8px;
+  gap: 12px;
+}
+
+.card-tooltip__title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: bold;
+  letter-spacing: -0.01em;
+  flex: 1;
+}
+
+.card-tooltip__subname {
+  font-size: 14px;
+  font-weight: normal;
+  opacity: 0.8;
+  display: block;
+  margin-top: 2px;
+}
+
+.card-tooltip__image-box {
+  width: 70px;
+  height: 98px;
+  border: 1px solid #4b5563;
+  border-radius: 4px;
+  overflow: hidden;
+  flex-shrink: 0;
+  background: #111;
+}
+
+.card-tooltip__image-box img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.card-tooltip__body {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.card-tooltip__type-row {
+  margin-bottom: 2px;
+}
+
+.card-tooltip__type {
+  font-weight: 600;
+  color: #e5e7eb;
+}
+
+.card-tooltip__traits {
+  font-style: italic;
+  font-weight: bold;
+  color: #d1d5db;
+}
+
+.card-tooltip__stats {
+  font-size: 14px;
+  margin-bottom: 6px;
+  color: #d1d5db;
+}
+.card-tooltip__stats .mc-card-props {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.card-tooltip__text-box {
+  background: rgba(255, 255, 255, 0.04);
+  border-left: 2px solid #4b5563;
+  padding: 8px 10px;
+  margin-top: 4px;
+  border-radius: 0 4px 4px 0;
+  font-size: 13.5px;
+  color: #e5e7eb;
+}
+
+/* Ensure paragraph margins inside tooltip text box aren't too large */
+.card-tooltip__text-box p {
+  margin-bottom: 6px;
+}
+.card-tooltip__text-box p:last-child {
+  margin-bottom: 0;
+}
+
+.card-tooltip__footer {
+  margin-top: 8px;
+  font-size: 12px;
+  color: #6b7280;
+  text-align: right;
+  border-top: 1px solid #374151;
+  padding-top: 6px;
+}
