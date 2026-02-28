@@ -93,6 +93,7 @@ function serializeCard(row, opts = {}) {
   const card = {
     pack_code: row.pack_code || '',
     pack_name: row.pack_name || '',
+    pack_creator: row.pack_creator || null,
     type_code: row.type_code || '',
     type_name: row.type_name || '',
     subtype_code: row.subtype_code || null,
@@ -183,7 +184,7 @@ function serializeCard(row, opts = {}) {
     backimagesrc: row.double_sided ? resolveImage(row.code, 'b', imageLang) : '',
     spoiler:
       row.card_set_code &&
-      (row.faction_code === 'encounter' || row.card_set_type_name_code === 'encounter')
+        (row.faction_code === 'encounter' || row.card_set_type_name_code === 'encounter')
         ? 1
         : 0,
 

@@ -126,25 +126,21 @@ function TooltipContent({ card }) {
         <>
             <div className="card-tooltip__header">
                 <div className="card-tooltip__title-block">
-                    <h4 className="card-tooltip__title tw-flex tw-items-center tw-gap-1" style={{ color: factionFgColor }}>
+                    <h4 className="card-tooltip__title tw-flex tw-items-center tw-flex-wrap tw-gap-1" style={{ color: factionFgColor }}>
                         {card.is_unique ? <span className="icon-unique cl-unique-icon text-[14px]" title="Unique" /> : null}
                         {card.name}
                         {(!card.is_unique && card.quantity > 0) ? <span className="cl-qty tw-ml-1 tw-text-gray-400 tw-text-sm">(x{card.quantity})</span> : null}
-                        {card.subname && <span className="card-tooltip__subname"> {card.subname}</span>}
-                    </h4>
-
-                    {/* Badges placed explicitly below the title/subname */}
-                    <div className="card-tooltip__badges tw-mt-1 tw-flex tw-gap-1 tw-flex-wrap">
+                        {card.subname && <span className="card-tooltip__subname tw-mr-1"> {card.subname}</span>}
                         {card.pack_environment === 'current' && (
-                            <span className="mc-badge mc-badge-current">Current</span>
+                            <span className="mc-badge mc-badge-current tw-ml-1">Current</span>
                         )}
                         {card.alt_art && (
-                            <span className="mc-badge mc-badge-altart">Alt Art</span>
+                            <span className="mc-badge mc-badge-altart tw-ml-1">Alt Art</span>
                         )}
-                        {card.pack_creator && (
-                            <span className="mc-badge mc-badge-creator">{card.pack_creator}</span>
+                        {(card.pack_creator || (card.creator && card.creator !== 'FFG')) && (
+                            <span className="mc-badge mc-badge-creator tw-ml-1">{card.pack_creator || card.creator}</span>
                         )}
-                    </div>
+                    </h4>
 
                     {/* Stats moved beneath the card title */}
                     <div className="card-tooltip__stats tw-mt-2">
