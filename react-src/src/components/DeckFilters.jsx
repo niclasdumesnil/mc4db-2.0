@@ -5,18 +5,18 @@ import { getFactionColor, DECK_TAGS } from '@utils/dataUtils';
 const ASPECTS = ['leadership', 'aggression', 'protection', 'justice', 'pool', 'determination', 'basic'];
 
 const ASPECT_LABELS = {
-  leadership:   'Leadership',
-  aggression:   'Aggression',
-  protection:   'Protection',
-  justice:      'Justice',
-  pool:         'Pool',
-  determination:'Determination',
-  basic:        'Basic',
+  leadership: 'Leadership',
+  aggression: 'Aggression',
+  protection: 'Protection',
+  justice: 'Justice',
+  pool: 'Pool',
+  determination: 'Determination',
+  basic: 'Basic',
 };
 
-export default function DeckFilters({ filters, onChange, heroes }) {
-  const ffgHeroes     = heroes?.ffg     || [];
-  const fanmadeHeroes = heroes?.fanmade  || [];
+export default function DeckFilters({ filters, onChange, heroes, children }) {
+  const ffgHeroes = heroes?.ffg || [];
+  const fanmadeHeroes = heroes?.fanmade || [];
 
   const setHero = (code) => onChange({ ...filters, hero: code });
   const toggleAspect = (code) => {
@@ -88,8 +88,8 @@ export default function DeckFilters({ filters, onChange, heroes }) {
                 className={`deck-filters__aspect-btn${active ? ' deck-filters__aspect-btn--active' : ''}`}
                 style={{
                   borderColor: active ? color : `${color}55`,
-                  background:  active ? color : `${color}18`,
-                  color:       active ? '#fff' : `${color}cc`,
+                  background: active ? color : `${color}18`,
+                  color: active ? '#fff' : `${color}cc`,
                 }}
                 title={ASPECT_LABELS[code]}
                 onClick={() => toggleAspect(code)}
@@ -121,6 +121,9 @@ export default function DeckFilters({ filters, onChange, heroes }) {
           })}
         </div>
       </div>
+
+      {/* ── Additional Actions / Children ── */}
+      {children}
 
       {/* ── Reset ── */}
       {hasFilters && (

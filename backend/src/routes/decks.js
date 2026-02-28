@@ -804,4 +804,90 @@ router.put('/user/:userId/decks/:deckId/publish', async (req, res) => {
   }
 });
 
+// ── POST /user/:userId/decks/import ─────────────────────────────────────────
+router.post('/user/:userId/decks/import', async (req, res) => {
+  try {
+    const userId = parseInt(req.params.userId, 10);
+    if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+
+    const { name, investigator_code, meta, slots, tags } = req.body;
+
+    if (!name || !investigator_code || !slots || typeof slots !== 'object') {
+      return res.status(400).json({ error: 'Missing required fields for import (name, investigator_code, slots).' });
+    }
+
+    // Prepare transaction
+    return await db.transaction(async trx => {
+      // 1. Validate Hero
+      const heroCode = String(investigator_code).trim().padStart(5, '0');
+      const heroCard = await trx('card').where('code', heroCode).select('id', 'name').first();
+      if (!heroCard) {
+        return res.status(400).json({
+          error: `Hero card not found in your local database for code: ${heroCode}. Ensure the local DB is up to date.`
+        });
+      }
+
+      // 2. Validate Slots
+      const slotCodes = Object.keys(slots).map(code => String(code).trim().padStart(5, '0'));
+      const dbCards = await trx('card').whereIn('code', slotCodes).select('id', 'code', 'name');
+      const dbCardsMap = Object.fromEntries(dbCards.map(c => [c.code, c.id]));
+
+      const missingCodes = slotCodes.filter(code => !dbCardsMap[code]);
+      if (missingCodes.length > 0) {
+        return res.status(400).json({
+          error: `Cannot import. Some cards are missing from the local database: ${missingCodes.join(', ')}.`
+        });
+      }
+
+      // 3. Create Deck
+      const [deckId] = await trx('deck').insert({
+        user_id: userId,
+        character_id: heroCard.id,
+        uuid: require('crypto').randomUUID(),
+        name: name,
+        description_md: '',
+        tags: tags || '',
+        meta: meta ? JSON.stringify(meta) : null,
+        major_version: 1,
+        minor_version: 0,
+        xp: 0,
+        xp_spent: 0,
+        xp_adjustment: 0,
+        date_creation: db.fn.now(),
+        date_update: db.fn.now(),
+      });
+
+      // 4. Insert Slots
+      const slotInserts = Object.entries(slots).map(([code, quantity]) => {
+        const paddedCode = String(code).padStart(5, '0');
+        const cardId = dbCardsMap[paddedCode];
+        return {
+          deck_id: deckId,
+          card_id: cardId,
+          quantity: parseInt(quantity, 10),
+          ignore_deck_limit: 0
+        };
+      });
+
+      if (slotInserts.length > 0) {
+        await trx('deckslot').insert(slotInserts);
+      }
+
+      // 5. Initial Change log
+      await trx('deckchange').insert({
+        deck_id: deckId,
+        date_creation: db.fn.now(),
+        variation: JSON.stringify(slots), // Initial state
+        is_saved: 1,
+        version: '1.0'
+      });
+
+      return res.json({ ok: true, data: { id: deckId } });
+    });
+  } catch (err) {
+    console.error('POST /user/:userId/decks/import error', err);
+    return res.status(500).json({ error: 'Internal server error during import.' });
+  }
+});
+
 module.exports = router;
