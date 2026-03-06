@@ -804,6 +804,64 @@ router.put('/user/:userId/decks/:deckId/publish', async (req, res) => {
   }
 });
 
+// ── POST /user/:userId/decks ─ Créer un nouveau deck vide ──────────────────
+router.post('/user/:userId/decks', async (req, res) => {
+  try {
+    const userId = parseInt(req.params.userId, 10);
+    if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+
+    const { hero_code, name } = req.body;
+    if (!hero_code) return res.status(400).json({ error: 'hero_code is required' });
+
+    const heroCard = await db('card').where('code', hero_code).select('id', 'name', 'set_id').first();
+    if (!heroCard) return res.status(400).json({ error: `Hero card not found: ${hero_code}` });
+
+    const deckName = (typeof name === 'string' && name.trim())
+      ? name.trim()
+      : `${heroCard.name} Deck`;
+
+    const [deckId] = await db('deck').insert({
+      user_id: userId,
+      character_id: heroCard.id,
+      uuid: require('crypto').randomUUID(),
+      name: deckName,
+      description_md: '',
+      tags: '',
+      meta: null,
+      major_version: 0,
+      minor_version: 1,
+      xp: 0,
+      xp_spent: 0,
+      xp_adjustment: 0,
+      date_creation: db.fn.now(),
+      date_update: db.fn.now(),
+    });
+
+    // Insert all signature/player cards from the hero's set
+    // (replicate PHP initbuildAction: not hidden, not hero/alter_ego type, not encounter faction)
+    if (heroCard.set_id) {
+      const setCards = await db('card as c')
+        .join('type as t', 'c.type_id', 't.id')
+        .join('faction as f', 'c.faction_id', 'f.id')
+        .where('c.set_id', heroCard.set_id)
+        .where('c.hidden', 0)
+        .whereNotIn('t.code', ['hero', 'alter_ego'])
+        .where('f.code', '!=', 'encounter')
+        .select('c.id', 'c.deck_limit');
+      if (setCards.length > 0) {
+        await db('deckslot').insert(
+          setCards.map(card => ({ deck_id: deckId, card_id: card.id, quantity: card.deck_limit || 1 }))
+        );
+      }
+    }
+
+    return res.json({ ok: true, data: { id: deckId } });
+  } catch (err) {
+    console.error('POST /user/:userId/decks error', err);
+    return res.status(500).json({ error: 'Internal error' });
+  }
+});
+
 // ── POST /user/:userId/decks/import ─────────────────────────────────────────
 router.post('/user/:userId/decks/import', async (req, res) => {
   try {

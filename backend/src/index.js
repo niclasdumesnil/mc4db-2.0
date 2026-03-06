@@ -519,6 +519,41 @@ app.get(['/decklist/:id', '/decklist/view/:id'], (req, res) => {
   res.type('html').send(html);
 });
 
+// New Deck page (client-side rendered — requires login)
+app.get('/deck/new', (req, res) => {
+  const baseUrl = req.protocol + '://' + req.get('host');
+  const url = baseUrl + '/deck/new';
+  const title = 'New Deck — MarvelCDB';
+  const description = 'Choose a hero and create a new Marvel Champions deck.';
+  const image = baseUrl + '/react/images/og-default.svg';
+
+  const html = `<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>${title}</title>
+    <meta name="description" content="${description}">
+    <link rel="canonical" href="${url}">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="${title}">
+    <meta property="og:description" content="${description}">
+    <meta property="og:url" content="${url}">
+    <meta property="og:image" content="${image}">
+    <link rel="stylesheet" href="/react/css/card.css?v=${assetVersion}">
+  </head>
+  <body>
+    ${renderSharedHeader()}
+    <div id="mc-app"></div>
+    <noscript>
+      <div style="max-width:980px;margin:24px auto;padding:16px;background:#fee;color:#333;border-radius:8px;">JavaScript is disabled — the interactive UI requires JavaScript to function.</div>
+    </noscript>
+    <script src="/react/js/card.js?v=${assetVersion}"></script>
+  </body>
+</html>`;
+  res.type('html').send(html);
+});
+
 // My Deck View page (client-side rendered — requires login)
 app.get(['/my-decks/:id', '/deck/view/:id'], (req, res) => {
   const localeRaw = (req.acceptsLanguages && req.acceptsLanguages()[0]) || 'en';

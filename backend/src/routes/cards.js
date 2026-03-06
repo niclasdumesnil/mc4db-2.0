@@ -7,7 +7,7 @@
  */
 const { Router } = require('express');
 const Card = require('../models/Card');
-const { serializeCard } = require('../utils/cardSerializer');
+const { serializeCard, resolveImage } = require('../utils/cardSerializer');
 const { isUserDonator } = require('../utils/donatorUtils');
 
 const router = Router();
@@ -92,6 +92,77 @@ router.get('/cards/attributes', async (req, res, next) => {
     const illustrators = [...illustratorSet].sort((a, b) => a.localeCompare(b));
 
     res.json({ types, subtypes, illustrators });
+  } catch (err) {
+    next(err);
+  }
+});
+
+/**
+ * GET /api/public/heroes
+ * Returns all hero cards (type_code = 'hero', code ending in 'b') with pack metadata.
+ * Useful for the deck-creation hero picker.
+ *
+ * Query params:
+ *   user_id — optional; donators see cards from private packs
+ */
+router.get('/heroes', async (req, res, next) => {
+  try {
+    const db = require('../config/database');
+    const { user_id } = req.query;
+    const donator = await isUserDonator(user_id);
+
+    let q = db('card as c')
+      .join('type as t', 'c.type_id', 't.id')
+      .join('pack as p', 'c.pack_id', 'p.id')
+      .leftJoin(db.raw("card as cb ON cb.code = CONCAT(LEFT(c.code, LENGTH(c.code)-1), 'b')"))
+      .leftJoin(db.raw("card as cc ON cc.code = CONCAT(LEFT(c.code, LENGTH(c.code)-1), 'c')"))
+      .where('t.code', 'hero')
+      .whereRaw("c.code LIKE '%a'")
+      .whereRaw("c.code = (SELECT MIN(c2.code) FROM card c2 JOIN type t2 ON c2.type_id = t2.id WHERE t2.code = 'hero' AND c2.pack_id = c.pack_id AND c2.name = c.name AND c2.code LIKE '%a')")
+      .where('c.hidden', 0)
+      .select([
+        'c.id', 'c.code', 'c.name',
+        'p.id as pack_id', 'p.code as pack_code', 'p.name as pack_name',
+        'p.creator as pack_creator', 'p.environment as pack_environment',
+        'p.status as pack_status', 'p.theme as pack_theme',
+        'p.visibility as pack_visibility',
+        'p.date_release as pack_date_release',
+        'cb.code as code_b',
+        'cc.code as code_c',
+      ])
+      .orderBy('c.name', 'asc');
+
+    if (!donator) {
+      q = q.where(function () {
+        this.where('p.visibility', '!=', 'false').orWhereNull('p.visibility');
+      });
+    }
+
+    const rows = await q;
+    const heroes = rows.map(row => ({
+      code: row.code,
+      name: row.name,
+      pack_id: row.pack_id,
+      pack_code: row.pack_code,
+      pack_name: row.pack_name,
+      pack_creator: row.pack_creator || 'FFG',
+      pack_environment: row.pack_environment || null,
+      pack_status: row.pack_status || null,
+      pack_theme: row.pack_theme || 'Marvel',
+      pack_visibility: row.pack_visibility || 'true',
+      pack_date_release: row.pack_date_release
+        ? (row.pack_date_release instanceof Date
+            ? row.pack_date_release.toISOString().slice(0, 10)
+            : String(row.pack_date_release).slice(0, 10))
+        : null,
+      imagesrc: resolveImage(row.code),
+      alt_images: [
+        row.code_b ? resolveImage(row.code_b) : null,
+        row.code_c ? resolveImage(row.code_c) : null,
+      ].filter(Boolean),
+    }));
+
+    return res.json({ ok: true, data: heroes });
   } catch (err) {
     next(err);
   }

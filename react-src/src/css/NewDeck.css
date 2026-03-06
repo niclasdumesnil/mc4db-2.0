@@ -1,0 +1,406 @@
+/* ═══════════════════════════════════════════════════════════════
+   NewDeck.css — Hero picker for new deck creation
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── Page container ─────────────────────────────────────────── */
+.ndeck-page {
+  max-width: 1280px;
+  margin: 80px auto 60px;
+  padding: 40px 24px;
+  min-height: calc(100vh - 80px);
+}
+
+/* ── Page header ─────────────────────────────────────────────── */
+.ndeck-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.ndeck-header-left {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ndeck-title {
+  font-size: 2rem;
+  font-weight: 800;
+  color: #111;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.ndeck-subtitle {
+  color: #555;
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+/* ── Back link ───────────────────────────────────────────────── */
+.ndeck-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #555;
+  font-size: 0.9rem;
+  text-decoration: none;
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid #dde3ec;
+  background: #f4f6f9;
+  transition: color 0.2s, border-color 0.2s, background 0.2s;
+}
+
+.ndeck-back:hover {
+  color: #111;
+  border-color: #bcc5d4;
+  background: #eaecf2;
+}
+
+/* ── Tabs bar ────────────────────────────────────────────────── */
+.ndeck-tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 2px solid #dde3ec;
+  margin-bottom: 24px;
+}
+
+.ndeck-tab {
+  padding: 10px 22px;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  color: #667;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color 0.18s, border-color 0.18s;
+  white-space: nowrap;
+}
+
+.ndeck-tab:hover {
+  color: #333;
+}
+
+.ndeck-tab--active {
+  color: #1a56db;
+  border-bottom-color: #1a56db;
+}
+
+/* ── Filter bar ─────────────────────────────────────────────── */
+.ndeck-filters {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 28px;
+}
+
+/* All heroes / Your heroes toggle */
+.ndeck-scope-toggle {
+  display: flex;
+  gap: 0;
+  border: 1px solid #ccd3df;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.ndeck-scope-btn {
+  padding: 7px 16px;
+  background: #fff;
+  border: none;
+  color: #555;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.18s, color 0.18s;
+}
+
+.ndeck-scope-btn:not(:last-child) {
+  border-right: 1px solid #ccd3df;
+}
+
+.ndeck-scope-btn--active {
+  background: #1a56db;
+  color: #fff;
+}
+
+.ndeck-scope-btn:hover:not(.ndeck-scope-btn--active) {
+  background: #f0f4fb;
+  color: #222;
+}
+
+/* Theme filter select */
+.ndeck-theme-label {
+  color: #555;
+  font-size: 0.82rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.ndeck-theme-select {
+  background: #fff;
+  border: 1px solid #ccd3df;
+  border-radius: 8px;
+  color: #333;
+  font-size: 0.85rem;
+  padding: 6px 12px;
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.18s;
+}
+
+.ndeck-theme-select:focus {
+  border-color: #1a56db;
+}
+
+/* Hero count */
+.ndeck-count {
+  margin-left: auto;
+  color: #888;
+  font-size: 0.82rem;
+}
+
+/* ── Section heading ─────────────────────────────────────────── */
+.ndeck-section-title {
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #888;
+  margin: 0 0 16px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid #e5e9f0;
+}
+
+/* ── Hero grid ───────────────────────────────────────────────── */
+.ndeck-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+@media (max-width: 1024px) {
+  .ndeck-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 600px) {
+  .ndeck-grid { grid-template-columns: 1fr; }
+}
+
+/* ── Hero faces (a / b / c) ───────────────────────────── */
+.ndeck-hero-faces {
+  flex-shrink: 0;
+  display: flex;
+  align-items: flex-end;
+  /* single card: 72px; multi: grows with negative-margin overlap */
+}
+
+.ndeck-face {
+  width: 72px;
+  height: auto;
+  border-radius: 10px;                              /* same as DeckView .banner-card */
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.60);      /* adapted from DeckView 0 15px 35px */
+  transition: all 0.35s cubic-bezier(0.25, 0.8, 0.25, 1);
+  transform-origin: center bottom;
+  position: relative;
+}
+
+.ndeck-face--a {
+  transform: rotate(-6deg);
+  z-index: 1;
+}
+
+.ndeck-face--b {
+  transform: rotate(5deg);
+  z-index: 2;
+  margin-left: -26px;
+}
+
+.ndeck-face--c {
+  transform: rotate(10deg);
+  z-index: 3;
+  margin-left: -22px;
+}
+
+.ndeck-face:hover {
+  z-index: 20 !important;
+  transform: scale(1.18) translateY(-10px) rotate(0deg) !important;  /* same hover as DeckView */
+  box-shadow: 0 22px 44px rgba(0, 0, 0, 0.80);
+}
+
+.ndeck-face--placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100px;
+  background: rgba(255, 255, 255, 0.05);
+  color: #334155;
+  font-size: 1.6rem;
+}
+
+/* ── Hero card (kept for reference, image section replaced) ─── */
+.ndeck-hero-card {
+  background: #10203a;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  overflow: visible;              /* allows hover-preview to float above */
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+}
+
+/* clip inner content to the rounded corners */
+.ndeck-hero-body,
+.ndeck-hero-footer {
+  position: relative;
+  z-index: 1;
+}
+
+.ndeck-hero-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.45);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+/* Card body: image left + info right */
+.ndeck-hero-body {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 14px 14px 10px;
+  flex: 1;
+}
+
+/* Info section */
+.ndeck-hero-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  text-align: right;
+  align-items: flex-end;
+}
+
+.ndeck-hero-name {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #e2e8f0;
+  margin: 0 0 4px;
+  line-height: 1.25;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ndeck-hero-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: 2px;
+}
+
+.ndeck-hero-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 4px;
+}
+
+.ndeck-hero-meta-row {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.78rem;
+  color: #94a3b8;
+  line-height: 1.4;
+}
+
+.ndeck-hero-meta-label {
+  color: #64748b;
+}
+
+.ndeck-hero-meta-value {
+  color: #cbd5e1;
+}
+
+/* ── Create deck button ──────────────────────────────────────── */
+.ndeck-hero-footer {
+  padding: 0 14px 14px;
+}
+/* ── Sort buttons ────────────────────────────────────────── */
+.ndeck-sort {
+  display: flex;
+  gap: 0;
+  border: 1px solid #ccd3df;
+  border-radius: 8px;
+  overflow: hidden;
+  margin-left: auto;
+}
+
+.ndeck-sort-btn {
+  padding: 6px 11px;
+  background: #fff;
+  border: none;
+  border-right: 1px solid #ccd3df;
+  color: #555;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  white-space: nowrap;
+}
+.ndeck-sort-btn:last-child { border-right: none; }
+
+.ndeck-sort-btn--active {
+  background: #1a56db;
+  color: #fff;
+}
+.ndeck-sort-btn:hover:not(.ndeck-sort-btn--active) {
+  background: #f0f4fb;
+  color: #222;
+}
+.ndeck-create-btn {
+  display: block;
+  width: 100%;
+  padding: 9px 0;
+  background: #1d4ed8;
+  color: #fff;
+  font-size: 0.88rem;
+  font-weight: 700;
+  text-align: center;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.18s, opacity 0.18s;
+}
+
+.ndeck-create-btn:hover {
+  background: #2563eb;
+}
+
+.ndeck-create-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ── Empty, loading, error states ───────────────────────────── */
+.ndeck-loading,
+.ndeck-empty,
+.ndeck-error {
+  text-align: center;
+  padding: 60px 20px;
+  color: #475569;
+  font-size: 0.95rem;
+}
+
+.ndeck-error {
+  color: #c0392b;
+}
