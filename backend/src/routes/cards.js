@@ -139,6 +139,7 @@ router.get('/cards/search', async (req, res, next) => {
       hide_duplicates, show_alt_art, creator_filter,
       locale = 'en',
       user_id,
+      theme,
     } = req.query;
 
     const donator = await isUserDonator(user_id);
@@ -219,6 +220,20 @@ router.get('/cards/search', async (req, res, next) => {
     }
     if (creator_filter === 'official') q = q.whereNull('p.creator');
     if (creator_filter === 'fanmade') q = q.whereNotNull('p.creator');
+    // Theme filter: absent/null theme is treated as 'Marvel' (case-insensitive)
+    if (theme && theme !== 'all') {
+      const themeLower = theme.toLowerCase();
+      q = q.where(function () {
+        if (themeLower === 'marvel') {
+          // NULL/empty themes default to Marvel
+          this.whereRaw('LOWER(p.theme) = ?', [themeLower])
+            .orWhereNull('p.theme')
+            .orWhere('p.theme', '');
+        } else {
+          this.whereRaw('LOWER(p.theme) = ?', [themeLower]);
+        }
+      });
+    }
     // Filter out cards from private packs for non-donators
     if (!donator) q = q.where(function () { this.whereNull('p.visibility').orWhereNot('p.visibility', 'false'); });
 

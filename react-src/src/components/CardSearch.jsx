@@ -85,7 +85,7 @@ function Section({ label, defaultOpen = true, active = false, onReset, children 
  *   subtypes  — array of { code, name }
  *   illustrators — array of strings
  */
-export default function CardSearch({ filters, onChange, types = [], subtypes = [], illustrators = [] }) {
+export default function CardSearch({ filters, onChange, types = [], subtypes = [], illustrators = [], themes = [], selectedTheme = 'Marvel', onThemeChange }) {
   const set = (patch) => onChange({ ...filters, ...patch });
 
   const toggleFaction = (code) => {
@@ -160,6 +160,29 @@ export default function CardSearch({ filters, onChange, types = [], subtypes = [
           onChange={e => set({ flavor: e.target.value })}
         />
       </Section>
+
+      {/* ── Theme ── */}
+      {themes.length > 0 && (
+        <Section label="Theme" defaultOpen={true}
+          active={selectedTheme !== 'all'}
+          onReset={() => onThemeChange && onThemeChange('all')}
+        >
+          <div className="deck-filters__aspects" style={{ flexWrap: 'wrap' }}>
+            <button
+              className={`deck-filters__aspect-btn deck-filters__aspect-btn--all${selectedTheme === 'all' ? ' deck-filters__aspect-btn--active' : ''}`}
+              onClick={() => onThemeChange && onThemeChange('all')}
+            >All</button>
+            {themes.map(t => (
+              <button
+                key={t}
+                className={`deck-filters__aspect-btn${selectedTheme === t ? ' deck-filters__aspect-btn--active' : ''}`}
+                style={selectedTheme === t ? { background: 'rgba(99,102,241,0.25)', borderColor: 'rgba(99,102,241,0.6)', color: '#a5b4fc' } : {}}
+                onClick={() => onThemeChange && onThemeChange(t)}
+              >{t}</button>
+            ))}
+          </div>
+        </Section>
+      )}
 
       {/* ── Category / Faction ── */}
       <Section label="Category" defaultOpen={true}

@@ -23,7 +23,7 @@ const DISPLAY_MODES = [
 /**
  * Build the search API URL from filters + pagination state.
  */
-function buildSearchUrl(filters, page, sort, order, showDuplicates, showAltArt, showOfficial, showFanmade, locale = 'en', limit = 50, userId = null) {
+function buildSearchUrl(filters, page, sort, order, showDuplicates, showAltArt, showOfficial, showFanmade, locale = 'en', limit = 50, userId = null, selectedTheme = 'Marvel') {
   const params = new URLSearchParams();
   params.set('page', page);
   params.set('limit', limit);
@@ -35,6 +35,7 @@ function buildSearchUrl(filters, page, sort, order, showDuplicates, showAltArt, 
   if (!showOfficial && showFanmade) params.set('creator_filter', 'fanmade');
   if (locale && locale !== 'en') params.set('locale', locale);
   if (userId) params.set('user_id', userId);
+  if (selectedTheme && selectedTheme !== 'all') params.set('theme', selectedTheme);
 
   if (filters.name) params.set('name', filters.name);
   if (filters.text) params.set('text', filters.text);
@@ -166,6 +167,8 @@ export default function CardList() {
   const [mode, setMode] = useState('checklist');
   const [filters, setFilters] = useState(_INIT_FILTERS);
   const [attributes, setAttributes] = useState({ types: [], subtypes: [], illustrators: [] });
+  const [selectedTheme, setSelectedTheme] = useState('Marvel');
+  const [themes, setThemes] = useState([]);
 
   // Debounce text filters so we don't fire on every keystroke
   const debounceRef = useRef(null);
@@ -173,11 +176,27 @@ export default function CardList() {
   // 350 ms after mount (see module-level _INIT_FILTERS comment above).
   const [debouncedFilters, setDebouncedFilters] = useState(_INIT_FILTERS);
 
-  // Fetch type/subtype/illustrator lists once on mount
+  // Fetch type/subtype/illustrator lists + packs (for themes) once on mount
   useEffect(() => {
     fetch('/api/public/cards/attributes')
       .then(r => r.json())
       .then(data => setAttributes(data))
+      .catch(() => { });
+
+    const userId = currentUserId();
+    fetch(`/api/public/packs${userId ? '?user_id=' + userId : ''}`)
+      .then(r => r.json())
+      .then(data => {
+        if (!Array.isArray(data)) return;
+        // Normalize: capitalize first letter, then dedup case-insensitively
+        const normalizeTheme = t => t ? t.charAt(0).toUpperCase() + t.slice(1) : 'Marvel';
+        const map = new Map();
+        data.forEach(p => {
+          const norm = normalizeTheme((p.theme || 'Marvel').trim());
+          if (!map.has(norm.toLowerCase())) map.set(norm.toLowerCase(), norm);
+        });
+        setThemes([...map.values()].sort());
+      })
       .catch(() => { });
   }, []);
 
@@ -207,7 +226,7 @@ export default function CardList() {
     const controller = new AbortController();
     setLoading(true);
 
-    const url = buildSearchUrl(debouncedFilters, page, sort, order, showDuplicates, showAltArt, showOfficial, showFanmade, locale, 50, currentUserId());
+    const url = buildSearchUrl(debouncedFilters, page, sort, order, showDuplicates, showAltArt, showOfficial, showFanmade, locale, 50, currentUserId(), selectedTheme);
     fetch(url, { signal: controller.signal })
       .then(r => {
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
@@ -231,7 +250,7 @@ export default function CardList() {
       });
 
     return () => { controller.abort(); };
-  }, [debouncedFilters, page, sort, order, showDuplicates, showAltArt, showOfficial, showFanmade, locale]);
+  }, [debouncedFilters, page, sort, order, showDuplicates, showAltArt, showOfficial, showFanmade, locale, selectedTheme]);
 
   const handleFiltersChange = useCallback((newFilters) => {
     setFilters(newFilters);
@@ -383,6 +402,9 @@ export default function CardList() {
             types={attributes.types}
             subtypes={attributes.subtypes}
             illustrators={attributes.illustrators}
+            themes={themes}
+            selectedTheme={selectedTheme}
+            onThemeChange={t => { setSelectedTheme(t); setPage(1); }}
           />
         </aside>
 

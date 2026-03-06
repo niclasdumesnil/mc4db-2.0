@@ -58,6 +58,53 @@
   margin: 0;
 }
 
+/* ── Theme filter bar ───────────────────────────── */
+
+.cardlist-theme-bar {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  background: var(--cl-surface);
+  border: 1px solid var(--cl-border);
+  border-radius: 10px;
+  padding: 10px 16px;
+  margin-bottom: 16px;
+}
+
+.cardlist-theme-label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--cl-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-right: 4px;
+}
+
+.cardlist-theme-btn {
+  padding: 4px 12px;
+  border-radius: 6px;
+  border: 1px solid var(--cl-border);
+  background: transparent;
+  color: var(--cl-text-muted);
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.cardlist-theme-btn:hover {
+  background: rgba(148, 163, 184, 0.12);
+  color: var(--cl-text);
+}
+
+.cardlist-theme-btn--active {
+  background: rgba(99, 102, 241, 0.18);
+  color: #a5b4fc;
+  border-color: rgba(99, 102, 241, 0.5);
+  font-weight: 600;
+}
+
 /* ── Display mode selector ──────────────────────── */
 
 .cardlist-mode-bar {
