@@ -260,7 +260,7 @@ export default function DeckView() {
             </button>
           </div>
 
-          <DeckContent slots={liveSlots ?? deck.slots ?? []} mode={displayMode} />
+          <DeckContent slots={liveSlots ?? deck.slots ?? []} mode={displayMode} heroSpecialCards={deck.hero_special_cards ?? []} />
         </div>
         {!showEditor && (
           <div className="deck-view-right">

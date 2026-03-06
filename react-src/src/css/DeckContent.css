@@ -134,6 +134,9 @@
   .deck-slots-grid {
     columns: 1;
   }
+  .hero-special-container {
+    columns: 1;
+  }
 }
 
 /* ═══════════════════════════════════════════════════
@@ -203,4 +206,34 @@
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
   pointer-events: none;
   z-index: 5;
+}
+
+/* ── Hero Special Deck Panel ─────────────────────────────────────── */
+.hero-special-container {
+  margin-top: 24px;
+  columns: 2;
+  column-gap: 40px;
+}
+
+.hero-special-set {
+  break-inside: avoid;
+  margin-bottom: 20px;
+}
+
+.hero-special-title {
+  font-size: 1.05rem;
+  color: #c4b5fd;
+  margin: 0 0 8px 0;
+  font-weight: 700;
+  border-bottom: 1px solid rgba(147, 112, 219, 0.3);
+  padding-bottom: 6px;
+}
+
+
+.hero-special-item .slot-name {
+  color: #c4b5fd;
+}
+
+.hero-special-item:hover {
+  background: rgba(147, 112, 219, 0.08);
 }

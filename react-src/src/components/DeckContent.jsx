@@ -35,7 +35,7 @@ function FactionDot({ card }) {
   );
 }
 
-export default function DeckContent({ slots, mode = 'list' }) {
+export default function DeckContent({ slots, mode = 'list', heroSpecialCards = [] }) {
   const locale = localStorage.getItem('mc_locale') || window.__MC_LOCALE__ || 'en';
   const langDir = locale.toUpperCase() === 'FR' ? 'FR' : 'EN';
 
@@ -66,6 +66,18 @@ export default function DeckContent({ slots, mode = 'list' }) {
   // 2. Ordre alphabétique des catégories (Permanent toujours en dernier)
   const sortedTypes = Object.keys(groupedSlots).sort((a, b) => a.localeCompare(b));
 
+  // 3. Grouper les cartes hero_special par set
+  const heroSpecialSets = useMemo(() => {
+    if (!heroSpecialCards || heroSpecialCards.length === 0) return [];
+    const setMap = {};
+    for (const card of heroSpecialCards) {
+      const key = card.card_set_code || 'unknown';
+      if (!setMap[key]) setMap[key] = { name: card.card_set_name || key, cards: [] };
+      setMap[key].cards.push(card);
+    }
+    return Object.values(setMap);
+  }, [heroSpecialCards]);
+
   // 3. Fonction pour générer les icônes de ressources (basée sur mc4db.css)
   const renderResources = (card) => {
     const resources = [];
@@ -86,7 +98,7 @@ export default function DeckContent({ slots, mode = 'list' }) {
     return <div className="slot-resources">{resources}</div>;
   };
 
-  if (totalCards === 0 && permanentSlots.cards.length === 0) {
+  if (totalCards === 0 && permanentSlots.cards.length === 0 && heroSpecialCards.length === 0) {
     return <div className="deck-empty">No cards found in this deck.</div>;
   }
 
@@ -107,6 +119,7 @@ export default function DeckContent({ slots, mode = 'list' }) {
                       <div className="slot-main-info">
                         <span className="slot-qty">{card.quantity}x</span>
                         <FactionDot card={card} />
+                        {!!card.is_unique && <span className="icon-unique cl-unique-icon" title="Unique" />}
                         <span className="slot-name card-tip" data-code={card.code}>{card.name}</span>
                         {card.pack_environment === 'current' ? <span className="mc-badge mc-badge-current" title="Standard format">Current</span> : null}
                         {card.alt_art ? <span className="mc-badge mc-badge-altart" title="Alternative art">Alt Art</span> : null}
@@ -155,6 +168,7 @@ export default function DeckContent({ slots, mode = 'list' }) {
                       <div className="slot-main-info">
                         <span className="slot-qty">{card.quantity}x</span>
                         <FactionDot card={card} />
+                        {!!card.is_unique && <span className="icon-unique cl-unique-icon" title="Unique" />}
                         <span className="slot-name card-tip" data-code={card.code}>{card.name}</span>
                         {card.pack_environment === 'current' ? <span className="mc-badge mc-badge-current" title="Standard format">Current</span> : null}
                         {card.alt_art ? <span className="mc-badge mc-badge-altart" title="Alternative art">Alt Art</span> : null}
@@ -187,6 +201,50 @@ export default function DeckContent({ slots, mode = 'list' }) {
           </div>
         )}
       </div>
+
+    {/* -- Hero Special Decks (Invocation, Weather Deck, etc.) -- */}
+    {heroSpecialSets.length > 0 && (
+      <div className="hero-special-container">
+        {heroSpecialSets.map(specialSet => (
+          <div key={specialSet.name} className="hero-special-set">
+            <h5 className="hero-special-title">
+              {specialSet.name} <span className="slot-group-count">({specialSet.cards.reduce((s, c) => s + (c.quantity || 1), 0)})</span>
+            </h5>
+            {mode === 'list' && (
+              <ul className="slot-list">
+                {specialSet.cards.map(card => (
+                  <li key={card.code} className="slot-item hero-special-item">
+                    <div className="slot-main-info">
+                      <span className="slot-qty">{card.quantity || 1}x</span>
+                      <FactionDot card={card} />
+                      {!!card.is_unique && <span className="icon-unique cl-unique-icon" title="Unique" />}
+                      <span className="slot-name card-tip" data-code={card.code}>{card.name}</span>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+            {mode === 'grid' && (
+              <div className="dc-grid">
+                {specialSet.cards.map(card => (
+                  <div key={card.code} className="dc-grid-item">
+                    <a
+                      href={`/card/${card.code}`}
+                      className="dc-grid-link card-tip"
+                      data-code={card.code}
+                      style={{ '--hover-border-color': getFactionColor(card.faction_code) }}
+                    >
+                      {card.quantity > 1 && <span className="dc-grid-qty">{card.quantity}x</span>}
+                      <ImageWithWebp src={card.imagesrc} alt={card.name} className="dc-grid-img" locale={locale} langDir={langDir} />
+                    </a>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    )}
     </div>
   );
 }

@@ -66,6 +66,7 @@ async function fetchDeckSlots(tableName, foreignKey, parentId, locale = 'en') {
       'c.name',
       'c.alt_art',
       'c.permanent',
+      'c.is_unique',
       't.name as type_name',
       'f.code as faction_code',
       'c.cost',
@@ -97,6 +98,70 @@ async function fetchDeckSlots(tableName, foreignKey, parentId, locale = 'en') {
     if (!t || !t.name) return base;
     return { ...base, name: t.name };
   });
+}
+
+
+/**
+ * Fetches hero_special cards for a given hero code.
+ * These are cards belonging to sets where parent_code = hero's card_set_code
+ * and card_set_type = 'hero_special' (e.g. Invocation Deck, Weather Deck, etc.)
+ */
+async function fetchHeroSpecialCards(heroCode, locale = 'en') {
+  if (!heroCode) return [];
+
+  // Get the hero's card_set_code via the cardset join
+  const heroCard = await db('card as c')
+    .leftJoin('cardset as cs', 'c.set_id', 'cs.id')
+    .where('c.code', heroCode)
+    .select('cs.code as card_set_code')
+    .first();
+
+  if (!heroCard || !heroCard.card_set_code) return [];
+  const heroSetCode = heroCard.card_set_code;
+
+  // Fetch all cards belonging to hero_special sets parented to this hero set
+  const rows = await db('card as c')
+    .leftJoin('pack as p', 'c.pack_id', 'p.id')
+    .leftJoin('cardset as cs', 'c.set_id', 'cs.id')
+    .leftJoin('cardsettype as cst', 'cs.cardset_type', 'cst.id')
+    .leftJoin('faction as f', 'c.faction_id', 'f.id')
+    .where('cs.parent_code', heroSetCode)
+    .where('cst.code', 'hero_special')
+    .orderBy(['cs.code', 'c.position'])
+    .select(
+      'c.code',
+      'c.name',
+      'c.quantity',
+      'c.is_unique',
+      'f.code as faction_code',
+      'f.name as faction_name',
+      'cs.code as card_set_code',
+      'cs.name as card_set_name',
+      'p.language as pack_language',
+      'p.environment as pack_environment'
+    );
+
+  if (rows.length === 0) return [];
+
+  // Apply translations
+  if (locale && locale !== 'en') {
+    const codes = rows.map(r => r.code);
+    const transRows = await db('card_translation')
+      .whereIn('code', codes)
+      .where('locale', locale.toLowerCase())
+      .select('code', 'name');
+    const transMap = Object.fromEntries(transRows.map(t => [t.code, t]));
+    return rows.map(r => {
+      const t = transMap[r.code];
+      return {
+        ...r,
+        name: (t && t.name) ? t.name : r.name,
+        imagesrc: resolveImage(r.code, '', locale),
+      };
+    });
+  }
+
+  return rows.map(r => ({ ...r, imagesrc: resolveImage(r.code) }));
 }
 
 
@@ -171,12 +236,14 @@ router.get('/decks/:id', async (req, res) => {
     const packs_required = new Set(slots.map(s => s.pack_code).filter(Boolean)).size;
     const heroCode = deck.hero_code || '';
     const alterEgoCode = heroCode.endsWith('b') ? heroCode.slice(0, -1) + 'a' : heroCode.endsWith('a') ? heroCode.slice(0, -1) + 'b' : heroCode + 'b';
+    const hero_special_cards = await fetchHeroSpecialCards(heroCode, locale);
 
     return res.json({
       ok: true, data: {
         ...deck,
         slots,
         packs_required,
+        hero_special_cards,
         hero_imagesrc: resolveImage(heroCode),
         alter_ego_imagesrc: resolveImage(alterEgoCode),
       }
@@ -471,12 +538,14 @@ router.get('/user/:userId/decks/:deckId', async (req, res) => {
     const packs_required = new Set(slots.map(s => s.pack_code).filter(Boolean)).size;
     const heroCode = deck.hero_code || '';
     const alterEgoCode = heroCode.endsWith('b') ? heroCode.slice(0, -1) + 'a' : heroCode.endsWith('a') ? heroCode.slice(0, -1) + 'b' : heroCode + 'b';
+    const hero_special_cards = await fetchHeroSpecialCards(heroCode, locale);
 
     return res.json({
       ok: true, data: {
         ...deck,
         slots,
         packs_required,
+        hero_special_cards,
         hero_imagesrc: resolveImage(heroCode),
         alter_ego_imagesrc: resolveImage(alterEgoCode),
       }
