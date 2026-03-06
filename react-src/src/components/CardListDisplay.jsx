@@ -100,6 +100,7 @@ export default function CardListDisplay({ cards, mode = 'checklist', sort, onSor
                     <FactionDot card={card} />
                     {card.is_unique ? <span className="icon-unique cl-unique-icon" title="Unique" /> : null}
                     <a href={`/card/${card.code}`} className="card-tip" data-code={card.code}>{card.name}</a>
+                    {card.visibility === 'false' && <span className="mc-badge mc-badge-private" title="Donor exclusive">🔒 Private</span>}
                     {(!card.is_unique && card.quantity > 0) ? <span className="cl-qty">(x{card.quantity})</span> : null}
                     {card.pack_environment === 'current' ? <span className="mc-badge mc-badge-current" title="Standard format">Current</span> : null}
                     {card.alt_art ? <span className="mc-badge mc-badge-altart" title="Alternative art">Alt Art</span> : null}
@@ -123,7 +124,10 @@ export default function CardListDisplay({ cards, mode = 'checklist', sort, onSor
                 <td className="cl-traits" title={card.traits || ''}>{card.traits || ''}</td>
 
                 {/* Pack */}
-                <td className="cl-pack">{card.pack_name}</td>
+                <td className="cl-pack">
+                  {card.pack_name}
+                  {card.visibility === 'false' && <span className="mc-badge mc-badge-private" title="Donor exclusive">🔒 Private</span>}
+                </td>
 
                 {/* Set */}
                 <td className="cl-set">{card.card_set_name || ''}</td>

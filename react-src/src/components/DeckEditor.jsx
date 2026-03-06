@@ -77,7 +77,9 @@ export default forwardRef(function DeckEditor({ deck, deckId, isPrivate, onSlots
   // --- CHARGEMENT DES CARTES ---
   useEffect(() => {
     setLoading(true);
-    fetch(`/api/public/cards/?locale=${lang}`)
+    const userId = currentUserId();
+    const userParam = userId ? `&user_id=${userId}` : '';
+    fetch(`/api/public/cards/?locale=${lang}${userParam}`)
       .then(res => res.json())
       .then(data => {
         const cards = Array.isArray(data) ? data : (data.ok ? data.cards : []);

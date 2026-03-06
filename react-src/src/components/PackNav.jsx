@@ -1,5 +1,9 @@
 import React, { useEffect, useState } from 'react';
 
+function currentUserId() {
+  try { const u = JSON.parse(localStorage.getItem('mc_user')); return u && (u.id || u.userId); } catch (e) { return null; }
+}
+
 /**
  * PackNav — navigation entre les cartes d'un même pack.
  *
@@ -15,8 +19,12 @@ export default function PackNav({ card, locale = 'en', onNavigate }) {
   useEffect(() => {
     if (!card?.pack_code) return;
     setLoading(true);
-    const localeParam = locale !== 'en' ? `?locale=${locale}` : '';
-    fetch(`/api/public/cards/${card.pack_code}${localeParam}`)
+    const userId = currentUserId();
+    const params = new URLSearchParams();
+    if (locale !== 'en') params.set('locale', locale);
+    if (userId) params.set('user_id', userId);
+    const query = params.toString() ? `?${params.toString()}` : '';
+    fetch(`/api/public/cards/${card.pack_code}${query}`)
       .then(r => r.json())
       .then(data => {
         if (Array.isArray(data)) {
@@ -76,6 +84,7 @@ export default function PackNav({ card, locale = 'en', onNavigate }) {
             </span>
           ) : null}
           <span className="pack-nav-pack-name">{packName}</span>
+          {card.visibility === 'false' && <span className="mc-badge mc-badge-private" title="Donor exclusive">🔒 Private</span>}
         </div>
         <span className="pack-nav-position">{currentIndex + 1} / {packCards.length}</span>
       </div>

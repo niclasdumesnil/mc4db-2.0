@@ -94,6 +94,7 @@ router.get('/user/:id', async (req, res) => {
       is_share_decks: !!row.is_share_decks,
       is_new_ui: !!row.is_new_ui,
       is_admin: !!row.is_admin,
+      is_donator: !!(Number(row.donation) > 0),
 
       // Notification Settings
       notifications: {

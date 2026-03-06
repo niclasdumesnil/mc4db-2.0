@@ -1,5 +1,9 @@
 ﻿import React, { useEffect, useMemo, useRef, useState } from 'react';
 
+function currentUserId() {
+  try { const u = JSON.parse(localStorage.getItem('mc_user')); return u && (u.id || u.userId); } catch (e) { return null; }
+}
+
 /**
  * Generic custom dropdown - supports text filtering, a "current" badge (based on
  * pack.environment) and an optional creator badge.
@@ -54,6 +58,7 @@ function CustomPackSelect({ packs, value, onChange, disabled, showCreator = fals
         {selected ? (
           <span className="pack-search-trigger-content">
             <span className="pack-search-trigger-name">{selected.name}</span>
+            {selected.visibility === 'false' && <span className="mc-badge mc-badge-private" title="Donor exclusive">🔒 Private</span>}
             {showCreator && selected.creator && selected.creator.toUpperCase() !== 'FFG' && (
               <span className="mc-badge mc-badge-creator">{selected.creator}</span>
             )}
@@ -110,6 +115,7 @@ function CustomPackSelect({ packs, value, onChange, disabled, showCreator = fals
                 onClick={() => { onChange(p.code); setOpen(false); }}
               >
                 <span className="pack-search-option-name">{p.name}</span>
+                {p.visibility === 'false' && <span className="mc-badge mc-badge-private" title="Donor exclusive">🔒 Private</span>}
                 {showCreator && p.creator && p.creator.toUpperCase() !== 'FFG' && (
                   <span className="mc-badge mc-badge-creator">{p.creator}</span>
                 )}
@@ -143,8 +149,10 @@ export default function PackSearch({ currentPackCode, onNavigate, onPackSelect }
   const [sortBy, setSortBy] = useState('date');   // 'date' | 'alpha'
   const [sortDir, setSortDir] = useState('asc');  // 'asc' | 'desc'
 
-  useEffect(() => {
-    fetch('/api/public/packs')
+  function fetchPacks() {
+    const userId = currentUserId();
+    const userParam = userId ? `?user_id=${userId}` : '';
+    fetch(`/api/public/packs${userParam}`)
       .then(r => r.json())
       .then(data => {
         if (!Array.isArray(data)) return;
@@ -152,6 +160,12 @@ export default function PackSearch({ currentPackCode, onNavigate, onPackSelect }
         setFanPacks(data.filter(p => p.creator && p.creator.toUpperCase() !== 'FFG'));
       })
       .catch(() => {});
+  }
+
+  useEffect(() => {
+    fetchPacks();
+    window.addEventListener('mc_user_changed', fetchPacks);
+    return () => window.removeEventListener('mc_user_changed', fetchPacks);
   }, []);
 
   useEffect(() => {

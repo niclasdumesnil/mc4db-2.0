@@ -4,6 +4,10 @@ import CardSearch, { EMPTY_FILTERS } from '@components/CardSearch';
 import CardListDisplay from '@components/CardListDisplay';
 import '@css/CardList.css';
 
+function currentUserId() {
+  try { const u = JSON.parse(localStorage.getItem('mc_user')); return u && (u.id || u.userId); } catch (e) { return null; }
+}
+
 // Single shared reference used to initialise both `filters` and `debouncedFilters`.
 // Because both states start from the *same* object reference, the debounce timeout
 // that fires 350 ms after mount calls setDebouncedFilters(filters) where
@@ -19,7 +23,7 @@ const DISPLAY_MODES = [
 /**
  * Build the search API URL from filters + pagination state.
  */
-function buildSearchUrl(filters, page, sort, order, showDuplicates, showAltArt, showOfficial, showFanmade, locale = 'en', limit = 50) {
+function buildSearchUrl(filters, page, sort, order, showDuplicates, showAltArt, showOfficial, showFanmade, locale = 'en', limit = 50, userId = null) {
   const params = new URLSearchParams();
   params.set('page', page);
   params.set('limit', limit);
@@ -30,6 +34,7 @@ function buildSearchUrl(filters, page, sort, order, showDuplicates, showAltArt, 
   if (showOfficial && !showFanmade) params.set('creator_filter', 'official');
   if (!showOfficial && showFanmade) params.set('creator_filter', 'fanmade');
   if (locale && locale !== 'en') params.set('locale', locale);
+  if (userId) params.set('user_id', userId);
 
   if (filters.name) params.set('name', filters.name);
   if (filters.text) params.set('text', filters.text);
@@ -202,7 +207,7 @@ export default function CardList() {
     const controller = new AbortController();
     setLoading(true);
 
-    const url = buildSearchUrl(debouncedFilters, page, sort, order, showDuplicates, showAltArt, showOfficial, showFanmade, locale);
+    const url = buildSearchUrl(debouncedFilters, page, sort, order, showDuplicates, showAltArt, showOfficial, showFanmade, locale, 50, currentUserId());
     fetch(url, { signal: controller.signal })
       .then(r => {
         if (!r.ok) throw new Error(`HTTP ${r.status}`);

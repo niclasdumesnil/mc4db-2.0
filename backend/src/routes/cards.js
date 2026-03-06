@@ -8,6 +8,7 @@
 const { Router } = require('express');
 const Card = require('../models/Card');
 const { serializeCard } = require('../utils/cardSerializer');
+const { isUserDonator } = require('../utils/donatorUtils');
 
 const router = Router();
 
@@ -30,12 +31,21 @@ async function applyTranslation(card, locale) {
 
 /**
  * GET /api/public/cards/
+ *
+ * Query params:
+ *   user_id  — optional; donators can see cards from private packs (visibility="false")
  */
 router.get('/cards/', async (req, res, next) => {
   try {
     const locale = (req.query.locale || 'en').toLowerCase();
+    const { user_id } = req.query;
+    const donator = await isUserDonator(user_id);
     const rows = await Card.findAll();
-    const cards = rows.map((r) => serializeCard(r, { api: true }));
+    let cards = rows.map((r) => serializeCard(r, { api: true }));
+    // Filter out cards from private packs for non-donators
+    if (!donator) {
+      cards = cards.filter(c => (c.visibility || 'true') !== 'false');
+    }
     if (locale !== 'en' && cards.length > 0) {
       const db = require('../config/database');
       const codes = cards.map((c) => c.code);
@@ -128,7 +138,10 @@ router.get('/cards/search', async (req, res, next) => {
       page = 1, limit = 50, sort = 'name', order = 'asc',
       hide_duplicates, show_alt_art, creator_filter,
       locale = 'en',
+      user_id,
     } = req.query;
+
+    const donator = await isUserDonator(user_id);
 
     const dir = order === 'desc' ? 'desc' : 'asc';
 
@@ -206,6 +219,8 @@ router.get('/cards/search', async (req, res, next) => {
     }
     if (creator_filter === 'official') q = q.whereNull('p.creator');
     if (creator_filter === 'fanmade') q = q.whereNotNull('p.creator');
+    // Filter out cards from private packs for non-donators
+    if (!donator) q = q.where(function () { this.whereNull('p.visibility').orWhereNot('p.visibility', 'false'); });
 
     if (sort === 'pack') q = q.orderBy([{ column: 'p.position', order: dir }, { column: 'c.position', order: dir }]);
     else if (sort === 'cost') q = q.orderByRaw(`c.cost IS NULL, c.cost ${dir.toUpperCase()}, c.name ASC`);
@@ -309,11 +324,17 @@ router.get(['/cards/:pack.json', '/cards/:pack'], async (req, res, next) => {
   try {
     const packCode = req.params.pack;
     const locale = (req.query.locale || 'en').toLowerCase();
+    const { user_id } = req.query;
+    const donator = await isUserDonator(user_id);
     const rows = await Card.findByPackCode(packCode);
     if (rows.length === 0) {
       return res
         .status(404)
         .json({ error: { status: 404, message: `No cards found for pack ${packCode}` } });
+    }
+    // If the pack is private and user is not a donator, deny access
+    if (!donator && rows[0] && (rows[0].pack_visibility || 'true') === 'false') {
+      return res.status(403).json({ error: { status: 403, message: 'Access restricted to donators' } });
     }
     const cards = await Promise.all(
       rows.map(async (r) => {

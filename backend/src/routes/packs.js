@@ -2,9 +2,14 @@
  * /api/public/packs route
  *
  *   GET /api/public/packs/  → all packs
+ *
+ * Query params:
+ *   user_id  — optional; when provided and the user is a donator, private packs
+ *              (visibility = "false") are included in the response.
  */
 const { Router } = require('express');
 const Pack = require('../models/Pack');
+const { isUserDonator } = require('../utils/donatorUtils');
 
 const router = Router();
 
@@ -13,10 +18,18 @@ const router = Router();
  */
 router.get('/packs/', async (req, res, next) => {
   try {
+    const { user_id } = req.query;
+    const donator = await isUserDonator(user_id);
+
     const rows = await Pack.findAll();
     const cardCounts = await Pack.countCardsByPack();
 
-    const packs = rows.map((row) => ({
+    // Non-donators cannot see packs whose visibility is explicitly set to "false"
+    const visibleRows = donator
+      ? rows
+      : rows.filter(row => (row.visibility || 'true') !== 'false');
+
+    const packs = visibleRows.map((row) => ({
       name: row.name,
       code: row.code,
       position: row.position,

@@ -20,10 +20,15 @@ export default function Dashboard() {
 
   function refreshUser() {
     if (!id) return;
-    fetch(`/api/public/user/${id}`)
-      .then(r => r.json())
-      .then(data => { if (data?.ok) setUser(data.user); })
-      .catch(() => {});
+    Promise.all([
+      fetch(`/api/public/user/${id}`).then(r => r.json()),
+      fetch(`/api/public/packs?user_id=${id}`).then(r => r.json()),
+    ])
+    .then(([userData, packsData]) => {
+      if (userData?.ok) setUser(userData.user);
+      if (Array.isArray(packsData)) setPacks(packsData);
+    })
+    .catch(() => {});
   }
 
   useEffect(() => {
@@ -33,7 +38,7 @@ export default function Dashboard() {
     // Fetch user and packs at the top level
     Promise.all([
       fetch(`/api/public/user/${id}`).then(res => res.json()),
-      fetch(`/api/public/packs`).then(res => res.json())
+      fetch(`/api/public/packs?user_id=${id}`).then(res => res.json())
     ])
     .then(([userData, packsData]) => {
       if (userData?.ok) setUser(userData.user);

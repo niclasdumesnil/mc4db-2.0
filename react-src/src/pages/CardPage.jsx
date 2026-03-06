@@ -75,12 +75,17 @@ export default function CardPage() {
   useEffect(() => {
     if (currentCode) return;
     setLoading(true);
-    fetch('/api/public/packs')
+    const userId = (() => { try { const u = JSON.parse(localStorage.getItem('mc_user')); return u && (u.id || u.userId); } catch(e) { return null; } })();
+    const userParam = userId ? `?user_id=${userId}` : '';
+    fetch(`/api/public/packs${userParam}`)
       .then(r => r.json())
       .then(packs => {
         if (!Array.isArray(packs) || packs.length === 0) throw new Error('No packs found');
         const firstPack = packs.sort((a, b) => (a.position ?? 999) - (b.position ?? 999))[0];
-        return fetch(`/api/public/cards/${firstPack.code}`);
+        const cardParams = new URLSearchParams();
+        if (userId) cardParams.set('user_id', userId);
+        const cardQuery = cardParams.toString() ? `?${cardParams.toString()}` : '';
+        return fetch(`/api/public/cards/${firstPack.code}${cardQuery}`);
       })
       .then(r => r.json())
       .then(cards => {

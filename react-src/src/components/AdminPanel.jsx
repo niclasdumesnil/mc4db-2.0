@@ -277,6 +277,14 @@ export default function AdminPanel({ onUserUpdate }) {
               donation:     field === 'is_supporter' ? (value ? 1 : 0) : u.donation }
           : u
       ));
+      // If the supporter status of the currently logged-in user changed,
+      // notify other components (PackSearch, etc.) so they re-fetch packs.
+      if (field === 'is_supporter') {
+        const loggedInId = currentUserId();
+        if (loggedInId && Number(loggedInId) === userId) {
+          window.dispatchEvent(new Event('mc_user_changed'));
+        }
+      }
       if (typeof onUserUpdate === 'function') onUserUpdate();
     } catch { /* ignore */ }
     setRoleLoading(prev => ({ ...prev, [`${userId}-${field}`]: false }));
