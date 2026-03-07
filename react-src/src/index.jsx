@@ -16,6 +16,7 @@ import DeckView from './pages/DeckView';
 import CardList from './pages/CardList';
 import RulesPage from './pages/RulesPage';
 import NewDeck from './pages/NewDeck';
+import Stories from './pages/Stories';
 
 function mountAllCards() {
   document.querySelectorAll('[data-react-component="CardFront"]').forEach((container) => {
@@ -140,6 +141,7 @@ try {
     else if (/^\/deck\/view\/\d+/.test(path)) PageComponent = React.createElement(DeckView);
     else if (path.startsWith('/my-decks')) PageComponent = React.createElement(MyDecks);
     else if (path.startsWith('/rules')) PageComponent = React.createElement(RulesPage);
+    else if (path.startsWith('/stories')) PageComponent = React.createElement(Stories);
     if (PageComponent) appRoot.render(React.createElement(AppErrorBoundary, null, PageComponent));
   }
 } catch (e) { console.error('Failed to mount app container', e); }

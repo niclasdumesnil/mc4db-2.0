@@ -177,6 +177,7 @@ const VALID_OPS = { '=': '=', 'lt': '<', 'lte': '<=', 'gt': '>', 'gte': '>=' };
  * Query params:
  *   name, text, flavor  — LIKE matches
  *   pack                — pack code exact match
+ *   cardset             — cardset (encounter set) code exact match (card.set_id → cardset.code)
  *   faction             — faction code (matches faction or faction2)
  *   type                — type code exact
  *   subtype             — subtype code exact
@@ -197,7 +198,7 @@ router.get('/cards/search', async (req, res, next) => {
   try {
     const db = require('../config/database');
     const {
-      name, text, flavor, pack, faction, type, subtype,
+      name, text, flavor, pack, cardset, faction, type, subtype,
       traits, illustrator, is_unique,
       cost_op = '=', cost,
       qty_op = '=', qty,
@@ -211,6 +212,7 @@ router.get('/cards/search', async (req, res, next) => {
       locale = 'en',
       user_id,
       theme,
+      include_hidden,
     } = req.query;
 
     const donator = await isUserDonator(user_id);
@@ -229,8 +231,12 @@ router.get('/cards/search', async (req, res, next) => {
         'c.traits', 'c.quantity', 'c.deck_limit', 'c.alt_art', db.raw('IF(c.duplicate_id IS NOT NULL, 1, 0) as is_duplicate'),
         'c.text', 'c.real_text',
         'c.resource_energy', 'c.resource_physical', 'c.resource_mental', 'c.resource_wild',
-        'c.attack', 'c.thwart', 'c.defense', 'c.health', 'c.scheme',
+        'c.attack', 'c.thwart', 'c.defense', 'c.health', 'c.scheme', 'c.boost', 'c.boost_star',
         'c.attack_star', 'c.thwart_star', 'c.defense_star', 'c.health_star', 'c.scheme_star', 'c.health_per_hero', 'c.health_per_group',
+        'c.stage',
+        'c.base_threat', 'c.base_threat_fixed', 'c.base_threat_per_group',
+        'c.escalation_threat', 'c.escalation_threat_fixed', 'c.escalation_threat_star',
+        'c.threat', 'c.threat_fixed', 'c.threat_per_group', 'c.threat_star',
         'p.code as pack_code', 'p.name as pack_name',
         'p.creator as pack_creator', 'p.status as pack_status', 'p.environment as pack_environment',
         't.code as type_code', 't.name as type_name',
@@ -238,13 +244,19 @@ router.get('/cards/search', async (req, res, next) => {
         'f.code as faction_code', 'f.name as faction_name',
         'f2.code as faction2_code', 'f2.name as faction2_name',
         'cs.code as card_set_code', 'cs.name as card_set_name',
-      ])
-      .where('c.hidden', 0);
+      ]);
+
+    // By default exclude hidden cards (back-faces of double-sided cards);
+    // pass include_hidden=1 to get all sides (e.g. for main scheme threat data).
+    if (include_hidden !== '1') {
+      q = q.where('c.hidden', 0);
+    }
 
     if (name) q = q.whereRaw('c.name LIKE ?', [`%${name}%`]);
     if (text) q = q.whereRaw('(c.text LIKE ? OR c.real_text LIKE ?)', [`%${text}%`, `%${text}%`]);
     if (flavor) q = q.whereRaw('c.flavor LIKE ?', [`%${flavor}%`]);
     if (pack) q = q.where('p.code', pack);
+    if (cardset) q = q.where('cs.code', cardset);
     if (faction) q = q.where(function () { this.where('f.code', faction).orWhere('f2.code', faction); });
     // Multi-faction filter: `factions` param is a comma-separated list → OR logic
     const factionsList = req.query.factions ? req.query.factions.split(',').map(s => s.trim()).filter(Boolean) : [];

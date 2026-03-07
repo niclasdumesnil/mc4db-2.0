@@ -57,6 +57,7 @@ export default function Menu() {
         <a href="/card-list" style={{ color:'#9fb4d8' }}>Cards</a>
         <a href="/decklists" style={{ color:'#9fb4d8' }}>Public Decks</a>
         {user && <a href="/my-decks" style={{ color:'#9fb4d8' }}>My Decks</a>}
+        <a href="/stories" style={{ color:'#9fb4d8' }}>Stories</a>
         <a href="/rules" style={{ color:'#9fb4d8' }}>Rules</a>
         {user && <a href="/dashboard" style={{ color:'#9fb4d8' }}>Dashboard</a>}
       </div>

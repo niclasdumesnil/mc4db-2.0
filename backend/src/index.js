@@ -490,6 +490,41 @@ app.get(['/rules', '/rules/'], (req, res) => {
   res.type('html').send(html);
 });
 
+// Stories page (client-side rendered — Challenge, Pre-set Scenario, Campaign, Free-play)
+app.get(['/stories', '/stories/'], (req, res) => {
+  const baseUrl = req.protocol + '://' + req.get('host');
+  const url = baseUrl + '/stories';
+  const title = 'Stories — MarvelCDB';
+  const description = 'Browse challenge cards, pre-set scenarios, campaigns and free-play scenarios for Marvel Champions.';
+  const image = baseUrl + '/react/images/og-default.svg';
+
+  const html = `<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>${title}</title>
+    <meta name="description" content="${description}">
+    <link rel="canonical" href="${url}">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="${title}">
+    <meta property="og:description" content="${description}">
+    <meta property="og:url" content="${url}">
+    <meta property="og:image" content="${image}">
+    <link rel="stylesheet" href="/react/css/card.css?v=${assetVersion}">
+  </head>
+  <body>
+    ${renderSharedHeader()}
+    <div id="mc-app"></div>
+    <noscript>
+      <div style="max-width:980px;margin:24px auto;padding:16px;background:#fee;color:#333;border-radius:8px;">JavaScript is disabled — the interactive UI requires JavaScript to function.</div>
+    </noscript>
+    <script src="/react/js/card.js?v=${assetVersion}"></script>
+  </body>
+</html>`;
+  res.type('html').send(html);
+});
+
 // Redirect legacy plural decklist URL to singular
 app.get(['/decklists/:id(\\d+)', '/decklists/:id(\\d+).json'], (req, res) => {
   const isJson = req.path.endsWith('.json');
