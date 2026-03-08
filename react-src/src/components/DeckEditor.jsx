@@ -31,24 +31,29 @@ function currentUserId() {
  *   onSaved       â€” callback appelÃ© aprÃ¨s save rÃ©ussi
  *   onClose       â€” callback pour fermer l'Ã©diteur
  */
-export default forwardRef(function DeckEditor({ deck, deckId, isPrivate, onSlotsChange, onSaved, onClose, onNameChange }, ref) {
+export default forwardRef(function DeckEditor({ deck, deckId, isPrivate, onSlotsChange, onSideSlotsChange, onSaved, onClose, onNameChange }, ref) {
   const [allCards, setAllCards] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState(null);
   const [deckName, setDeckName] = useState(deck?.name || '');
 
-  // slotsMap : { cardCode â†’ quantity }
-  const [slotsMap, setSlotsMap] = useState(() => {
-    const map = {};
+  // deckState : { main: { cardCode → quantity }, side: { cardCode → quantity } }
+  const [deckState, setDeckState] = useState(() => {
+    const main = {};
     if (deck?.slots) {
       for (const s of deck.slots) {
-        if (s.code) map[s.code] = s.quantity || 0;
+        if (s.code) main[s.code] = s.quantity || 0;
       }
     }
-    return map;
+    const side = {};
+    if (deck?.side_slots) {
+      for (const s of deck.side_slots) {
+        if (s.code) side[s.code] = s.quantity || 0;
+      }
+    }
+    return { main, side };
   });
-
   // --- FILTRES --- (Basic par defaut)
   const [selectedFaction, setSelectedFaction] = useState('basic');
   const [selectedType, setSelectedType] = useState(null);
@@ -96,7 +101,7 @@ export default forwardRef(function DeckEditor({ deck, deckId, isPrivate, onSlots
   useEffect(() => {
     if (!onSlotsChange || allCards.length === 0) return;
     const cardMap = Object.fromEntries(allCards.map(c => [c.code, c]));
-    const slots = Object.entries(slotsMap)
+    const slots = Object.entries(deckState.main)
       .filter(([, qty]) => qty > 0)
       .map(([code, quantity]) => {
         const card = cardMap[code];
@@ -122,37 +127,101 @@ export default forwardRef(function DeckEditor({ deck, deckId, isPrivate, onSlots
       })
       .filter(Boolean);
     onSlotsChange(slots);
-  }, [slotsMap, allCards]);
+  }, [deckState.main, allCards]);
 
-  // --- MAPS pour l'exclusivitÃ© alt-art ---
-  const { altOriginalMap, originalAltMap } = useMemo(() => {
-    const alt = {};
-    const orig = {};
+  // --- LIVE PREVIEW : propager les changements de sideMap vers DeckView ---
+  useEffect(() => {
+    if (!onSideSlotsChange || allCards.length === 0) return;
+    const cardMap = Object.fromEntries(allCards.map(c => [c.code, c]));
+    const sideSlots = Object.entries(deckState.side)
+      .filter(([, qty]) => qty > 0)
+      .map(([code, quantity]) => {
+        const card = cardMap[code];
+        if (!card) return null;
+        return {
+          code,
+          name: card.name,
+          quantity,
+          faction_code: card.faction_code,
+          faction_name: card.faction_name,
+          type_name: card.type_name,
+          type_code: card.type_code,
+          permanent: card.permanent || false,
+          cost: card.cost,
+          resource_physical: card.resource_physical,
+          resource_energy: card.resource_energy,
+          resource_mental: card.resource_mental,
+          resource_wild: card.resource_wild,
+          imagesrc: card.imagesrc,
+          pack_environment: card.pack_environment,
+          alt_art: card.alt_art,
+        };
+      })
+      .filter(Boolean);
+    onSideSlotsChange(sideSlots);
+  }, [deckState.side, allCards]);
+
+  // --- variantGroupMap : code → [tous les codes du même groupe (original + alt-arts)] ---
+  const variantGroupMap = useMemo(() => {
+    const origToAlts = {};
     for (const card of allCards) {
       if (card.alt_art && card.duplicate_of_code) {
-        alt[card.code] = card.duplicate_of_code;
-        if (!orig[card.duplicate_of_code]) orig[card.duplicate_of_code] = [];
-        orig[card.duplicate_of_code].push(card.code);
+        const orig = card.duplicate_of_code;
+        if (!origToAlts[orig]) origToAlts[orig] = [];
+        origToAlts[orig].push(card.code);
       }
     }
-    return { altOriginalMap: alt, originalAltMap: orig };
+    const groupOf = {};
+    for (const card of allCards) {
+      if (card.alt_art && card.duplicate_of_code) {
+        const orig = card.duplicate_of_code;
+        groupOf[card.code] = [orig, ...(origToAlts[orig] || [])];
+      } else {
+        groupOf[card.code] = [card.code, ...(origToAlts[card.code] || [])];
+      }
+    }
+    return groupOf;
   }, [allCards]);
 
-  // --- SETTER DE QUANTITÃ‰ avec exclusivitÃ© alt-art ---
-  const setQty = useCallback((cardCode, qty) => {
-    setSlotsMap(prev => {
-      const next = { ...prev };
-      next[cardCode] = qty;
-      if (qty > 0) {
-        const origCode = altOriginalMap[cardCode];
-        if (origCode) next[origCode] = 0;
-        const altCodes = originalAltMap[cardCode] || [];
-        for (const ac of altCodes) next[ac] = 0;
+  // --- SETTER MAIN DECK : enforce sum(tous variants, main+side) <= deckLimit ---
+  const setQty = useCallback((cardCode, newQty, deckLimit = 3) => {
+    setDeckState(prev => {
+      const variants = variantGroupMap[cardCode] || [cardCode];
+      const nextMain = { ...prev.main, [cardCode]: newQty };
+      // Somme des autres variants dans le main
+      const sumOthersMain = variants.filter(v => v !== cardCode).reduce((s, v) => s + (nextMain[v] || 0), 0);
+      // Budget restant pour tous les variants du side
+      const maxSideTotal = Math.max(0, deckLimit - newQty - sumOthersMain);
+      const nextSide = { ...prev.side };
+      let remainingSide = maxSideTotal;
+      for (const v of variants) {
+        const capped = Math.min(nextSide[v] || 0, remainingSide);
+        nextSide[v] = capped;
+        remainingSide -= capped;
       }
-      return next;
+      return { main: nextMain, side: nextSide };
     });
-  }, [altOriginalMap, originalAltMap]);
+  }, [variantGroupMap]);
 
+  // --- SETTER SIDE DECK : enforce sum(tous variants, main+side) <= deckLimit ---
+  const setSideQty = useCallback((cardCode, newQty, deckLimit = 3) => {
+    setDeckState(prev => {
+      const variants = variantGroupMap[cardCode] || [cardCode];
+      const nextSide = { ...prev.side, [cardCode]: newQty };
+      // Somme des autres variants dans le side
+      const sumOthersSide = variants.filter(v => v !== cardCode).reduce((s, v) => s + (nextSide[v] || 0), 0);
+      // Budget restant pour tous les variants du main
+      const maxMainTotal = Math.max(0, deckLimit - newQty - sumOthersSide);
+      const nextMain = { ...prev.main };
+      let remainingMain = maxMainTotal;
+      for (const v of variants) {
+        const capped = Math.min(nextMain[v] || 0, remainingMain);
+        nextMain[v] = capped;
+        remainingMain -= capped;
+      }
+      return { main: nextMain, side: nextSide };
+    });
+  }, [variantGroupMap]);
   // --- FILTRAGE (exclut les cartes rencontre) ---
   const filteredCards = useMemo(() => {
     return allCards.filter(card => {
@@ -204,7 +273,7 @@ export default forwardRef(function DeckEditor({ deck, deckId, isPrivate, onSlots
   }, []);
 
   // --- SAVE ---
-  const handleSave = async () => {
+  const handleSave = useCallback(async () => {
     const userId = currentUserId();
     if (!userId || !deckId) {
       throw new Error('Cannot save: user not logged in.');
@@ -212,14 +281,18 @@ export default forwardRef(function DeckEditor({ deck, deckId, isPrivate, onSlots
     setSaving(true);
     setSaveError(null);
     try {
-      const slots = Object.entries(slotsMap)
+      const slots = Object.entries(deckState.main)
+        .filter(([, qty]) => qty > 0)
+        .map(([code, quantity]) => ({ code, quantity }));
+
+      const sideSlots = Object.entries(deckState.side)
         .filter(([, qty]) => qty > 0)
         .map(([code, quantity]) => ({ code, quantity }));
 
       const res = await fetch(`/api/public/user/${userId}/decks/${deckId}/slots`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ slots, name: deckName.trim() || undefined }),
+        body: JSON.stringify({ slots, sideSlots, name: deckName.trim() || undefined }),
       });
       const data = await res.json();
       if (data.ok) {
@@ -232,12 +305,54 @@ export default forwardRef(function DeckEditor({ deck, deckId, isPrivate, onSlots
       throw err;
     }
     setSaving(false);
-  };
+  }, [deckState, deckName, deckId, onSaved]);
 
   const handleToggle = key => setFilters(prev => ({ ...prev, [key]: !prev[key] }));
 
-  // Expose save() to parent (DeckView action bar)
-  useImperativeHandle(ref, () => ({ save: handleSave, getSaving: () => saving }), [handleSave, saving]);
+  // --- TRANSFER : déplacer 1 copie entre main et side en 1 clic ---
+  const transfer = useCallback((code, direction) => {
+    const card = allCards.find(c => c.code === code);
+    const deckLimit = card?.is_unique ? 1 : 3;
+    setDeckState(prev => {
+      if (direction === 'toSide') {
+        const srcQty = prev.main[code] || 0;
+        if (srcQty <= 0) return prev;
+        const variants = variantGroupMap[code] || [code];
+        const newMainQty = srcQty - 1;
+        const newMainGroupTotal = variants.reduce(
+          (s, v) => s + (v === code ? newMainQty : (prev.main[v] || 0)), 0
+        );
+        const sideGroupTotal = variants.reduce((s, v) => s + (prev.side[v] || 0), 0);
+        if (sideGroupTotal + newMainGroupTotal >= deckLimit && sideGroupTotal >= deckLimit - newMainGroupTotal) {
+          // side already full given new main
+        }
+        const maxSide = deckLimit - newMainGroupTotal;
+        if (sideGroupTotal >= maxSide) return prev; // side already saturated
+        return {
+          main: { ...prev.main, [code]: newMainQty },
+          side: { ...prev.side, [code]: (prev.side[code] || 0) + 1 },
+        };
+      } else { // toMain
+        const srcQty = prev.side[code] || 0;
+        if (srcQty <= 0) return prev;
+        const variants = variantGroupMap[code] || [code];
+        const newSideQty = srcQty - 1;
+        const newSideGroupTotal = variants.reduce(
+          (s, v) => s + (v === code ? newSideQty : (prev.side[v] || 0)), 0
+        );
+        const mainGroupTotal = variants.reduce((s, v) => s + (prev.main[v] || 0), 0);
+        const maxMain = deckLimit - newSideGroupTotal;
+        if (mainGroupTotal >= maxMain) return prev; // main already saturated
+        return {
+          main: { ...prev.main, [code]: (prev.main[code] || 0) + 1 },
+          side: { ...prev.side, [code]: newSideQty },
+        };
+      }
+    });
+  }, [allCards, variantGroupMap]);
+
+  // Expose save() + transfer() to parent (DeckView action bar)
+  useImperativeHandle(ref, () => ({ save: handleSave, getSaving: () => saving, transfer }), [handleSave, saving, transfer]);
 
   return (
     <div className="editor-container">
@@ -371,8 +486,10 @@ export default forwardRef(function DeckEditor({ deck, deckId, isPrivate, onSlots
         ) : (
           <AvailableCardList
             cards={filteredCards}
-            slotsMap={slotsMap}
+            slotsMap={deckState.main}
             onSetQty={setQty}
+            sideMap={deckState.side}
+            onSetSideQty={setSideQty}
             sortBy={sortBy}
             sortOrder={sortOrder}
             onSort={handleSort}

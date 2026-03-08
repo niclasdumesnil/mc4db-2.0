@@ -723,6 +723,12 @@ function ScenarioTab() {
   const [activeDiffs, setActiveDiffs] = useState([]);
   const [selectedScenario, setSelectedScenario] = useState(null);
   const [user, setUser] = useState(currentUser);
+  const [viewMode, setViewMode] = useState(() => localStorage.getItem('scenario_view_mode') || 'list');
+
+  function switchViewMode(mode) {
+    setViewMode(mode);
+    localStorage.setItem('scenario_view_mode', mode);
+  }
 
   // Keep user in sync when login/logout happens
   useEffect(() => {
@@ -830,12 +836,41 @@ function ScenarioTab() {
         )}
 
         <span className="scenario-count">{filtered.length} scenario{filtered.length !== 1 ? 's' : ''}</span>
+
+        {/* View mode toggle */}
+        <div className="scenario-view-toggle">
+          <button
+            className={`scenario-view-btn${viewMode === 'grid' ? ' scenario-view-btn--active' : ''}`}
+            onClick={() => switchViewMode('grid')}
+            title="Vue panneau"
+            aria-label="Vue panneau"
+          >
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+              <rect x="1" y="1" width="6" height="6" rx="1.5"/>
+              <rect x="9" y="1" width="6" height="6" rx="1.5"/>
+              <rect x="1" y="9" width="6" height="6" rx="1.5"/>
+              <rect x="9" y="9" width="6" height="6" rx="1.5"/>
+            </svg>
+          </button>
+          <button
+            className={`scenario-view-btn${viewMode === 'list' ? ' scenario-view-btn--active' : ''}`}
+            onClick={() => switchViewMode('list')}
+            title="Vue liste"
+            aria-label="Vue liste"
+          >
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+              <rect x="1" y="2" width="14" height="2" rx="1"/>
+              <rect x="1" y="7" width="14" height="2" rx="1"/>
+              <rect x="1" y="12" width="14" height="2" rx="1"/>
+            </svg>
+          </button>
+        </div>
       </div>
 
-      {/* Grid */}
+      {/* Grid or List */}
       {filtered.length === 0 ? (
         <div className="stories-empty">No scenarios match your filters.</div>
-      ) : (
+      ) : viewMode === 'grid' ? (
         <div className="scenario-grid">
           {filtered.map(scenario => {
             const official = isOfficialCreator(scenario.creator);
@@ -910,6 +945,72 @@ function ScenarioTab() {
             );
           })}
         </div>
+      ) : (
+        <div className="scenario-list">
+          {filtered.map(scenario => {
+            const official = isOfficialCreator(scenario.creator);
+            const modEntries = Object.entries(scenario.modular_names || {})
+              .filter(([, name]) => name.toLowerCase() !== 'default modular');
+            const isSelected = selectedScenario?.id === scenario.id;
+
+            return (
+              <div
+                key={scenario.id}
+                className={`scenario-list-row${isSelected ? ' scenario-list-row--selected' : ''}`}
+                onClick={() => setSelectedScenario(isSelected ? null : scenario)}
+                role="button"
+                tabIndex={0}
+                onKeyDown={e => e.key === 'Enter' && setSelectedScenario(isSelected ? null : scenario)}
+                aria-label={`View scenario: ${scenario.title}`}
+              >
+                {/* Col 1 — Name + creator badge */}
+                <div className="scenario-list-name-col">
+                  <span className="scenario-list-title">{scenario.title}</span>
+                  <div className="scenario-list-badges">
+                    {!scenario.visibility && donator && (
+                      <span className="mc-badge mc-badge-private">🔒 Private</span>
+                    )}
+                    <span className={`mc-badge ${official ? 'mc-badge-official' : 'mc-badge-creator'}`}>
+                      {official ? 'Official' : scenario.creator}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Col 2 — Villain */}
+                <div className="scenario-list-villain-col">
+                  {scenario.villain_name
+                    ? <span className="scenario-card-villain"><span style={{ opacity: 0.7 }}>⚔</span>{scenario.villain_name}</span>
+                    : <span className="scenario-list-empty">—</span>}
+                </div>
+
+                {/* Col 3 — Difficulty */}
+                <div className="scenario-list-diff-col">
+                  <span className={`scenario-difficulty-badge ${diffClass(scenario.difficulty)}`}>
+                    {diffLabel(scenario.difficulty)}
+                  </span>
+                </div>
+
+                {/* Col 4 — Text */}
+                <div className="scenario-list-text-col">
+                  {scenario.text
+                    ? <span className="scenario-list-text">{scenario.text.slice(0, 100)}{scenario.text.length > 100 ? '…' : ''}</span>
+                    : <span className="scenario-list-empty">—</span>}
+                </div>
+
+                {/* Col 5 — Modulars */}
+                <div className="scenario-list-modular-col">
+                  {modEntries.length > 0
+                    ? <div className="scenario-card-modulars" style={{ gap: 4 }}>
+                        {modEntries.map(([code, name]) => (
+                          <span key={code} className="scenario-modular-pill">{name}</span>
+                        ))}
+                      </div>
+                    : <span className="scenario-list-empty">—</span>}
+                </div>
+              </div>
+            );
+          })}
+        </div>
       )}
 
       </div>
@@ -943,8 +1044,8 @@ function ComingSoonTab({ icon, label }) {
 const TABS = [
   { key: 'challenge',  label: 'Challenge' },
   { key: 'scenario',   label: 'Pre-set Scenario' },
-  { key: 'campaign',   label: 'Campaign' },
   { key: 'freeplay',   label: 'Free-play Scenario' },
+  { key: 'campaign',   label: 'Campaign' },
 ];
 
 export default function Stories() {

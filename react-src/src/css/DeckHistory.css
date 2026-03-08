@@ -141,3 +141,18 @@
   padding: 12px 0;
 }
 .dh-empty--error { color: #f87171; }
+
+/* ── Side deck badge ───────────────────────────────── */
+.dh-change-side-badge {
+  font-size: 0.62rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #d97706;
+  background: rgba(217, 119, 6, 0.15);
+  border: 1px solid rgba(217, 119, 6, 0.35);
+  border-radius: 4px;
+  padding: 1px 5px;
+  flex-shrink: 0;
+  line-height: 1.4;
+}

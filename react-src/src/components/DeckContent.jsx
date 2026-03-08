@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useCallback } from 'react';
 import { getFactionColor } from '@utils/dataUtils';
 import ImageWithWebp from '@components/ImageWithWebp';
 import '../css/DeckContent.css';
@@ -35,7 +35,14 @@ function FactionDot({ card }) {
   );
 }
 
-export default function DeckContent({ slots, mode = 'list', heroSpecialCards = [] }) {
+export default function DeckContent({ slots, mode = 'list', heroSpecialCards = [], sideSlots = [], onTransferToSide = null, onTransferToMain = null }) {
+  // Flash animation: set of card codes currently flashing
+  const [flashCodes, setFlashCodes] = useState(new Set());
+
+  const triggerFlash = useCallback((code) => {
+    setFlashCodes(prev => new Set([...prev, code]));
+    setTimeout(() => setFlashCodes(prev => { const n = new Set(prev); n.delete(code); return n; }), 700);
+  }, []);
   const locale = localStorage.getItem('mc_locale') || window.__MC_LOCALE__ || 'en';
   const langDir = locale.toUpperCase() === 'FR' ? 'FR' : 'EN';
 
@@ -65,6 +72,23 @@ export default function DeckContent({ slots, mode = 'list', heroSpecialCards = [
 
   // 2. Ordre alphabétique des catégories (Permanent toujours en dernier)
   const sortedTypes = Object.keys(groupedSlots).sort((a, b) => a.localeCompare(b));
+
+  // 2b. Grouper les cartes du Side Deck par type
+  const { groupedSideSlots, totalSideCards } = useMemo(() => {
+    if (!sideSlots || sideSlots.length === 0) return { groupedSideSlots: {}, totalSideCards: 0 };
+    let total = 0;
+    const groups = sideSlots.reduce((acc, slot) => {
+      const type = slot.type_name || 'Other';
+      if (!acc[type]) acc[type] = { count: 0, cards: [] };
+      acc[type].cards.push(slot);
+      acc[type].count += slot.quantity;
+      total += slot.quantity;
+      return acc;
+    }, {});
+    return { groupedSideSlots: groups, totalSideCards: total };
+  }, [sideSlots]);
+
+  const sortedSideTypes = Object.keys(groupedSideSlots).sort((a, b) => a.localeCompare(b));
 
   // 3. Grouper les cartes hero_special par set
   const heroSpecialSets = useMemo(() => {
@@ -98,7 +122,11 @@ export default function DeckContent({ slots, mode = 'list', heroSpecialCards = [
     return <div className="slot-resources">{resources}</div>;
   };
 
-  if (totalCards === 0 && permanentSlots.cards.length === 0 && heroSpecialCards.length === 0) {
+  // Lookup sets for unique-card disabled checks
+  const mainCodes = useMemo(() => new Set((slots || []).filter(s => s.quantity > 0).map(s => s.code)), [slots]);
+  const sideCodes = useMemo(() => new Set((sideSlots || []).filter(s => s.quantity > 0).map(s => s.code)), [sideSlots]);
+
+  if (totalCards === 0 && permanentSlots.cards.length === 0 && heroSpecialCards.length === 0 && totalSideCards === 0) {
     return <div className="deck-empty">No cards found in this deck.</div>;
   }
 
@@ -114,8 +142,11 @@ export default function DeckContent({ slots, mode = 'list', heroSpecialCards = [
               <ul className="slot-list">
                 {[...groupedSlots[type].cards]
                   .sort((a, b) => (a.name || '').localeCompare(b.name || ''))
-                  .map(card => (
-                    <li key={card.code} className="slot-item">
+                  .map(card => {
+                    const isHero = card.faction_code === 'hero' || card.faction_code === 'campaign';
+                    const canToSide = !!onTransferToSide && !isHero && !(card.is_unique && sideCodes.has(card.code));
+                    return (
+                    <li key={card.code} className={`slot-item${flashCodes.has(card.code) ? ' slot-item--flash' : ''}`}>
                       <div className="slot-main-info">
                         <span className="slot-qty">{card.quantity}x</span>
                         <FactionDot card={card} />
@@ -123,10 +154,19 @@ export default function DeckContent({ slots, mode = 'list', heroSpecialCards = [
                         <span className="slot-name card-tip" data-code={card.code}>{card.name}</span>
                         {card.pack_environment === 'current' ? <span className="mc-badge mc-badge-current" title="Standard format">Current</span> : null}
                         {card.alt_art ? <span className="mc-badge mc-badge-altart" title="Alternative art">Alt Art</span> : null}
+                        {onTransferToSide && !isHero && (
+                          <button
+                            className={`slot-transfer-btn slot-transfer-btn--to-side${!canToSide ? ' slot-transfer-btn--disabled' : ''}`}
+                            title={canToSide ? 'Move 1 copy to Side Deck' : 'Side Deck full or Unique already there'}
+                            disabled={!canToSide}
+                            onClick={() => { if (canToSide) { onTransferToSide(card.code); triggerFlash(card.code); } }}
+                          >↓ Side</button>
+                        )}
                       </div>
                       {renderResources(card)}
                     </li>
-                  ))}
+                    );
+                  })}
               </ul>
             )}
 
@@ -163,8 +203,11 @@ export default function DeckContent({ slots, mode = 'list', heroSpecialCards = [
               <ul className="slot-list">
                 {[...permanentSlots.cards]
                   .sort((a, b) => (a.name || '').localeCompare(b.name || ''))
-                  .map(card => (
-                    <li key={card.code} className="slot-item">
+                  .map(card => {
+                    const isHero = card.faction_code === 'hero' || card.faction_code === 'campaign';
+                    const canToSide = !!onTransferToSide && !isHero && !(card.is_unique && sideCodes.has(card.code));
+                    return (
+                    <li key={card.code} className={`slot-item${flashCodes.has(card.code) ? ' slot-item--flash' : ''}`}>
                       <div className="slot-main-info">
                         <span className="slot-qty">{card.quantity}x</span>
                         <FactionDot card={card} />
@@ -172,10 +215,19 @@ export default function DeckContent({ slots, mode = 'list', heroSpecialCards = [
                         <span className="slot-name card-tip" data-code={card.code}>{card.name}</span>
                         {card.pack_environment === 'current' ? <span className="mc-badge mc-badge-current" title="Standard format">Current</span> : null}
                         {card.alt_art ? <span className="mc-badge mc-badge-altart" title="Alternative art">Alt Art</span> : null}
+                        {onTransferToSide && !isHero && (
+                          <button
+                            className={`slot-transfer-btn slot-transfer-btn--to-side${!canToSide ? ' slot-transfer-btn--disabled' : ''}`}
+                            title={canToSide ? 'Move 1 copy to Side Deck' : 'Side Deck full or Unique already there'}
+                            disabled={!canToSide}
+                            onClick={() => { if (canToSide) { onTransferToSide(card.code); triggerFlash(card.code); } }}
+                          >↓ Side</button>
+                        )}
                       </div>
                       {renderResources(card)}
                     </li>
-                  ))}
+                    );
+                  })}
               </ul>
             )}
 
@@ -243,6 +295,72 @@ export default function DeckContent({ slots, mode = 'list', heroSpecialCards = [
             )}
           </div>
         ))}
+      </div>
+    )}
+    {/* -- Side Deck -- */}
+    {totalSideCards > 0 && (
+      <div className="side-deck-container">
+        <h4 className="side-deck-header">
+          Side Deck <span className="slot-group-count">({totalSideCards})</span>
+        </h4>
+        <div className="side-deck-slots-grid">
+        {sortedSideTypes.map(type => (
+          <div key={type} className="slot-group">
+            <h5 className="slot-group-title">
+              {type} <span className="slot-group-count">({groupedSideSlots[type].count})</span>
+            </h5>
+            {mode === 'list' && (
+              <ul className="slot-list">
+                {[...groupedSideSlots[type].cards]
+                  .sort((a, b) => (a.name || '').localeCompare(b.name || ''))
+                  .map(card => {
+                    const canToMain = !!onTransferToMain && !(card.is_unique && mainCodes.has(card.code));
+                    return (
+                    <li key={card.code} className={`slot-item${flashCodes.has(card.code) ? ' slot-item--flash' : ''}`}>
+                      <div className="slot-main-info">
+                        <span className="slot-qty">{card.quantity}x</span>
+                        <FactionDot card={card} />
+                        {!!card.is_unique && <span className="icon-unique cl-unique-icon" title="Unique" />}
+                        <span className="slot-name card-tip" data-code={card.code}>{card.name}</span>
+                        {card.pack_environment === 'current' ? <span className="mc-badge mc-badge-current" title="Standard format">Current</span> : null}
+                        {card.alt_art ? <span className="mc-badge mc-badge-altart" title="Alternative art">Alt Art</span> : null}
+                        {onTransferToMain && (
+                          <button
+                            className={`slot-transfer-btn slot-transfer-btn--to-main${!canToMain ? ' slot-transfer-btn--disabled' : ''}`}
+                            title={canToMain ? 'Move 1 copy to Main Deck' : 'Main Deck full or Unique already there'}
+                            disabled={!canToMain}
+                            onClick={() => { if (canToMain) { onTransferToMain(card.code); triggerFlash(card.code); } }}
+                          >↑ Main</button>
+                        )}
+                      </div>
+                      {renderResources(card)}
+                    </li>
+                    );
+                  })}
+              </ul>
+            )}
+            {mode === 'grid' && (
+              <div className="dc-grid">
+                {[...groupedSideSlots[type].cards]
+                  .sort((a, b) => (a.name || '').localeCompare(b.name || ''))
+                  .map(card => (
+                    <div key={card.code} className="dc-grid-item">
+                      <a
+                        href={`/card/${card.code}`}
+                        className="dc-grid-link card-tip"
+                        data-code={card.code}
+                        style={{ '--hover-border-color': getFactionColor(card.faction_code) }}
+                      >
+                        {card.quantity > 1 && <span className="dc-grid-qty">{card.quantity}x</span>}
+                        <ImageWithWebp src={card.imagesrc} alt={card.name} className="dc-grid-img" locale={locale} langDir={langDir} />
+                      </a>
+                    </div>
+                  ))}
+              </div>
+            )}
+          </div>
+        ))}
+        </div>
       </div>
     )}
     </div>

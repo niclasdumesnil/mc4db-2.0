@@ -233,6 +233,7 @@ router.get('/decks/:id', async (req, res) => {
     if (!deck) return res.status(404).json({ error: 'Decklist not found' });
 
     const slots = await fetchDeckSlots('decklistslot', 'decklist_id', id, locale);
+    const side_slots = await fetchDeckSlots('sidedecklistslot', 'decklist_id', id, locale);
     const packs_required = new Set(slots.map(s => s.pack_code).filter(Boolean)).size;
     const heroCode = deck.hero_code || '';
     const alterEgoCode = heroCode.endsWith('b') ? heroCode.slice(0, -1) + 'a' : heroCode.endsWith('a') ? heroCode.slice(0, -1) + 'b' : heroCode + 'b';
@@ -242,6 +243,7 @@ router.get('/decks/:id', async (req, res) => {
       ok: true, data: {
         ...deck,
         slots,
+        side_slots,
         packs_required,
         hero_special_cards,
         hero_imagesrc: resolveImage(heroCode),
@@ -535,6 +537,7 @@ router.get('/user/:userId/decks/:deckId', async (req, res) => {
     deck.version = `${deck.major_version}.${deck.minor_version}`;
 
     const slots = await fetchDeckSlots('deckslot', 'deck_id', deckId, locale);
+    const side_slots = await fetchDeckSlots('sidedeckslot', 'deck_id', deckId, locale);
     const packs_required = new Set(slots.map(s => s.pack_code).filter(Boolean)).size;
     const heroCode = deck.hero_code || '';
     const alterEgoCode = heroCode.endsWith('b') ? heroCode.slice(0, -1) + 'a' : heroCode.endsWith('a') ? heroCode.slice(0, -1) + 'b' : heroCode + 'b';
@@ -544,6 +547,7 @@ router.get('/user/:userId/decks/:deckId', async (req, res) => {
       ok: true, data: {
         ...deck,
         slots,
+        side_slots,
         packs_required,
         hero_special_cards,
         hero_imagesrc: resolveImage(heroCode),
@@ -567,12 +571,13 @@ router.put('/user/:userId/decks/:deckId/slots', async (req, res) => {
     const deck = await db('deck').where({ id: deckId, user_id: userId }).first();
     if (!deck) return res.status(404).json({ error: 'Deck not found or unauthorized' });
 
-    const { slots, name } = req.body; // slots: [{ code, quantity }], name?: string
+    const { slots, sideSlots, name } = req.body; // slots: [{ code, quantity }], sideSlots?: [...], name?: string
     if (!Array.isArray(slots)) return res.status(400).json({ error: 'Invalid slots' });
     const newName = (typeof name === 'string' && name.trim()) ? name.trim() : null;
 
     // Ne garder que les slots avec quantity > 0
     const toInsert = slots.filter(s => s.quantity > 0);
+    const sideToInsert = Array.isArray(sideSlots) ? sideSlots.filter(s => s.quantity > 0) : [];
 
     // Anciens slots pour calculer le diff
     const oldSlotRows = await db('deckslot as s')
@@ -581,14 +586,14 @@ router.put('/user/:userId/decks/:deckId/slots', async (req, res) => {
       .select('c.code', 's.quantity');
     const oldMap = Object.fromEntries(oldSlotRows.map(r => [r.code, r.quantity]));
 
-    // Résoudre card_id depuis les codes (anciens + nouveaux)
-    const allCodes = [...new Set([...toInsert.map(s => s.code), ...Object.keys(oldMap)])];
+    // Résoudre card_id depuis les codes (anciens + nouveaux + side deck)
+    const allCodes = [...new Set([...toInsert.map(s => s.code), ...sideToInsert.map(s => s.code), ...Object.keys(oldMap)])];
     const cardRows = allCodes.length > 0
       ? await db('card').whereIn('code', allCodes).select('id', 'code')
       : [];
     const codeToId = Object.fromEntries(cardRows.map(r => [r.code, r.id]));
 
-    // Calcul du diff (variation)
+    // Calcul du diff main deck (variation)
     const newMap = Object.fromEntries(toInsert.map(s => [s.code, s.quantity]));
     const variation = {};
     const allCodeSet = new Set([...Object.keys(oldMap), ...Object.keys(newMap)]);
@@ -596,6 +601,20 @@ router.put('/user/:userId/decks/:deckId/slots', async (req, res) => {
       const diff = (newMap[code] || 0) - (oldMap[code] || 0);
       if (diff !== 0) variation[code] = diff;
     }
+
+    // Calcul du diff side deck — stocké avec préfixe "side:"
+    const oldSideRows = await db('sidedeckslot as s')
+      .join('card as c', 's.card_id', 'c.id')
+      .where('s.deck_id', deckId)
+      .select('c.code', 's.quantity');
+    const oldSideMap = Object.fromEntries(oldSideRows.map(r => [r.code, r.quantity]));
+    const newSideMap = Object.fromEntries(sideToInsert.map(s => [s.code, s.quantity]));
+    const allSideCodeSet = new Set([...Object.keys(oldSideMap), ...Object.keys(newSideMap)]);
+    for (const code of allSideCodeSet) {
+      const diff = (newSideMap[code] || 0) - (oldSideMap[code] || 0);
+      if (diff !== 0) variation[`side:${code}`] = diff;
+    }
+
     const hasChanges = Object.keys(variation).length > 0;
 
     // Version courante du deck
@@ -614,6 +633,15 @@ router.put('/user/:userId/decks/:deckId/slots', async (req, res) => {
           .filter(s => codeToId[s.code])
           .map(s => ({ deck_id: deckId, card_id: codeToId[s.code], quantity: s.quantity }));
         if (rows.length > 0) await trx('deckslot').insert(rows);
+      }
+
+      // Side deck slots
+      await trx('sidedeckslot').where('deck_id', deckId).delete();
+      if (sideToInsert.length > 0) {
+        const sideRows = sideToInsert
+          .filter(s => codeToId[s.code])
+          .map(s => ({ deck_id: deckId, card_id: codeToId[s.code], quantity: s.quantity }));
+        if (sideRows.length > 0) await trx('sidedeckslot').insert(sideRows);
       }
 
       // Insérer un deckchange si des modifications ont eu lieu
@@ -681,11 +709,15 @@ router.get('/user/:userId/decks/:deckId/history', async (req, res) => {
       return v;
     }
 
-    // Collecter tous les codes via parseVariation
+    // Collecter tous les codes via parseVariation (en retirant le préfixe "side:")
     const allCodes = new Set();
     for (const c of changes) {
-      try { Object.keys(parseVariation(c.variation)).forEach(code => allCodes.add(code)); }
-      catch (_) { }
+      try {
+        Object.keys(parseVariation(c.variation)).forEach(key => {
+          const code = key.startsWith('side:') ? key.slice(5) : key;
+          allCodes.add(code);
+        });
+      } catch (_) { }
     }
 
     // Charger les noms et factions de cartes
@@ -712,18 +744,35 @@ router.get('/user/:userId/decks/:deckId/history', async (req, res) => {
       }
     }
 
+    function buildEntries(pairs) {
+      return pairs
+        .filter(([, qty]) => Number(qty) !== 0)
+        .map(([code, qty]) => ({
+          code,
+          qty: Number(qty),
+          name: nameMap[code] || code,
+          faction_code: factionMap[code] || 'basic',
+        }))
+        .sort((a, b) => {
+          if (a.qty > 0 && b.qty <= 0) return -1;
+          if (a.qty <= 0 && b.qty > 0) return 1;
+          return a.name.localeCompare(b.name);
+        });
+    }
+
     const data = changes.map(c => {
       let entries = [];
+      let sideEntries = [];
       try {
         const v = parseVariation(c.variation);
-        entries = Object.entries(v)
-          .filter(([, qty]) => Number(qty) !== 0)
-          .map(([code, qty]) => ({ code, qty: Number(qty), name: nameMap[code] || code, faction_code: factionMap[code] || 'basic' }))
-          .sort((a, b) => {
-            if (a.qty > 0 && b.qty <= 0) return -1;
-            if (a.qty <= 0 && b.qty > 0) return 1;
-            return a.name.localeCompare(b.name);
-          });
+        const mainPairs = Object.entries(v)
+          .filter(([key]) => !key.startsWith('side:'))
+          .map(([code, qty]) => [code, qty]);
+        const sidePairs = Object.entries(v)
+          .filter(([key]) => key.startsWith('side:'))
+          .map(([key, qty]) => [key.slice(5), qty]);
+        entries = buildEntries(mainPairs);
+        sideEntries = buildEntries(sidePairs);
       } catch (_) { }
       return {
         id: c.id,
@@ -731,6 +780,7 @@ router.get('/user/:userId/decks/:deckId/history', async (req, res) => {
         version: c.version || '0.0',
         is_saved: c.is_saved,
         changes: entries,
+        sideChanges: sideEntries,
       };
     });
 
@@ -750,6 +800,7 @@ router.delete('/user/:userId/decks/:deckId', async (req, res) => {
     const deck = await db('deck').where({ id: deckId, user_id: userId }).first();
     if (!deck) return res.status(404).json({ error: 'Deck not found or unauthorized' });
 
+    await db('sidedeckslot').where({ deck_id: deckId }).delete();
     await db('deckslot').where({ deck_id: deckId }).delete();
     await db('deckchange').where({ deck_id: deckId }).delete();
     await db('deck').where({ id: deckId }).delete();
@@ -794,6 +845,11 @@ router.post('/user/:userId/decks/:deckId/clone', async (req, res) => {
     const slots = await db('deckslot').where({ deck_id: deckId });
     if (slots.length > 0) {
       await db('deckslot').insert(slots.map(({ id: _sid, ...s }) => ({ ...s, deck_id: newId })));
+    }
+
+    const sideSlotsCopy = await db('sidedeckslot').where({ deck_id: deckId });
+    if (sideSlotsCopy.length > 0) {
+      await db('sidedeckslot').insert(sideSlotsCopy.map(({ id: _sid, ...s }) => ({ ...s, deck_id: newId })));
     }
 
     return res.json({ ok: true, data: { id: newId } });
@@ -856,6 +912,16 @@ router.put('/user/:userId/decks/:deckId/publish', async (req, res) => {
         card_id: s.card_id,
         quantity: s.quantity,
         ignore_deck_limit: s.ignore_deck_limit,
+      })));
+    }
+
+    // Copier les side slots deck → sidedecklistslot
+    const sideSlots = await db('sidedeckslot').where({ deck_id: deckId });
+    if (sideSlots.length > 0) {
+      await db('sidedecklistslot').insert(sideSlots.map(s => ({
+        decklist_id: newDecklistId,
+        card_id: s.card_id,
+        quantity: s.quantity,
       })));
     }
 

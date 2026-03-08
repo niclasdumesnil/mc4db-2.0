@@ -60,7 +60,21 @@ export default function DeckHistory({ deckId, isPrivate, locale = 'en', refreshK
           </div>
 
           {history.map(entry => {
-            const changes = Array.isArray(entry.changes) ? entry.changes : [];
+            const changes     = Array.isArray(entry.changes)     ? entry.changes     : [];
+            const sideChanges = Array.isArray(entry.sideChanges) ? entry.sideChanges : [];
+            const renderChange = (c, i, isSide = false) => {
+              const qty   = Number(c.qty);
+              const name  = typeof c.name === 'string' ? c.name : String(c.code || '');
+              const color = getFactionColor(c.faction_code || 'basic');
+              return (
+                <div key={`${isSide ? 's' : 'm'}-${i}`} className={`dh-change ${qty > 0 ? 'dh-change--add' : 'dh-change--remove'}`}>
+                  <span className="dh-change-qty">{qty > 0 ? `+${qty}` : qty}</span>
+                  <span className="dh-faction-dot" style={{ background: color }} />
+                  <span className="dh-change-name">{name}</span>
+                  {isSide && <span className="dh-change-side-badge">Side</span>}
+                </div>
+              );
+            };
             return (
               <div key={entry.id} className="dh-row">
                 {/* Date + version sur la même ligne */}
@@ -70,19 +84,8 @@ export default function DeckHistory({ deckId, isPrivate, locale = 'en', refreshK
                 </div>
                 {/* Changements en dessous */}
                 <div className="dh-changes">
-                  {changes.map((c, i) => {
-                    const qty     = Number(c.qty);
-                    const name    = typeof c.name === 'string' ? c.name : String(c.code || '');
-                    const code    = String(c.code || '');
-                    const color   = getFactionColor(c.faction_code || 'basic');
-                    return (
-                      <div key={i} className={`dh-change ${qty > 0 ? 'dh-change--add' : 'dh-change--remove'}`}>
-                        <span className="dh-change-qty">{qty > 0 ? `+${qty}` : qty}</span>
-                        <span className="dh-faction-dot" style={{ background: color }} />
-                        <span className="dh-change-name">{name}</span>
-                      </div>
-                    );
-                  })}
+                  {changes.map((c, i) => renderChange(c, i, false))}
+                  {sideChanges.map((c, i) => renderChange(c, i, true))}
                 </div>
               </div>
             );

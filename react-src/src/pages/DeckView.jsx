@@ -20,6 +20,7 @@ export default function DeckView() {
   const [showEditor, setShowEditor] = useState(false);
   const [displayMode, setDisplayMode] = useState('list'); // 'list' | 'grid'
   const [liveSlots, setLiveSlots] = useState(null); // preview en temps réel
+  const [liveSideSlots, setLiveSideSlots] = useState(null); // side deck preview en temps réel
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState(null);
   const [historyRefreshKey, setHistoryRefreshKey] = useState(0);
@@ -230,7 +231,7 @@ export default function DeckView() {
                       finally { setSaving(false); }
                     }}
                   >{saving ? 'Saving…' : 'Save'}</button>
-                  <button className="deck-view-cancel-btn" onClick={() => { setShowEditor(false); setLiveSlots(null); setSaveError(null); setLiveTitle(null); }}>Cancel</button>
+                  <button className="deck-view-cancel-btn" onClick={() => { setShowEditor(false); setLiveSlots(null); setLiveSideSlots(null); setSaveError(null); setLiveTitle(null); }}>Cancel</button>
                 </>
               )}
             </div>
@@ -260,7 +261,14 @@ export default function DeckView() {
             </button>
           </div>
 
-          <DeckContent slots={liveSlots ?? deck.slots ?? []} mode={displayMode} heroSpecialCards={deck.hero_special_cards ?? []} />
+          <DeckContent
+            slots={liveSlots ?? deck.slots ?? []}
+            sideSlots={liveSideSlots ?? deck.side_slots ?? []}
+            mode={displayMode}
+            heroSpecialCards={deck.hero_special_cards ?? []}
+            onTransferToSide={showEditor ? (code) => editorRef.current?.transfer(code, 'toSide') : null}
+            onTransferToMain={showEditor ? (code) => editorRef.current?.transfer(code, 'toMain') : null}
+          />
         </div>
         {!showEditor && (
           <div className="deck-view-right">
@@ -285,11 +293,13 @@ export default function DeckView() {
               deckId={deckId}
               isPrivate={isPrivate}
               onSlotsChange={slots => setLiveSlots(slots)}
+              onSideSlotsChange={sideSlots => setLiveSideSlots(sideSlots)}
               onNameChange={name => setLiveTitle(name)}
-              onClose={() => { setShowEditor(false); setLiveSlots(null); setSaveError(null); setLiveTitle(null); }}
+              onClose={() => { setShowEditor(false); setLiveSlots(null); setLiveSideSlots(null); setSaveError(null); setLiveTitle(null); }}
               onSaved={() => {
                 setShowEditor(false);
                 setLiveSlots(null);
+                setLiveSideSlots(null);
                 setSaveError(null);
                 setHistoryRefreshKey(k => k + 1);
                 window.location.reload();

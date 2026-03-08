@@ -55,7 +55,7 @@ function QtySelector({ cardCode, deckLimit = 3, slotsMap, onSetQty }) {
       <button
         key={i}
         className={`qty-btn${current === i ? ' qty-btn--active' : ''}`}
-        onClick={() => onSetQty(cardCode, i)}
+        onClick={() => onSetQty(cardCode, i, deckLimit)}
         title={`Quantité : ${i}`}
       >
         {i}
@@ -65,7 +65,7 @@ function QtySelector({ cardCode, deckLimit = 3, slotsMap, onSetQty }) {
   return <div className="qty-selector">{buttons}</div>;
 }
 
-export default function AvailableCardList({ cards, slotsMap = {}, onSetQty, sortBy = 'name', sortOrder = 'asc', onSort }) {
+export default function AvailableCardList({ cards, slotsMap = {}, onSetQty, sideMap = {}, onSetSideQty, sortBy = 'name', sortOrder = 'asc', onSort }) {
   if (!cards || cards.length === 0) {
     return <div className="cardlist-empty">Aucune carte ne correspond à ces filtres.</div>;
   }
@@ -80,7 +80,8 @@ export default function AvailableCardList({ cards, slotsMap = {}, onSetQty, sort
       <table className="cl-checklist cl-checklist--compact">
         <thead>
           <tr>
-            <th>Qty</th>
+            <th title="Qty in deck">Qty</th>
+            <th title="Qty in side deck">Side</th>
             <th
               className="sortable"
               onClick={() => onSort && onSort('name')}
@@ -100,7 +101,7 @@ export default function AvailableCardList({ cards, slotsMap = {}, onSetQty, sort
             const creator = card.creator && card.creator !== 'FFG' ? card.creator : null;
             return (
               <tr key={card.code || card.id}>
-                {/* Quantity */}
+                {/* Main Deck Quantity */}
                 <td className="cl-qty-cell">
                   <QtySelector
                     cardCode={card.code}
@@ -108,6 +109,18 @@ export default function AvailableCardList({ cards, slotsMap = {}, onSetQty, sort
                     slotsMap={slotsMap}
                     onSetQty={onSetQty}
                   />
+                </td>
+
+                {/* Side Deck Quantity */}
+                <td className="cl-qty-cell cl-qty-cell--side">
+                  {onSetSideQty ? (
+                    <QtySelector
+                      cardCode={card.code}
+                      deckLimit={card.deck_limit ?? 3}
+                      slotsMap={sideMap}
+                      onSetQty={onSetSideQty}
+                    />
+                  ) : null}
                 </td>
 
                 {/* Name */}

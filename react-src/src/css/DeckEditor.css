@@ -390,17 +390,19 @@
   white-space: nowrap;
 }
 
-/* Column widths: QTY | NAME | COST | TYPE | RESOURCES */
+/* Column widths: QTY | SIDE | NAME | COST | TYPE | RESOURCES */
 .cl-checklist--compact th:nth-child(1),
 .cl-checklist--compact td:nth-child(1) { width: 72px; min-width: 72px; overflow: visible; white-space: nowrap; }
 .cl-checklist--compact th:nth-child(2),
-.cl-checklist--compact td:nth-child(2) { width: 180px; min-width: 120px; max-width: 180px; }
+.cl-checklist--compact td:nth-child(2) { width: 72px; min-width: 72px; overflow: visible; white-space: nowrap; }
 .cl-checklist--compact th:nth-child(3),
-.cl-checklist--compact td:nth-child(3) { width: 38px;  min-width: 38px;  text-align: center; }
+.cl-checklist--compact td:nth-child(3) { width: 160px; min-width: 100px; max-width: 160px; }
 .cl-checklist--compact th:nth-child(4),
-.cl-checklist--compact td:nth-child(4) { width: 52px;  min-width: 48px; }
+.cl-checklist--compact td:nth-child(4) { width: 36px;  min-width: 36px;  text-align: center; }
 .cl-checklist--compact th:nth-child(5),
-.cl-checklist--compact td:nth-child(5) { width: 36px;  min-width: 32px; overflow: visible; }
+.cl-checklist--compact td:nth-child(5) { width: 45px;  min-width: 42px; }
+.cl-checklist--compact th:nth-child(6),
+.cl-checklist--compact td:nth-child(6) { width: 36px;  min-width: 32px; overflow: visible; }
 
 .cl-checklist--compact tr td:first-child {
   padding-left: 4px;
@@ -447,6 +449,26 @@
   color: #fff;
   border-color: #3b82f6;
   box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.35);
+}
+
+/* Side deck qty cell — amber active state */
+.cl-qty-cell--side .qty-btn--active {
+  background: #d97706;
+  color: #fff;
+  border-color: #d97706;
+  box-shadow: 0 0 0 2px rgba(217, 119, 6, 0.35);
+}
+
+.cl-qty-cell--side .qty-btn:hover {
+  background: rgba(251, 191, 36, 0.15);
+  color: #fde68a;
+  border-color: rgba(251, 191, 36, 0.4);
+}
+
+/* Column header for side */
+.cl-checklist--compact th:nth-child(2) {
+  color: #fbbf24;
+  font-size: 0.75rem;
 }
 
 /* ── Save area ────────────────────────────────────── */
