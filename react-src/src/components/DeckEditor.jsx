@@ -427,7 +427,7 @@ export default forwardRef(function DeckEditor(
   }, [allCards, variantGroupMap]);
 
   // Expose save() + transfer() to parent (DeckView action bar)
-  useImperativeHandle(ref, () => ({ save: handleSave, getSaving: () => saving, transfer }), [handleSave, saving, transfer]);
+  useImperativeHandle(ref, () => ({ save: handleSave, getSaving: () => saving, transfer, setQty, setSideQty }), [handleSave, saving, transfer, setQty, setSideQty]);
 
   return (
     <div className="editor-container">

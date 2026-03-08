@@ -3,6 +3,35 @@ import { getFactionColor } from '@utils/dataUtils';
 import ImageWithWebp from '@components/ImageWithWebp';
 import '../css/DeckContent.css';
 
+// Badge quantité interactif (mode édition)
+// - displayQty : la quantité affichée (locale à la section)
+// - Hover : rangée plates [0][1][2][3] pour main (bleu) puis [0][1][2][3] pour side (ambre), sans étiquette
+function QtyBadge({ displayQty = 0, mainQty = 0, sideQty = 0, deckLimit = 3, onChangeMain, onChangeSide }) {
+  const options = Array.from({ length: deckLimit + 1 }, (_, i) => i);
+  return (
+    <span className="qty-badge-wrap">
+      <span className="qty-badge-label">{displayQty}x</span>
+      <span className="qty-badge-menu" onClick={e => e.stopPropagation()}>
+        {onChangeMain && options.map(n => (
+          <button
+            key={`m${n}`}
+            className={`qty-badge-opt qty-badge-opt--main${n === mainQty ? ' qty-badge-opt--main-active' : ''}`}
+            onClick={e => { e.stopPropagation(); onChangeMain(n); }}
+          >{n}</button>
+        ))}
+        {onChangeMain && onChangeSide && <span className="qty-badge-sep" />}
+        {onChangeSide && options.map(n => (
+          <button
+            key={`s${n}`}
+            className={`qty-badge-opt qty-badge-opt--side${n === sideQty ? ' qty-badge-opt--side-active' : ''}`}
+            onClick={e => { e.stopPropagation(); onChangeSide(n); }}
+          >{n}</button>
+        ))}
+      </span>
+    </span>
+  );
+}
+
 // Faction dot — même logique que CardListDisplay
 function FactionDot({ card }) {
   const code = card.faction_code;
@@ -35,7 +64,7 @@ function FactionDot({ card }) {
   );
 }
 
-export default function DeckContent({ slots, mode = 'list', heroSpecialCards = [], sideSlots = [], invalidCodes = null, onTransferToSide = null, onTransferToMain = null }) {
+export default function DeckContent({ slots, mode = 'list', heroSpecialCards = [], sideSlots = [], invalidCodes = null, onTransferToSide = null, onTransferToMain = null, onChangeQty = null, onChangeSideQty = null }) {
   // Flash animation: set of card codes currently flashing
   const [flashCodes, setFlashCodes] = useState(new Set());
 
@@ -89,6 +118,19 @@ export default function DeckContent({ slots, mode = 'list', heroSpecialCards = [
   }, [sideSlots]);
 
   const sortedSideTypes = Object.keys(groupedSideSlots).sort((a, b) => a.localeCompare(b));
+
+  // Maps code → qty for cross-lookup between main and side
+  const sideQtyMap = useMemo(() => {
+    const m = {};
+    (sideSlots || []).forEach(s => { m[s.code] = s.quantity; });
+    return m;
+  }, [sideSlots]);
+
+  const mainQtyMap = useMemo(() => {
+    const m = {};
+    (slots || []).forEach(s => { m[s.code] = s.quantity; });
+    return m;
+  }, [slots]);
 
   // 3. Grouper les cartes hero_special par set
   const heroSpecialSets = useMemo(() => {
@@ -149,7 +191,17 @@ export default function DeckContent({ slots, mode = 'list', heroSpecialCards = [
                     return (
                     <li key={card.code} className={`slot-item${flashCodes.has(card.code) ? ' slot-item--flash' : ''}${isInvalid ? ' slot-item--invalid' : ''}`}>
                       <div className="slot-main-info">
-                        <span className="slot-qty">{card.quantity}x</span>
+                        {!isHero && onChangeQty
+                          ? <QtyBadge
+                              displayQty={card.quantity}
+                              mainQty={card.quantity}
+                              sideQty={sideQtyMap[card.code] ?? 0}
+                              deckLimit={card.deck_limit ?? 3}
+                              onChangeMain={qty => onChangeQty(card.code, qty, card.deck_limit ?? 3)}
+                              onChangeSide={onChangeSideQty ? qty => onChangeSideQty(card.code, qty, card.deck_limit ?? 3) : undefined}
+                            />
+                          : <span className="slot-qty">{card.quantity}x</span>
+                        }
                         <FactionDot card={card} />
                         {!!card.is_unique && <span className="icon-unique cl-unique-icon" title="Unique" />}
                         <span className="slot-name card-tip" data-code={card.code}>{card.name}</span>
@@ -212,7 +264,17 @@ export default function DeckContent({ slots, mode = 'list', heroSpecialCards = [
                     return (
                     <li key={card.code} className={`slot-item${flashCodes.has(card.code) ? ' slot-item--flash' : ''}${isInvalid ? ' slot-item--invalid' : ''}`}>
                       <div className="slot-main-info">
-                        <span className="slot-qty">{card.quantity}x</span>
+                        {!isHero && (onChangeQty || onChangeSideQty)
+                          ? <QtyBadge
+                              displayQty={card.quantity}
+                              mainQty={card.quantity}
+                              sideQty={sideQtyMap[card.code] ?? 0}
+                              deckLimit={card.deck_limit ?? 3}
+                              onChangeMain={onChangeQty ? qty => onChangeQty(card.code, qty, card.deck_limit ?? 3) : undefined}
+                              onChangeSide={onChangeSideQty ? qty => onChangeSideQty(card.code, qty, card.deck_limit ?? 3) : undefined}
+                            />
+                          : <span className="slot-qty">{card.quantity}x</span>
+                        }
                         <FactionDot card={card} />
                         {!!card.is_unique && <span className="icon-unique cl-unique-icon" title="Unique" />}
                         <span className="slot-name card-tip" data-code={card.code}>{card.name}</span>
@@ -323,7 +385,17 @@ export default function DeckContent({ slots, mode = 'list', heroSpecialCards = [
                     return (
                     <li key={card.code} className={`slot-item${flashCodes.has(card.code) ? ' slot-item--flash' : ''}${isInvalid ? ' slot-item--invalid' : ''}`}>
                       <div className="slot-main-info">
-                        <span className="slot-qty">{card.quantity}x</span>
+                        {(onChangeQty || onChangeSideQty)
+                          ? <QtyBadge
+                              displayQty={card.quantity}
+                              mainQty={mainQtyMap[card.code] ?? 0}
+                              sideQty={card.quantity}
+                              deckLimit={card.deck_limit ?? 3}
+                              onChangeMain={onChangeQty ? qty => onChangeQty(card.code, qty, card.deck_limit ?? 3) : undefined}
+                              onChangeSide={onChangeSideQty ? qty => onChangeSideQty(card.code, qty, card.deck_limit ?? 3) : undefined}
+                            />
+                          : <span className="slot-qty">{card.quantity}x</span>
+                        }
                         <FactionDot card={card} />
                         {!!card.is_unique && <span className="icon-unique cl-unique-icon" title="Unique" />}
                         <span className="slot-name card-tip" data-code={card.code}>{card.name}</span>

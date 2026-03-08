@@ -404,6 +404,8 @@ export default function DeckView() {
             invalidCodes={invalidCodes}
             onTransferToSide={showEditor ? (code) => editorRef.current?.transfer(code, 'toSide') : null}
             onTransferToMain={showEditor ? (code) => editorRef.current?.transfer(code, 'toMain') : null}
+            onChangeQty={showEditor ? (code, qty, limit) => editorRef.current?.setQty(code, qty, limit) : null}
+            onChangeSideQty={showEditor ? (code, qty, limit) => editorRef.current?.setSideQty(code, qty, limit) : null}
           />
         </div>
         {!showEditor && (
