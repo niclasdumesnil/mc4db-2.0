@@ -1,10 +1,17 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import DeckContent from '@components/DeckContent';
 import DeckStatistics from '@components/DeckStatistics';
 import DeckHistory from '@components/DeckHistory';
 import DeckEditor from '@components/DeckEditor';
 import { getFactionColor } from '@utils/dataUtils';
+import { getDeckProblems, getInvalidCodes, inferDeckAspect } from '@utils/deckValidation';
 import '@css/DeckView.css';
+
+const ASPECT_LIST = ['aggression', 'justice', 'leadership', 'protection', 'determination'];
+const ASPECT_LABELS = {
+  aggression: 'Aggression', justice: 'Justice', leadership: 'Leadership',
+  protection: 'Protection', determination: 'Determination',
+};
 
 function currentUserId() {
   try {
@@ -28,6 +35,12 @@ export default function DeckView() {
   const [deleting, setDeleting] = useState(false);
   const [cloning, setCloning] = useState(false);
   const [publishing, setPublishing] = useState(false);
+  // Deck-building state
+  const [deckAspect, setDeckAspect] = useState(null);
+  const [deckTags, setDeckTags] = useState('');
+  const [showUnauthorized, setShowUnauthorized] = useState(false);
+  const [heroCard, setHeroCard] = useState(null);
+  const [validationCards, setValidationCards] = useState([]);
   const editorRef = useRef(null);
   const [locale, setLocale] = useState(
     () => localStorage.getItem('mc_locale') || window.__MC_LOCALE__ || 'en'
@@ -41,6 +54,43 @@ export default function DeckView() {
     window.addEventListener('mc_locale_changed', onLocaleChange);
     return () => window.removeEventListener('mc_locale_changed', onLocaleChange);
   }, []);
+
+  // Initialize deckAspect and deckTags from deck meta when deck loads
+  useEffect(() => {
+    if (!deck) return;
+    try {
+      const meta = typeof deck.meta === 'string' ? JSON.parse(deck.meta) : deck.meta;
+      if (meta?.aspect) setDeckAspect(meta.aspect);
+    } catch (_) {}
+    setDeckTags(deck.tags || '');
+    setLiveTitle(null); // reset live title on deck change
+  }, [deck?.id]);
+
+  // Auto-infer aspect from live slots when editing
+  useEffect(() => {
+    if (!liveSlots || validationCards.length === 0) return;
+    const slotsMap = Object.fromEntries(liveSlots.filter(s => s.quantity > 0).map(s => [s.code, s.quantity]));
+    const inferred = inferDeckAspect(slotsMap, validationCards, heroCard);
+    if (inferred && inferred !== deckAspect) {
+      setDeckAspect(inferred);
+    }
+  }, [liveSlots, validationCards]);
+
+  // Compute invalid card codes for DeckContent highlighting
+  const invalidCodes = useMemo(() => {
+    if (validationCards.length === 0) return new Set();
+    const currentSlots = liveSlots ?? deck?.slots ?? [];
+    const slotsMap = Object.fromEntries(currentSlots.filter(s => s.quantity > 0).map(s => [s.code, s.quantity]));
+    return getInvalidCodes(slotsMap, heroCard, validationCards, deckAspect);
+  }, [liveSlots, deck?.slots, heroCard, validationCards, deckAspect]);
+
+  // Compute deck validation problems
+  const deckProblems = useMemo(() => {
+    if (validationCards.length === 0) return [];
+    const currentSlots = liveSlots ?? deck?.slots ?? [];
+    const slotsMap = Object.fromEntries(currentSlots.filter(s => s.quantity > 0).map(s => [s.code, s.quantity]));
+    return getDeckProblems(slotsMap, heroCard, validationCards, deckAspect);
+  }, [liveSlots, deck?.slots, heroCard, validationCards, deckAspect]);
 
   // Determine if public or private from URL
   const path = window.location.pathname;
@@ -226,7 +276,15 @@ export default function DeckView() {
                     disabled={saving}
                     onClick={async () => {
                       setSaving(true); setSaveError(null);
-                      try { await editorRef.current?.save(); }
+                      try {
+                        const titleToSave = (liveTitle ?? deck?.name ?? '').trim() || undefined;
+                        const metaToSave = { aspect: deckAspect || undefined };
+                        await editorRef.current?.save({
+                          name: titleToSave,
+                          meta: metaToSave,
+                          tags: deckTags,
+                        });
+                      }
                       catch (e) { setSaveError(e?.message || 'Save failed.'); }
                       finally { setSaving(false); }
                     }}
@@ -241,31 +299,109 @@ export default function DeckView() {
 
       </div>
 
+      {/* ── Deck Toolbar : mode de vue + contrôles d'édition ── */}
+      <div className="deck-view-toolbar">
+
+        {/* Mode de visualisation (toujours visible) */}
+        <div className="dvt-section dvt-section--modes">
+          <button
+            className={`deck-view-mode-btn${displayMode === 'list' ? ' active' : ''}`}
+            onClick={() => setDisplayMode('list')}
+          >☰ List</button>
+          <button
+            className={`deck-view-mode-btn${displayMode === 'grid' ? ' active' : ''}`}
+            onClick={() => setDisplayMode('grid')}
+          >⊞ Scan</button>
+        </div>
+
+        {showEditor && (
+          <>
+            {/* Titre du deck */}
+            <div className="dvt-section dvt-section--title">
+              <input
+                className="dvt-name-input"
+                type="text"
+                value={liveTitle ?? deck?.name ?? ''}
+                onChange={e => setLiveTitle(e.target.value)}
+                placeholder="Deck name…"
+                maxLength={120}
+              />
+            </div>
+
+            {/* Sélecteur d'affinité */}
+            <div className="dvt-section dvt-section--aspect">
+              <span className="dvt-label">Aspect</span>
+              {ASPECT_LIST.map(asp => {
+                const color = getFactionColor(asp);
+                const isActive = deckAspect === asp;
+                return (
+                  <button
+                    key={asp}
+                    className={`dvt-aspect-btn${isActive ? ' dvt-aspect-btn--active' : ''}`}
+                    style={{
+                      '--asp-color': color,
+                      borderColor: isActive ? color : `${color}55`,
+                      background: isActive ? color : `${color}18`,
+                      color: isActive ? '#fff' : `${color}cc`,
+                    }}
+                    onClick={() => setDeckAspect(prev => prev === asp ? null : asp)}
+                  >{ASPECT_LABELS[asp]}</button>
+                );
+              })}
+              {deckAspect && (
+                <button
+                  className="dvt-aspect-btn dvt-aspect-btn--clear"
+                  onClick={() => setDeckAspect(null)}
+                  title="Remove aspect restriction"
+                >✕ Any</button>
+              )}
+            </div>
+
+            {/* Tags */}
+            <div className="dvt-section dvt-section--tags">
+              <span className="dvt-label">Tags</span>
+              <input
+                className="dvt-tags-input"
+                type="text"
+                value={deckTags}
+                onChange={e => setDeckTags(e.target.value)}
+                placeholder="tag1,tag2,…"
+              />
+            </div>
+
+            {/* Show Unauthorized Cards */}
+            <div className="dvt-section">
+              <button
+                className={`dvt-unauthorized-btn${showUnauthorized ? ' dvt-unauthorized-btn--active' : ''}`}
+                onClick={() => setShowUnauthorized(p => !p)}
+                title="Show cards that do not comply with deck rules in the card browser"
+              >
+                {showUnauthorized ? '🔓 Showing Unauthorized' : '🔒 Show Unauthorized'}
+              </button>
+            </div>
+          </>
+        )}
+
+        {/* Problèmes de validation (non-bloquants) */}
+        {deckProblems.length > 0 && (
+          <div className="dvt-problems">
+            {deckProblems.map((p, i) => (
+              <div key={i} className="dvt-problem-item">⚠ {p}</div>
+            ))}
+          </div>
+        )}
+      </div>
+
       {/* Corps : layout conditionnel selon mode édition */}
       <div className={`deck-view-body${showEditor ? ' deck-view-body--editing' : ''}`}>
         <div className={`deck-view-left${showEditor ? ' deck-view-left--compact' : ''}`}>
-
-          {/* Display mode toggles */}
-          <div className="deck-view-display-modes">
-            <button
-              className={`deck-view-mode-btn${displayMode === 'list' ? ' active' : ''}`}
-              onClick={() => setDisplayMode('list')}
-            >
-              ☰ List
-            </button>
-            <button
-              className={`deck-view-mode-btn${displayMode === 'grid' ? ' active' : ''}`}
-              onClick={() => setDisplayMode('grid')}
-            >
-              ⊞ Scan
-            </button>
-          </div>
 
           <DeckContent
             slots={liveSlots ?? deck.slots ?? []}
             sideSlots={liveSideSlots ?? deck.side_slots ?? []}
             mode={displayMode}
             heroSpecialCards={deck.hero_special_cards ?? []}
+            invalidCodes={invalidCodes}
             onTransferToSide={showEditor ? (code) => editorRef.current?.transfer(code, 'toSide') : null}
             onTransferToMain={showEditor ? (code) => editorRef.current?.transfer(code, 'toMain') : null}
           />
@@ -292,9 +428,14 @@ export default function DeckView() {
               deck={deck}
               deckId={deckId}
               isPrivate={isPrivate}
+              deckAspect={deckAspect}
+              showUnauthorized={showUnauthorized}
               onSlotsChange={slots => setLiveSlots(slots)}
               onSideSlotsChange={sideSlots => setLiveSideSlots(sideSlots)}
-              onNameChange={name => setLiveTitle(name)}
+              onCardsLoaded={({ heroCard: hc, allCards: ac }) => {
+                setHeroCard(hc);
+                setValidationCards(ac);
+              }}
               onClose={() => { setShowEditor(false); setLiveSlots(null); setLiveSideSlots(null); setSaveError(null); setLiveTitle(null); }}
               onSaved={() => {
                 setShowEditor(false);

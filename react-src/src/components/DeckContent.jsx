@@ -35,7 +35,7 @@ function FactionDot({ card }) {
   );
 }
 
-export default function DeckContent({ slots, mode = 'list', heroSpecialCards = [], sideSlots = [], onTransferToSide = null, onTransferToMain = null }) {
+export default function DeckContent({ slots, mode = 'list', heroSpecialCards = [], sideSlots = [], invalidCodes = null, onTransferToSide = null, onTransferToMain = null }) {
   // Flash animation: set of card codes currently flashing
   const [flashCodes, setFlashCodes] = useState(new Set());
 
@@ -145,13 +145,15 @@ export default function DeckContent({ slots, mode = 'list', heroSpecialCards = [
                   .map(card => {
                     const isHero = card.faction_code === 'hero' || card.faction_code === 'campaign';
                     const canToSide = !!onTransferToSide && !isHero && !(card.is_unique && sideCodes.has(card.code));
+                    const isInvalid = !isHero && invalidCodes?.has(card.code);
                     return (
-                    <li key={card.code} className={`slot-item${flashCodes.has(card.code) ? ' slot-item--flash' : ''}`}>
+                    <li key={card.code} className={`slot-item${flashCodes.has(card.code) ? ' slot-item--flash' : ''}${isInvalid ? ' slot-item--invalid' : ''}`}>
                       <div className="slot-main-info">
                         <span className="slot-qty">{card.quantity}x</span>
                         <FactionDot card={card} />
                         {!!card.is_unique && <span className="icon-unique cl-unique-icon" title="Unique" />}
                         <span className="slot-name card-tip" data-code={card.code}>{card.name}</span>
+                        {isInvalid && <span className="slot-invalid-badge" title="This card does not comply with deck rules">⚠</span>}
                         {card.pack_environment === 'current' ? <span className="mc-badge mc-badge-current" title="Standard format">Current</span> : null}
                         {card.alt_art ? <span className="mc-badge mc-badge-altart" title="Alternative art">Alt Art</span> : null}
                         {onTransferToSide && !isHero && (
@@ -206,13 +208,15 @@ export default function DeckContent({ slots, mode = 'list', heroSpecialCards = [
                   .map(card => {
                     const isHero = card.faction_code === 'hero' || card.faction_code === 'campaign';
                     const canToSide = !!onTransferToSide && !isHero && !(card.is_unique && sideCodes.has(card.code));
+                    const isInvalid = !isHero && invalidCodes?.has(card.code);
                     return (
-                    <li key={card.code} className={`slot-item${flashCodes.has(card.code) ? ' slot-item--flash' : ''}`}>
+                    <li key={card.code} className={`slot-item${flashCodes.has(card.code) ? ' slot-item--flash' : ''}${isInvalid ? ' slot-item--invalid' : ''}`}>
                       <div className="slot-main-info">
                         <span className="slot-qty">{card.quantity}x</span>
                         <FactionDot card={card} />
                         {!!card.is_unique && <span className="icon-unique cl-unique-icon" title="Unique" />}
                         <span className="slot-name card-tip" data-code={card.code}>{card.name}</span>
+                        {isInvalid && <span className="slot-invalid-badge" title="This card does not comply with deck rules">⚠</span>}
                         {card.pack_environment === 'current' ? <span className="mc-badge mc-badge-current" title="Standard format">Current</span> : null}
                         {card.alt_art ? <span className="mc-badge mc-badge-altart" title="Alternative art">Alt Art</span> : null}
                         {onTransferToSide && !isHero && (
@@ -315,13 +319,15 @@ export default function DeckContent({ slots, mode = 'list', heroSpecialCards = [
                   .sort((a, b) => (a.name || '').localeCompare(b.name || ''))
                   .map(card => {
                     const canToMain = !!onTransferToMain && !(card.is_unique && mainCodes.has(card.code));
+                    const isInvalid = invalidCodes?.has(card.code);
                     return (
-                    <li key={card.code} className={`slot-item${flashCodes.has(card.code) ? ' slot-item--flash' : ''}`}>
+                    <li key={card.code} className={`slot-item${flashCodes.has(card.code) ? ' slot-item--flash' : ''}${isInvalid ? ' slot-item--invalid' : ''}`}>
                       <div className="slot-main-info">
                         <span className="slot-qty">{card.quantity}x</span>
                         <FactionDot card={card} />
                         {!!card.is_unique && <span className="icon-unique cl-unique-icon" title="Unique" />}
                         <span className="slot-name card-tip" data-code={card.code}>{card.name}</span>
+                        {isInvalid && <span className="slot-invalid-badge" title="This card does not comply with deck rules">⚠</span>}
                         {card.pack_environment === 'current' ? <span className="mc-badge mc-badge-current" title="Standard format">Current</span> : null}
                         {card.alt_art ? <span className="mc-badge mc-badge-altart" title="Alternative art">Alt Art</span> : null}
                         {onTransferToMain && (

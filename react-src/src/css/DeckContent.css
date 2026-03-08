@@ -329,3 +329,33 @@
 .slot-item--flash {
   animation: slot-flash-green 0.7s ease-out;
 }
+
+/* ── Invalid card highlight ─────────────────────────────── */
+.slot-item--invalid {
+  background: rgba(239, 68, 68, 0.08);
+  border-left: 2px solid rgba(239, 68, 68, 0.6);
+  border-radius: 4px;
+}
+
+.slot-item--invalid .slot-name {
+  color: #f87171 !important;
+}
+
+.slot-item--invalid .slot-qty {
+  color: #f87171;
+  opacity: 0.8;
+}
+
+.slot-invalid-badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #f87171;
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  border-radius: 4px;
+  padding: 0 4px;
+  margin-left: 4px;
+  line-height: 1.6;
+}

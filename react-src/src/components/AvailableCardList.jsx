@@ -45,6 +45,8 @@ function CostCell({ cost }) {
 
 /**
  * Sélecteur de quantité : boutons 0..deckLimit
+ * Buttons beyond deckLimit are there but inactive; the setter (setQty/setSideQty)
+ * handles redistributing other variants automatically.
  */
 function QtySelector({ cardCode, deckLimit = 3, slotsMap, onSetQty }) {
   const current = slotsMap[cardCode] || 0;
@@ -56,7 +58,7 @@ function QtySelector({ cardCode, deckLimit = 3, slotsMap, onSetQty }) {
         key={i}
         className={`qty-btn${current === i ? ' qty-btn--active' : ''}`}
         onClick={() => onSetQty(cardCode, i, deckLimit)}
-        title={`Quantité : ${i}`}
+        title={`Quantité : ${i}`}
       >
         {i}
       </button>
@@ -65,7 +67,7 @@ function QtySelector({ cardCode, deckLimit = 3, slotsMap, onSetQty }) {
   return <div className="qty-selector">{buttons}</div>;
 }
 
-export default function AvailableCardList({ cards, slotsMap = {}, onSetQty, sideMap = {}, onSetSideQty, sortBy = 'name', sortOrder = 'asc', onSort }) {
+export default function AvailableCardList({ cards, slotsMap = {}, onSetQty, sideMap = {}, onSetSideQty, variantGroupMap = {}, sortBy = 'name', sortOrder = 'asc', onSort }) {
   if (!cards || cards.length === 0) {
     return <div className="cardlist-empty">Aucune carte ne correspond à ces filtres.</div>;
   }

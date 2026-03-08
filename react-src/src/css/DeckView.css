@@ -574,3 +574,157 @@
   border-color: rgba(59, 130, 246, 0.5);
   color: #93c5fd;
 }
+
+/* ── Deck Toolbar (between banner and deck body) ───────────── */
+.deck-view-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  background: #111827;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 10px;
+  padding: 10px 16px;
+  margin-bottom: 16px;
+}
+
+.dvt-section {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.dvt-section--modes {
+  gap: 4px;
+}
+
+.dvt-section--title {
+  flex: 1 1 220px;
+  min-width: 0;
+}
+
+.dvt-name-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: 1px solid rgba(99, 179, 237, 0.28);
+  background: rgba(255, 255, 255, 0.05);
+  color: #e8f0fa;
+  font-size: 0.95rem;
+  font-weight: 600;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.dvt-name-input:focus {
+  border-color: rgba(99, 179, 237, 0.6);
+  box-shadow: 0 0 0 2px rgba(99, 179, 237, 0.1);
+}
+.dvt-name-input::placeholder {
+  color: #3d5166;
+  font-weight: 400;
+}
+
+.dvt-section--aspect {
+  flex-wrap: wrap;
+}
+
+.dvt-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #7a8fa8;
+  white-space: nowrap;
+}
+
+.dvt-aspect-btn {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  text-transform: capitalize;
+}
+.dvt-aspect-btn:hover {
+  filter: brightness(1.15);
+}
+.dvt-aspect-btn--clear {
+  border-color: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.05);
+  color: #8a99af;
+  font-size: 0.72rem;
+}
+
+.dvt-section--tags {
+  flex: 0 1 200px;
+  min-width: 0;
+}
+
+.dvt-tags-input {
+  flex: 1 1 120px;
+  min-width: 0;
+  padding: 5px 10px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.05);
+  color: #c8d6e8;
+  font-size: 0.82rem;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.dvt-tags-input:focus {
+  border-color: rgba(99, 179, 237, 0.4);
+}
+.dvt-tags-input::placeholder {
+  color: #3d5166;
+}
+
+.dvt-unauthorized-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.04);
+  color: #8a99af;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+  white-space: nowrap;
+}
+.dvt-unauthorized-btn:hover {
+  background: rgba(239, 68, 68, 0.1);
+  border-color: rgba(239, 68, 68, 0.3);
+  color: #f87171;
+}
+.dvt-unauthorized-btn--active {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: rgba(239, 68, 68, 0.4);
+  color: #fca5a5;
+}
+
+/* Validation problems banner */
+.dvt-problems {
+  width: 100%;
+  margin-top: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.dvt-problem-item {
+  font-size: 0.8rem;
+  color: #fbbf24;
+  background: rgba(251, 191, 36, 0.08);
+  border: 1px solid rgba(251, 191, 36, 0.2);
+  border-radius: 5px;
+  padding: 4px 10px;
+}

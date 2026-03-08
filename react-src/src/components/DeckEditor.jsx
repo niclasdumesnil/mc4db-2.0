@@ -1,6 +1,7 @@
 ﻿import React, { useState, useEffect, useMemo, useCallback, useImperativeHandle, forwardRef } from 'react';
 import AvailableCardList from './AvailableCardList';
 import { getFactionColor } from '@utils/dataUtils';
+import { canIncludeCard } from '@utils/deckValidation';
 import '../css/DeckEditor.css';
 
 // Player-card factions — excludes encounter cards
@@ -24,19 +25,36 @@ function currentUserId() {
  * DeckEditor
  *
  * Props :
- *   deck          â€” objet deck complet (avec deck.slots)
- *   deckId        â€” id du deck
- *   isPrivate     â€” true si deck privÃ©
- *   onSlotsChange â€” callback(slots) pour prÃ©visualiser en temps rÃ©el
- *   onSaved       â€” callback appelÃ© aprÃ¨s save rÃ©ussi
- *   onClose       â€” callback pour fermer l'Ã©diteur
+ *   deck             – objet deck complet (avec deck.slots)
+ *   deckId           – id du deck
+ *   isPrivate        – true si deck privé
+ *   deckAspect       – aspect actuellement sélectionné (depuis DeckView toolbar)
+ *   showUnauthorized – si true, les cartes invalides sont visibles dans la bibliothèque
+ *   onSlotsChange    – callback(slots) pour prévisualiser en temps réel
+ *   onSideSlotsChange – callback(sideSlots) pour le side deck
+ *   onCardsLoaded    – callback({ heroCard, allCards }) une fois les cartes chargées
+ *   onSaved          – callback appelé après save réussi
+ *   onClose          – callback pour fermer l'éditeur
  */
-export default forwardRef(function DeckEditor({ deck, deckId, isPrivate, onSlotsChange, onSideSlotsChange, onSaved, onClose, onNameChange }, ref) {
+export default forwardRef(function DeckEditor(
+  {
+    deck,
+    deckId,
+    isPrivate,
+    deckAspect,
+    showUnauthorized,
+    onSlotsChange,
+    onSideSlotsChange,
+    onCardsLoaded,
+    onSaved,
+    onClose,
+  },
+  ref
+) {
   const [allCards, setAllCards] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState(null);
-  const [deckName, setDeckName] = useState(deck?.name || '');
 
   // deckState : { main: { cardCode → quantity }, side: { cardCode → quantity } }
   const [deckState, setDeckState] = useState(() => {
@@ -90,6 +108,12 @@ export default forwardRef(function DeckEditor({ deck, deckId, isPrivate, onSlots
         const cards = Array.isArray(data) ? data : (data.ok ? data.cards : []);
         setAllCards(cards);
         setLoading(false);
+        // Notify parent with heroCard + full allCards for validation context
+        if (onCardsLoaded) {
+          const heroCode = deck?.hero_code || '';
+          const heroCard = cards.find(c => c.code === heroCode) || null;
+          onCardsLoaded({ heroCard, allCards: cards });
+        }
       })
       .catch(err => {
         console.error('Load error', err);
@@ -123,6 +147,7 @@ export default forwardRef(function DeckEditor({ deck, deckId, isPrivate, onSlots
           imagesrc: card.imagesrc,
           pack_environment: card.pack_environment,
           alt_art: card.alt_art,
+          duplicate_of_code: card.duplicate_of_code || null,
         };
       })
       .filter(Boolean);
@@ -155,17 +180,19 @@ export default forwardRef(function DeckEditor({ deck, deckId, isPrivate, onSlots
           imagesrc: card.imagesrc,
           pack_environment: card.pack_environment,
           alt_art: card.alt_art,
+          duplicate_of_code: card.duplicate_of_code || null,
         };
       })
       .filter(Boolean);
     onSideSlotsChange(sideSlots);
   }, [deckState.side, allCards]);
 
-  // --- variantGroupMap : code → [tous les codes du même groupe (original + alt-arts)] ---
+  // --- variantGroupMap : code → [tous les codes du même groupe (original + alt-arts + reprints)] ---
   const variantGroupMap = useMemo(() => {
+    // Build map: originalCode → [all duplicate codes (alt-arts AND reprints)]
     const origToAlts = {};
     for (const card of allCards) {
-      if (card.alt_art && card.duplicate_of_code) {
+      if (card.duplicate_of_code) {
         const orig = card.duplicate_of_code;
         if (!origToAlts[orig]) origToAlts[orig] = [];
         origToAlts[orig].push(card.code);
@@ -173,65 +200,107 @@ export default forwardRef(function DeckEditor({ deck, deckId, isPrivate, onSlots
     }
     const groupOf = {};
     for (const card of allCards) {
-      if (card.alt_art && card.duplicate_of_code) {
+      if (card.duplicate_of_code) {
+        // Collect all siblings: the original + all other duplicates of that original
         const orig = card.duplicate_of_code;
-        groupOf[card.code] = [orig, ...(origToAlts[orig] || [])];
+        const allSiblings = [orig, ...(origToAlts[orig] || [])];
+        groupOf[card.code] = [...new Set(allSiblings)];
       } else {
+        // Original card: itself + all its duplicates
         groupOf[card.code] = [card.code, ...(origToAlts[card.code] || [])];
       }
     }
     return groupOf;
   }, [allCards]);
 
-  // --- SETTER MAIN DECK : enforce sum(tous variants, main+side) <= deckLimit ---
+  // --- SETTER MAIN DECK : set this variant's main qty and redistribute others to stay within deckLimit ---
   const setQty = useCallback((cardCode, newQty, deckLimit = 3) => {
     setDeckState(prev => {
       const variants = variantGroupMap[cardCode] || [cardCode];
-      const nextMain = { ...prev.main, [cardCode]: newQty };
-      // Somme des autres variants dans le main
-      const sumOthersMain = variants.filter(v => v !== cardCode).reduce((s, v) => s + (nextMain[v] || 0), 0);
-      // Budget restant pour tous les variants du side
-      const maxSideTotal = Math.max(0, deckLimit - newQty - sumOthersMain);
+      const others = variants.filter(v => v !== cardCode);
+      const nextMain = { ...prev.main };
       const nextSide = { ...prev.side };
-      let remainingSide = maxSideTotal;
-      for (const v of variants) {
-        const capped = Math.min(nextSide[v] || 0, remainingSide);
-        nextSide[v] = capped;
-        remainingSide -= capped;
+
+      // 1. Set requested value (capped to deckLimit)
+      nextMain[cardCode] = Math.min(newQty, deckLimit);
+      let remaining = deckLimit - nextMain[cardCode];
+
+      // 2. Preserve this card's side deck first
+      nextSide[cardCode] = Math.min(nextSide[cardCode] || 0, remaining);
+      remaining -= nextSide[cardCode];
+
+      // 3. Reduce side of other variants to fit
+      for (const v of others) {
+        nextSide[v] = Math.min(nextSide[v] || 0, remaining);
+        remaining -= nextSide[v];
       }
+
+      // 4. Reduce main of other variants to fit
+      for (const v of others) {
+        nextMain[v] = Math.min(nextMain[v] || 0, remaining);
+        remaining -= nextMain[v];
+      }
+
       return { main: nextMain, side: nextSide };
     });
   }, [variantGroupMap]);
 
-  // --- SETTER SIDE DECK : enforce sum(tous variants, main+side) <= deckLimit ---
+  // --- SETTER SIDE DECK : set this variant's side qty and redistribute others to stay within deckLimit ---
   const setSideQty = useCallback((cardCode, newQty, deckLimit = 3) => {
     setDeckState(prev => {
       const variants = variantGroupMap[cardCode] || [cardCode];
-      const nextSide = { ...prev.side, [cardCode]: newQty };
-      // Somme des autres variants dans le side
-      const sumOthersSide = variants.filter(v => v !== cardCode).reduce((s, v) => s + (nextSide[v] || 0), 0);
-      // Budget restant pour tous les variants du main
-      const maxMainTotal = Math.max(0, deckLimit - newQty - sumOthersSide);
+      const others = variants.filter(v => v !== cardCode);
       const nextMain = { ...prev.main };
-      let remainingMain = maxMainTotal;
-      for (const v of variants) {
-        const capped = Math.min(nextMain[v] || 0, remainingMain);
-        nextMain[v] = capped;
-        remainingMain -= capped;
+      const nextSide = { ...prev.side };
+
+      // 1. Set requested value (capped to deckLimit)
+      nextSide[cardCode] = Math.min(newQty, deckLimit);
+      let remaining = deckLimit - nextSide[cardCode];
+
+      // 2. Preserve this card's main deck first
+      nextMain[cardCode] = Math.min(nextMain[cardCode] || 0, remaining);
+      remaining -= nextMain[cardCode];
+
+      // 3. Reduce side of other variants to fit
+      for (const v of others) {
+        nextSide[v] = Math.min(nextSide[v] || 0, remaining);
+        remaining -= nextSide[v];
       }
+
+      // 4. Reduce main of other variants to fit
+      for (const v of others) {
+        nextMain[v] = Math.min(nextMain[v] || 0, remaining);
+        remaining -= nextMain[v];
+      }
+
       return { main: nextMain, side: nextSide };
     });
   }, [variantGroupMap]);
-  // --- FILTRAGE (exclut les cartes rencontre) ---
+  // --- heroCard pour la validation ---
+  const heroCard = useMemo(() => {
+    const heroCode = deck?.hero_code || '';
+    return allCards.find(c => c.code === heroCode) || null;
+  }, [allCards, deck?.hero_code]);
+
+  // --- FILTRAGE (exclut les cartes rencontre + règles de deck-building) ---
   const filteredCards = useMemo(() => {
     return allCards.filter(card => {
       // Exclure les cartes rencontre
       if (!PLAYER_FACTIONS.has(card.faction_code?.toLowerCase())) return false;
-      // DÃ©doublonnage : exclure les doublons sauf alt-art si activÃ©
+      // Dédoublonnage : exclure les doublons sauf alt-art si activé
       if (card.duplicate_of_code) {
         if (!(filters.showAltArt && card.alt_art)) return false;
       }
-      // AffinitÃ©
+
+      // Validation règles de deck-building (affinité, team-up, deck_options)
+      // Les cartes non valides sont masquées sauf si showUnauthorized est actif
+      if (!showUnauthorized) {
+        if (!canIncludeCard(card, heroCard, deckAspect || null, deckState.main, allCards)) {
+          return false;
+        }
+      }
+
+      // Filtre bibliothèque par affinité
       if (selectedFaction && card.faction_code?.toLowerCase() !== selectedFaction) return false;
       // Type
       if (selectedType && card.type_code?.toLowerCase() !== selectedType) return false;
@@ -262,7 +331,7 @@ export default forwardRef(function DeckEditor({ deck, deckId, isPrivate, onSlots
       const cmp = (a.name || '').localeCompare(b.name || '');
       return sortOrder === 'asc' || sortBy !== 'name' ? cmp : -cmp;
     });
-  }, [allCards, selectedFaction, selectedType, filters, sortBy, sortOrder, traitFilter, textFilter]);
+  }, [allCards, heroCard, deckAspect, deckState.main, showUnauthorized, selectedFaction, selectedType, filters, sortBy, sortOrder, traitFilter, textFilter]);
 
   const handleSort = useCallback((col) => {
     setSortBy(prev => {
@@ -273,7 +342,8 @@ export default forwardRef(function DeckEditor({ deck, deckId, isPrivate, onSlots
   }, []);
 
   // --- SAVE ---
-  const handleSave = useCallback(async () => {
+  // name, meta, tags are provided by the parent toolbar (DeckView) and forwarded to the API
+  const handleSave = useCallback(async ({ name, meta, tags } = {}) => {
     const userId = currentUserId();
     if (!userId || !deckId) {
       throw new Error('Cannot save: user not logged in.');
@@ -289,10 +359,15 @@ export default forwardRef(function DeckEditor({ deck, deckId, isPrivate, onSlots
         .filter(([, qty]) => qty > 0)
         .map(([code, quantity]) => ({ code, quantity }));
 
+      const body = { slots, sideSlots };
+      if (name  !== undefined) body.name  = name;
+      if (meta  !== undefined) body.meta  = meta;
+      if (tags  !== undefined) body.tags  = tags;
+
       const res = await fetch(`/api/public/user/${userId}/decks/${deckId}/slots`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ slots, sideSlots, name: deckName.trim() || undefined }),
+        body: JSON.stringify(body),
       });
       const data = await res.json();
       if (data.ok) {
@@ -305,7 +380,7 @@ export default forwardRef(function DeckEditor({ deck, deckId, isPrivate, onSlots
       throw err;
     }
     setSaving(false);
-  }, [deckState, deckName, deckId, onSaved]);
+  }, [deckState, deckId, onSaved]);
 
   const handleToggle = key => setFilters(prev => ({ ...prev, [key]: !prev[key] }));
 
@@ -359,27 +434,12 @@ export default forwardRef(function DeckEditor({ deck, deckId, isPrivate, onSlots
       {/* ── Main area: filter bar + card list ── */}
       <main className="editor-main">
 
-        {/* ── Deck name ── */}
-        <div className="editor-name-row">
-          <input
-            className="editor-name-input"
-            type="text"
-            value={deckName}
-            onChange={e => {
-              setDeckName(e.target.value);
-              onNameChange && onNameChange(e.target.value);
-            }}
-            placeholder="Deck name…"
-            maxLength={120}
-          />
-        </div>
-
         {/* ── Horizontal filter bar ── */}
         <div className="editor-filter-bar">
 
-          {/* Affinity row */}
+          {/* Browse faction row (filtre bibliothèque) */}
           <div className="editor-filter-row">
-            <span className="editor-filter-bar-label">Affinity</span>
+            <span className="editor-filter-bar-label">Browse</span>
             <div className="editor-filter-pills">
               {FACTION_LIST.map(fac => {
                 const color = getFactionColor(fac);
@@ -490,6 +550,7 @@ export default forwardRef(function DeckEditor({ deck, deckId, isPrivate, onSlots
             onSetQty={setQty}
             sideMap={deckState.side}
             onSetSideQty={setSideQty}
+            variantGroupMap={variantGroupMap}
             sortBy={sortBy}
             sortOrder={sortOrder}
             onSort={handleSort}

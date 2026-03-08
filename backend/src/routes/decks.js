@@ -571,9 +571,11 @@ router.put('/user/:userId/decks/:deckId/slots', async (req, res) => {
     const deck = await db('deck').where({ id: deckId, user_id: userId }).first();
     if (!deck) return res.status(404).json({ error: 'Deck not found or unauthorized' });
 
-    const { slots, sideSlots, name } = req.body; // slots: [{ code, quantity }], sideSlots?: [...], name?: string
+    const { slots, sideSlots, name, meta, tags } = req.body; // slots: [{ code, quantity }], sideSlots?: [...], name?: string, meta?: object, tags?: string
     if (!Array.isArray(slots)) return res.status(400).json({ error: 'Invalid slots' });
     const newName = (typeof name === 'string' && name.trim()) ? name.trim() : null;
+    const newMeta = (meta && typeof meta === 'object') ? JSON.stringify(meta) : null;
+    const newTags = (typeof tags === 'string') ? tags.trim() : null;
 
     // Ne garder que les slots avec quantity > 0
     const toInsert = slots.filter(s => s.quantity > 0);
@@ -658,11 +660,15 @@ router.put('/user/:userId/decks/:deckId/slots', async (req, res) => {
           date_update: new Date(),
           minor_version: nextMinor,
           ...(newName ? { name: newName } : {}),
+          ...(newMeta !== null ? { meta: newMeta } : {}),
+          ...(newTags !== null ? { tags: newTags } : {}),
         });
       } else {
         await trx('deck').where('id', deckId).update({
           date_update: new Date(),
           ...(newName ? { name: newName } : {}),
+          ...(newMeta !== null ? { meta: newMeta } : {}),
+          ...(newTags !== null ? { tags: newTags } : {}),
         });
       }
     });
