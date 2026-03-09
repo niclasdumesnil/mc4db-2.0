@@ -87,6 +87,10 @@ export default forwardRef(function DeckEditor(
   const [sortOrder, setSortOrder] = useState('asc');
   const [traitFilter, setTraitFilter] = useState('');
   const [textFilter, setTextFilter] = useState('');
+  const [resFilter, setResFilter] = useState({ energy: 0, physical: 0, mental: 0, wild: 0 });
+
+  const toggleRes = (type, val) =>
+    setResFilter(prev => ({ ...prev, [type]: prev[type] === val ? 0 : val }));
 
   // Sync with global locale switcher (header badge)
   useEffect(() => {
@@ -320,6 +324,11 @@ export default forwardRef(function DeckEditor(
         const haystack = (card.text || '').toLowerCase();
         if (!haystack.includes(needle)) return false;
       }
+      // Resource filter (min qty)
+      if (resFilter.energy   > 0 && (card.resource_energy   || 0) < resFilter.energy)   return false;
+      if (resFilter.physical > 0 && (card.resource_physical || 0) < resFilter.physical) return false;
+      if (resFilter.mental   > 0 && (card.resource_mental   || 0) < resFilter.mental)   return false;
+      if (resFilter.wild     > 0 && (card.resource_wild     || 0) < resFilter.wild)     return false;
       return true;
     }).sort((a, b) => {
       if (sortBy === 'cost') {
@@ -331,7 +340,7 @@ export default forwardRef(function DeckEditor(
       const cmp = (a.name || '').localeCompare(b.name || '');
       return sortOrder === 'asc' || sortBy !== 'name' ? cmp : -cmp;
     });
-  }, [allCards, heroCard, deckAspect, deckState.main, showUnauthorized, selectedFaction, selectedType, filters, sortBy, sortOrder, traitFilter, textFilter]);
+  }, [allCards, heroCard, deckAspect, deckState.main, showUnauthorized, selectedFaction, selectedType, filters, sortBy, sortOrder, traitFilter, textFilter, resFilter]);
 
   const handleSort = useCallback((col) => {
     setSortBy(prev => {
@@ -513,6 +522,38 @@ export default forwardRef(function DeckEditor(
                   ✕
                 </button>
               )}
+            </div>
+          </div>
+
+          {/* Resources (min) row */}
+          <div className="editor-filter-row">
+            <span className="editor-filter-bar-label">Resources (min)</span>
+            <div className="editor-filter-pills">
+              {[
+                { type: 'energy',   cls: 'icon-energy'   },
+                { type: 'physical', cls: 'icon-physical' },
+                { type: 'mental',   cls: 'icon-mental'   },
+                { type: 'wild',     cls: 'icon-wild'     },
+              ].map(({ type, cls }) => (
+                <span key={type} className="editor-res-group">
+                  <span className={`cl-res-icon ${cls}`} />
+                  {[1, 2].map(val => (
+                    <button
+                      key={val}
+                      className={`editor-faction-btn editor-res-btn${resFilter[type] === val ? ' editor-faction-btn--type-active' : ''}`}
+                      onClick={() => toggleRes(type, val)}
+                    >{val}+</button>
+                  ))}
+                </span>
+              ))}
+              {(resFilter.energy || resFilter.physical || resFilter.mental || resFilter.wild) ? (
+                <button
+                  className="editor-faction-btn editor-res-btn"
+                  style={{ borderColor: '#888', color: '#aaa', marginLeft: 4 }}
+                  onClick={() => setResFilter({ energy: 0, physical: 0, mental: 0, wild: 0 })}
+                  title="Clear resource filters"
+                >Any</button>
+              ) : null}
             </div>
           </div>
 

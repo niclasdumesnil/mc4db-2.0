@@ -331,42 +331,25 @@ export default function DeckView() {
             {/* Sélecteur d'affinité */}
             <div className="dvt-section dvt-section--aspect">
               <span className="dvt-label">Aspect</span>
-              {ASPECT_LIST.map(asp => {
-                const color = getFactionColor(asp);
-                const isActive = deckAspect === asp;
-                return (
-                  <button
-                    key={asp}
-                    className={`dvt-aspect-btn${isActive ? ' dvt-aspect-btn--active' : ''}`}
-                    style={{
-                      '--asp-color': color,
-                      borderColor: isActive ? color : `${color}55`,
-                      background: isActive ? color : `${color}18`,
-                      color: isActive ? '#fff' : `${color}cc`,
-                    }}
-                    onClick={() => setDeckAspect(prev => prev === asp ? null : asp)}
-                  >{ASPECT_LABELS[asp]}</button>
-                );
-              })}
-              {deckAspect && (
-                <button
-                  className="dvt-aspect-btn dvt-aspect-btn--clear"
-                  onClick={() => setDeckAspect(null)}
-                  title="Remove aspect restriction"
-                >✕ Any</button>
-              )}
-            </div>
-
-            {/* Tags */}
-            <div className="dvt-section dvt-section--tags">
-              <span className="dvt-label">Tags</span>
-              <input
-                className="dvt-tags-input"
-                type="text"
-                value={deckTags}
-                onChange={e => setDeckTags(e.target.value)}
-                placeholder="tag1,tag2,…"
-              />
+              <div className="editor-filter-pills">
+                {ASPECT_LIST.map(asp => {
+                  const color = getFactionColor(asp);
+                  const isActive = deckAspect === asp;
+                  return (
+                    <button
+                      key={asp}
+                      className={`editor-faction-btn${isActive ? ' editor-faction-btn--active' : ''}`}
+                      style={{
+                        '--fac-color': color,
+                        borderColor: isActive ? color : `${color}55`,
+                        background: isActive ? color : `${color}18`,
+                        color: isActive ? '#fff' : `${color}cc`,
+                      }}
+                      onClick={() => setDeckAspect(prev => prev === asp ? null : asp)}
+                    >{ASPECT_LABELS[asp]}</button>
+                  );
+                })}
+              </div>
             </div>
 
             {/* Show Unauthorized Cards */}
