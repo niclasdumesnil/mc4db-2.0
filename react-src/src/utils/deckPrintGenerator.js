@@ -160,9 +160,9 @@ function sectionLabel(key, sortByFaction, locale) {
 // ── Two-column card renderer ───────────────────────────────────────────────
 function drawCardColumns(ctx, groups, locale, sortByFaction, cardsTop, W) {
   // bigger font sizes (matching Python --bigger flag)
-  const TYPE_SIZE = 56;
-  const MAIN_SIZE = 48;
-  const PACK_SIZE = 42;
+  const TYPE_SIZE = 50;
+  const MAIN_SIZE = 43;
+  const PACK_SIZE = 38;
 
   const COL_X = [80, W / 2 + 20];
   const COL_W = (W - 160) / 2 - 40;
@@ -182,15 +182,21 @@ function drawCardColumns(ctx, groups, locale, sortByFaction, cardsTop, W) {
     const label    = sectionLabel(key, sortByFaction, locale);
     const header   = `${label} (${totalQty})`;
 
-    // Section header + underline
+    // Section header + underline (wrapped if too long)
     ctx.font         = `bold ${TYPE_SIZE}px Arial, sans-serif`;
     ctx.fillStyle    = '#000000';
     ctx.textAlign    = 'left';
     ctx.textBaseline = 'top';
-    ctx.fillText(header, COL_X[col], y[col]);
-    const hW = ctx.measureText(header).width;
-    ctx.fillRect(COL_X[col], y[col] + TYPE_SIZE + 2, hW, 3);
-    y[col] += TYPE_SIZE + 18;
+    const headerLines = wrapText(ctx, header, COL_W);
+    let maxHW = 0;
+    for (const hLine of headerLines) {
+      ctx.fillText(hLine, COL_X[col], y[col]);
+      const lw = ctx.measureText(hLine).width;
+      if (lw > maxHW) maxHW = lw;
+      y[col] += TYPE_SIZE + 4;
+    }
+    ctx.fillRect(COL_X[col], y[col], maxHW, 3);
+    y[col] += 14;
 
     for (const card of cards) {
       const fKey  = (card.faction_code || '').toLowerCase();
@@ -224,25 +230,6 @@ function drawCardColumns(ctx, groups, locale, sortByFaction, cardsTop, W) {
         y[col] += MAIN_SIZE + 6;
       }
 
-      // Pack name (italic, smaller) — inline if space allows
-      if (card.pack_name) {
-        const packText = `(${card.pack_name})`;
-        ctx.font = `italic ${PACK_SIZE}px Arial, sans-serif`;
-        ctx.fillStyle = '#282828';
-        const packW = ctx.measureText(packText).width;
-
-        ctx.font = `${MAIN_SIZE}px Arial, sans-serif`;
-        const lastW = ctx.measureText(lines[lines.length - 1] || '').width;
-
-        ctx.font = `italic ${PACK_SIZE}px Arial, sans-serif`;
-        if (lastW + packW + 8 > maxW) {
-          ctx.fillText(packText, txtX, y[col]);
-          y[col] += PACK_SIZE + 6;
-        } else {
-          ctx.fillText(packText, txtX + lastW + 8, y[col] - MAIN_SIZE - 6);
-        }
-      }
-
       y[col] += 6;
     }
     y[col] += 30;
@@ -255,75 +242,71 @@ async function buildCanvas(deck, slots, locale, sortByFaction) {
   const H = 2150;
 
   // bigger sizes
-  const TITLE_SIZE    = 72;
-  const SMALL_SIZE    = 28;
+  const TITLE_SIZE    = 65;
+  const SMALL_SIZE    = 25;
   const LINE_H_TITLE  = TITLE_SIZE + 8;
   const TITLE_PAD     = 10;
   const TOTAL_TITLE_H = LINE_H_TITLE * 2 + 2 * TITLE_PAD;
 
-  const PORTRAIT_W   = 360;
-  const PORTRAIT_H   = 165;
-  const TITLE_MARGIN = 60;
-  const titleBoxRight = W - 50 - PORTRAIT_W - 20;
+  const PORTRAIT_W   = 400;
+  const PORTRAIT_H   = TOTAL_TITLE_H;
+  const TITLE_MARGIN = 50;
+  const titleBoxW    = W - TITLE_MARGIN * 2 - PORTRAIT_W - 16;
 
   const canvas = document.createElement('canvas');
   canvas.width  = W;
   canvas.height = H;
   const ctx = canvas.getContext('2d');
 
-  // Background
-  ctx.fillStyle = '#dcdcdc';
+  // Background — white for printer-friendly
+  ctx.fillStyle = '#ffffff';
   ctx.fillRect(0, 0, W, H);
 
-  // Hero portrait
+  // Load portrait
   let portrait = null;
   if (deck.hero_imagesrc) portrait = await loadImage(deck.hero_imagesrc);
-  if (portrait && portrait.naturalWidth) {
-    const sx = Math.round(150 * portrait.naturalWidth  / 540);
-    const sy = Math.round(105 * portrait.naturalHeight / 810);
-    const sw = Math.round(360 * portrait.naturalWidth  / 540);
-    const sh = Math.round(165 * portrait.naturalHeight / 810);
-    const portraitY = TITLE_MARGIN + TOTAL_TITLE_H - PORTRAIT_H + 15;
-    ctx.drawImage(portrait, sx, sy, sw, sh, W - 50 - PORTRAIT_W, portraitY, PORTRAIT_W, PORTRAIT_H);
-  }
 
-  // Shadow + title trapeze
-  const cadre = 15;
-  const lt = [50 + cadre,                TITLE_MARGIN];
-  const rt = [titleBoxRight - cadre,     TITLE_MARGIN];
-  const rb = [titleBoxRight - 20 - cadre, TITLE_MARGIN + TOTAL_TITLE_H];
-  const lb = [70 + cadre,                TITLE_MARGIN + TOTAL_TITLE_H];
+  // ── Title block ────────────────────────────────────────────────────────────
+  const titleBoxX = TITLE_MARGIN;
+  const titleBoxY = TITLE_MARGIN;
 
-  const SH = 14;
-  ctx.fillStyle = '#787878';
-  ctx.beginPath();
-  ctx.moveTo(lt[0] + SH, lt[1] + SH); ctx.lineTo(rt[0] + SH, rt[1] + SH);
-  ctx.lineTo(rb[0] + SH, rb[1] + SH); ctx.lineTo(lb[0] + SH, lb[1] + SH);
-  ctx.closePath(); ctx.fill();
+  // Title box — white fill, black border
+  roundRect(ctx, titleBoxX, titleBoxY, titleBoxW, PORTRAIT_H, 22);
+  ctx.fillStyle = '#ffffff'; ctx.fill();
+  ctx.strokeStyle = '#000000'; ctx.lineWidth = 5;
+  roundRect(ctx, titleBoxX, titleBoxY, titleBoxW, PORTRAIT_H, 22);
+  ctx.stroke();
 
-  ctx.fillStyle = '#ffffff'; ctx.strokeStyle = '#000000'; ctx.lineWidth = 7;
-  ctx.beginPath();
-  ctx.moveTo(lt[0], lt[1]); ctx.lineTo(rt[0], rt[1]);
-  ctx.lineTo(rb[0], rb[1]); ctx.lineTo(lb[0], lb[1]);
-  ctx.closePath(); ctx.fill(); ctx.stroke();
-
-  // Title text
-  const words = deck.name.split(' ');
-  const titleLines = words.length > 1
-    ? [words.slice(0, Math.floor(words.length / 2)).join(' '),
-       words.slice(Math.floor(words.length / 2)).join(' ')]
-    : [deck.name];
-
+  // Title text (black, auto-wrapped)
   ctx.font = `bold ${TITLE_SIZE}px Arial, sans-serif`;
+  const titleMaxW  = titleBoxW - 60;
+  const titleLines = wrapText(ctx, deck.name, titleMaxW);
+  const totalTxtH  = titleLines.length * (TITLE_SIZE + 10);
+  const txtStartY  = titleBoxY + (PORTRAIT_H - totalTxtH) / 2 + (TITLE_SIZE + 10) / 2;
   ctx.fillStyle = '#000000'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-  const titleCX = (lt[0] + rt[0]) / 2;
-  if (titleLines.length === 1) {
-    ctx.fillText(titleLines[0], titleCX, TITLE_MARGIN + TITLE_PAD + LINE_H_TITLE);
-  } else {
-    titleLines.forEach((line, i) => {
-      ctx.fillText(line, titleCX, TITLE_MARGIN + TITLE_PAD + LINE_H_TITLE / 2 + i * LINE_H_TITLE);
-    });
+  const titleCX = titleBoxX + titleBoxW / 2;
+  titleLines.forEach((line, i) => {
+    ctx.fillText(line, titleCX, txtStartY + i * (TITLE_SIZE + 10));
+  });
+
+  // ── Portrait box ──────────────────────────────────────────────────────────
+  const portraitX = titleBoxX + titleBoxW + 16;
+  const portraitY = TITLE_MARGIN;
+
+  if (portrait && portrait.naturalWidth) {
+    ctx.save();
+    roundRect(ctx, portraitX, portraitY, PORTRAIT_W, PORTRAIT_H, 22);
+    ctx.clip();
+    // Show top ~42% of the card (head/bust area)
+    const cropH = Math.round(portrait.naturalHeight * 0.42);
+    ctx.drawImage(portrait, 0, 0, portrait.naturalWidth, cropH, portraitX, portraitY, PORTRAIT_W, PORTRAIT_H);
+    ctx.restore();
   }
+
+  // Portrait border
+  ctx.strokeStyle = '#000000'; ctx.lineWidth = 5;
+  roundRect(ctx, portraitX, portraitY, PORTRAIT_W, PORTRAIT_H, 22);
+  ctx.stroke();
 
   // Cards area
   const cardsTop = Math.max(
@@ -343,7 +326,7 @@ async function buildCanvas(deck, slots, locale, sortByFaction) {
   // Footer watermark
   ctx.font = `${SMALL_SIZE}px Arial, sans-serif`;
   ctx.fillStyle = '#3c3c3c'; ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
-  ctx.fillText('Marvellous decklist tool.', W - 60, cardsTop + cardsH + 20);
+  ctx.fillText('MC4DB decklist tool.', W - 60, cardsTop + cardsH + 20);
 
   return canvas;
 }
