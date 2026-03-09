@@ -728,3 +728,10 @@
   border-radius: 5px;
   padding: 4px 10px;
 }
+
+/* Save-time blocking errors (aspects / limit) */
+.dvt-problem-item--save {
+  color: #f87171;
+  background: rgba(248, 113, 113, 0.08);
+  border-color: rgba(248, 113, 113, 0.25);
+}

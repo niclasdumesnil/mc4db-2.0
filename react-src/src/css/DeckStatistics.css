@@ -1,15 +1,14 @@
-/* ── DeckStatistics panel ─────────────────────────── */
+/* ── DeckStatistics panel — boîte visuelle pour DeckView ─── */
 .deck-stats {
   background: #0f1e35;
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 12px;
-  padding: 20px;
+  overflow: hidden;
   color: #dbeafa;
   font-family: 'Inter', system-ui, sans-serif;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 /* ── Totaux ────────────────────────────────────────── */
@@ -201,4 +200,29 @@
   color: #8a99af;
   font-weight: 600;
   line-height: 1;
+}
+
+/* ── Clickable cost bars ─────────────────────────────────────────────────── */
+
+.ds-cost-col {
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background 0.12s;
+}
+
+.ds-cost-col:hover {
+  background: rgba(59,130,246,0.08);
+}
+
+.ds-cost-bar--active {
+  background: linear-gradient(to top, #f59e0b, #fbbf24) !important;
+}
+
+.ds-cost-col--active .ds-cost-label {
+  color: #fbbf24;
+  font-weight: 700;
+}
+
+.ds-cost-col--active .ds-cost-count {
+  color: #fbbf24;
 }

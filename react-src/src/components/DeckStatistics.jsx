@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import { getFactionColor } from '@utils/dataUtils';
+import '@css/Stories.css';
 import '../css/DeckStatistics.css';
 import '../css/DeckHistory.css';
 
@@ -15,7 +16,7 @@ const RES_ICONS = [
   { key: 'resource_wild',     cls: 'icon-wild',     label: 'Wild'     },
 ];
 
-export default function DeckStatistics({ slots = [], packsRequired }) {
+export default function DeckStatistics({ slots = [], packsRequired, activeCost = null, onCostClick }) {
   const stats = useMemo(() => {
     const regular = slots.filter(s => !s.permanent);
     const totalCards = regular.reduce((n, s) => n + s.quantity, 0);
@@ -77,73 +78,73 @@ export default function DeckStatistics({ slots = [], packsRequired }) {
   }, [slots]);
 
   return (
-    <div className="deck-stats">
-
-      <h4 className="dh-title">Statistics</h4>
+    <div className="set-stats-body">
 
       {/* — Totaux — */}
-      <div className="ds-totals">
-        <div className="ds-total-item">
-          <span className="ds-total-value">{stats.totalCards}</span>
-          <span className="ds-total-label">Cards</span>
+      <div className="set-stats-summary">
+        <div className="set-stats-summary-item">
+          <span className="set-stats-summary-value">{stats.totalCards}</span>
+          <span className="set-stats-summary-label">Cards</span>
         </div>
         {packsRequired != null && (
-          <div className="ds-total-item">
-            <span className="ds-total-value">{packsRequired}</span>
-            <span className="ds-total-label">Packs</span>
+          <div className="set-stats-summary-item">
+            <span className="set-stats-summary-value">{packsRequired}</span>
+            <span className="set-stats-summary-label">Packs</span>
           </div>
         )}
       </div>
 
       {/* — Affinités (Factions) — */}
-      <div className="ds-section">
-        <h4 className="ds-section-title">Affinities</h4>
-        <div className="ds-type-list">
-          {stats.factions.map(({ code, count }) => {
-            const color = getFactionColor(code);
-            const label = FACTION_LABELS[code] || code;
-            return (
-              <div key={code} className="ds-type-row">
-                <div className="ds-faction-label">
-                  <span className="ds-faction-dot" style={{ background: color }} />
-                  <span className="ds-type-name">{label}</span>
-                </div>
-                <div className="ds-type-bar-wrap">
-                  <div
-                    className="ds-type-bar"
-                    style={{ width: `${Math.round((count / stats.totalCards) * 100)}%`, background: color }}
-                  />
-                </div>
-                <span className="ds-type-count">{count}</span>
-              </div>
-            );
-          })}
-        </div>
+      <div className="set-stats-section">
+        <p className="set-stats-section-title">Affinities</p>
+        <table className="set-stats-table">
+          <tbody>
+            {stats.factions.map(({ code, count }) => {
+              const color = getFactionColor(code);
+              const label = FACTION_LABELS[code] || code;
+              return (
+                <tr key={code}>
+                  <td className="set-stats-type-label">
+                    <span style={{ display: 'inline-block', width: 8, height: 8, borderRadius: '50%', background: color, marginRight: 6, flexShrink: 0 }} />
+                    {label}
+                  </td>
+                  <td className="set-stats-bar-cell">
+                    <div className="set-stat-bar-bg">
+                      <div className="set-stat-bar-fill" style={{ width: `${Math.round((count / stats.totalCards) * 100)}%`, background: color }} />
+                    </div>
+                  </td>
+                  <td className="set-stats-count-cell">{count}/{stats.totalCards}</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
       </div>
 
       {/* — Types — */}
-      <div className="ds-section">
-        <h4 className="ds-section-title">Card Types</h4>
-        <div className="ds-type-list">
-          {stats.types.map(({ name, count }) => (
-            <div key={name} className="ds-type-row">
-              <span className="ds-type-name">{name}</span>
-              <div className="ds-type-bar-wrap">
-                <div
-                  className="ds-type-bar"
-                  style={{ width: `${Math.round((count / stats.totalCards) * 100)}%` }}
-                />
-              </div>
-              <span className="ds-type-count">{count}</span>
-            </div>
-          ))}
-        </div>
+      <div className="set-stats-section">
+        <p className="set-stats-section-title">Card Types</p>
+        <table className="set-stats-table">
+          <tbody>
+            {stats.types.map(({ name, count }) => (
+              <tr key={name}>
+                <td className="set-stats-type-label">{name}</td>
+                <td className="set-stats-bar-cell">
+                  <div className="set-stat-bar-bg">
+                    <div className="set-stat-bar-fill" style={{ width: `${Math.round((count / stats.totalCards) * 100)}%` }} />
+                  </div>
+                </td>
+                <td className="set-stats-count-cell">{count}/{stats.totalCards}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
 
       {/* — Ressources — */}
       {stats.totalRes > 0 && (
-        <div className="ds-section">
-          <h4 className="ds-section-title">Resources</h4>
+        <div className="set-stats-section">
+          <p className="set-stats-section-title">Resources</p>
           <div className="ds-res-row">
             {RES_ICONS.map(({ key, cls, label }) =>
               stats.resMap[key] > 0 ? (
@@ -159,22 +160,33 @@ export default function DeckStatistics({ slots = [], packsRequired }) {
 
       {/* — Courbe de coût — */}
       {stats.costEntries.length > 0 && (
-        <div className="ds-section">
-          <h4 className="ds-section-title">
+        <div className="set-stats-section">
+          <p className="set-stats-section-title">
             Cost Curve
             {stats.avgCost != null && <span className="ds-avg-cost">avg {stats.avgCost}</span>}
-          </h4>
+          </p>
           <div className="ds-cost-chart">
-            {stats.costEntries.map(({ cost, count }) => (
-              <div key={cost} className="ds-cost-col">
-                <span className="ds-cost-count">{count}</span>
+            {stats.costEntries.map(({ cost, count }) => {
+              const isActive = String(cost) === String(activeCost);
+              return (
                 <div
-                  className="ds-cost-bar"
-                  style={{ height: `${Math.round((count / stats.maxCostCount) * 60)}px` }}
-                />
-                <span className="ds-cost-label">{cost}</span>
-              </div>
-            ))}
+                  key={cost}
+                  className={['ds-cost-col', isActive ? 'ds-cost-col--active' : ''].filter(Boolean).join(' ')}
+                  onClick={() => onCostClick && onCostClick(String(cost))}
+                  role={onCostClick ? 'button' : undefined}
+                  tabIndex={onCostClick ? 0 : undefined}
+                  onKeyDown={e => e.key === 'Enter' && onCostClick && onCostClick(String(cost))}
+                  title={onCostClick ? `Filter by cost ${cost}` : undefined}
+                >
+                  <span className="ds-cost-count">{count}</span>
+                  <div
+                    className={['ds-cost-bar', isActive ? 'ds-cost-bar--active' : ''].filter(Boolean).join(' ')}
+                    style={{ height: `${Math.round((count / stats.maxCostCount) * 60)}px` }}
+                  />
+                  <span className="ds-cost-label">{cost}</span>
+                </div>
+              );
+            })}
           </div>
         </div>
       )}

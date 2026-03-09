@@ -286,6 +286,12 @@ export default forwardRef(function DeckEditor(
     return allCards.find(c => c.code === heroCode) || null;
   }, [allCards, deck?.hero_code]);
 
+  // --- cardMap stable (ne dépend que de allCards, pas du deck state) ---
+  const allCardsMap = useMemo(
+    () => Object.fromEntries(allCards.map(c => [c.code, c])),
+    [allCards]
+  );
+
   // --- FILTRAGE (exclut les cartes rencontre + règles de deck-building) ---
   const filteredCards = useMemo(() => {
     return allCards.filter(card => {
@@ -296,14 +302,8 @@ export default forwardRef(function DeckEditor(
         if (!(filters.showAltArt && card.alt_art)) return false;
       }
 
-      // Validation règles de deck-building (affinité, team-up, deck_options)
-      // Les cartes non valides sont masquées sauf si showUnauthorized est actif
-      if (!showUnauthorized) {
-        if (!canIncludeCard(card, heroCard, deckAspect || null, deckState.main, allCards)) {
-          return false;
-        }
-      }
-
+      // Filtres légers (statiques) en premier — réduisent le nb de cartes
+      // avant d'appeler canIncludeCard (coûteux quand deck_options avec limites)
       // Filtre bibliothèque par affinité
       if (selectedFaction && card.faction_code?.toLowerCase() !== selectedFaction) return false;
       // Type
@@ -329,6 +329,15 @@ export default forwardRef(function DeckEditor(
       if (resFilter.physical > 0 && (card.resource_physical || 0) < resFilter.physical) return false;
       if (resFilter.mental   > 0 && (card.resource_mental   || 0) < resFilter.mental)   return false;
       if (resFilter.wild     > 0 && (card.resource_wild     || 0) < resFilter.wild)     return false;
+
+      // Validation règles de deck-building (affinité, team-up, deck_options)
+      // Appelée en dernier : dépend du deck state et peut itérer les slots
+      if (!showUnauthorized) {
+        if (!canIncludeCard(card, heroCard, deckAspect || null, deckState.main, allCards, allCardsMap)) {
+          return false;
+        }
+      }
+
       return true;
     }).sort((a, b) => {
       if (sortBy === 'cost') {

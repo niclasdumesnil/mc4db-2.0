@@ -4,7 +4,7 @@ import DeckStatistics from '@components/DeckStatistics';
 import DeckHistory from '@components/DeckHistory';
 import DeckEditor from '@components/DeckEditor';
 import { getFactionColor } from '@utils/dataUtils';
-import { getDeckProblems, getInvalidCodes, inferDeckAspect } from '@utils/deckValidation';
+import { getDeckProblems, getSaveProblems, getInvalidCodes, inferDeckAspect } from '@utils/deckValidation';
 import '@css/DeckView.css';
 
 const ASPECT_LIST = ['aggression', 'justice', 'leadership', 'protection', 'determination'];
@@ -41,6 +41,7 @@ export default function DeckView() {
   const [showUnauthorized, setShowUnauthorized] = useState(false);
   const [heroCard, setHeroCard] = useState(null);
   const [validationCards, setValidationCards] = useState([]);
+  const [saveProblems, setSaveProblems] = useState([]); // problèmes vérifiés uniquement à la sauvegarde
   const editorRef = useRef(null);
   const [locale, setLocale] = useState(
     () => localStorage.getItem('mc_locale') || window.__MC_LOCALE__ || 'en'
@@ -74,6 +75,8 @@ export default function DeckView() {
     if (inferred && inferred !== deckAspect) {
       setDeckAspect(inferred);
     }
+    // Clear save-time problems when the deck content changes
+    setSaveProblems([]);
   }, [liveSlots, validationCards]);
 
   // Compute invalid card codes for DeckContent highlighting
@@ -277,6 +280,15 @@ export default function DeckView() {
                     onClick={async () => {
                       setSaving(true); setSaveError(null);
                       try {
+                        // Check save-only constraints (aspects, limit)
+                        const currentSlots = liveSlots ?? deck?.slots ?? [];
+                        const slotsMap = Object.fromEntries(currentSlots.filter(s => s.quantity > 0).map(s => [s.code, s.quantity]));
+                        const sp = getSaveProblems(slotsMap, heroCard, validationCards);
+                        if (sp.length > 0) {
+                          setSaveProblems(sp);
+                          setSaving(false);
+                          return;
+                        }
                         const titleToSave = (liveTitle ?? deck?.name ?? '').trim() || undefined;
                         const metaToSave = { aspect: deckAspect || undefined };
                         await editorRef.current?.save({
@@ -289,7 +301,7 @@ export default function DeckView() {
                       finally { setSaving(false); }
                     }}
                   >{saving ? 'Saving…' : 'Save'}</button>
-                  <button className="deck-view-cancel-btn" onClick={() => { setShowEditor(false); setLiveSlots(null); setLiveSideSlots(null); setSaveError(null); setLiveTitle(null); }}>Cancel</button>
+                  <button className="deck-view-cancel-btn" onClick={() => { setShowEditor(false); setLiveSlots(null); setLiveSideSlots(null); setSaveError(null); setLiveTitle(null); setSaveProblems([]); }}>Cancel</button>
                 </>
               )}
             </div>
@@ -366,10 +378,13 @@ export default function DeckView() {
         )}
 
         {/* Problèmes de validation (non-bloquants) */}
-        {deckProblems.length > 0 && (
+        {(deckProblems.length > 0 || saveProblems.length > 0) && (
           <div className="dvt-problems">
             {deckProblems.map((p, i) => (
-              <div key={i} className="dvt-problem-item">⚠ {p}</div>
+              <div key={`dp-${i}`} className="dvt-problem-item">⚠ {p}</div>
+            ))}
+            {saveProblems.map((p, i) => (
+              <div key={`sp-${i}`} className="dvt-problem-item dvt-problem-item--save">🚫 {p}</div>
             ))}
           </div>
         )}
@@ -393,7 +408,9 @@ export default function DeckView() {
         </div>
         {!showEditor && (
           <div className="deck-view-right">
-            <DeckStatistics slots={liveSlots ?? deck.slots ?? []} packsRequired={deck.packs_required} />
+            <div className="deck-stats">
+              <DeckStatistics slots={liveSlots ?? deck.slots ?? []} packsRequired={deck.packs_required} />
+            </div>
           </div>
         )}
         {!showEditor && (

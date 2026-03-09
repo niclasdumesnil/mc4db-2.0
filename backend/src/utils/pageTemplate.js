@@ -32,6 +32,7 @@ function renderSharedHeader() {
     <div style="flex:1"></div>
     <a href="/" style="color:#cfe6ff;text-decoration:none;margin-right:4px;">Home</a>
     <a href="/card-list" style="color:#cfe6ff;text-decoration:none;margin-right:4px;">Cards</a>
+    <a href="/sets" style="color:#cfe6ff;text-decoration:none;margin-right:4px;">Sets</a>
     <a href="/decklists" style="color:#cfe6ff;text-decoration:none;margin-right:4px;">Public Decks</a>
     <a id="mc-my-decks-link" href="/my-decks" style="color:#cfe6ff;text-decoration:none;margin-right:4px;display:none;">My Decks</a>
     <a id="mc-dashboard-link" href="/dashboard" style="color:#cfe6ff;text-decoration:none;margin-right:4px;display:none;">Dashboard</a>

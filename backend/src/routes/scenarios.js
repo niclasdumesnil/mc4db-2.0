@@ -157,4 +157,90 @@ router.get('/cardsets', async (req, res, next) => {
   }
 });
 
+/**
+ * GET /api/public/sets
+ * Returns all card sets grouped by type (hero, villain, modular, standard, expert)
+ * and by creator (official vs fan-made).
+ * Nemesis sets are excluded from the main lists but their codes are annotated
+ * on their parent hero set via `nemesis_code`.
+ *
+ * Query params:
+ *   user_id — optional; donators see private sets
+ */
+router.get('/sets', async (req, res, next) => {
+  try {
+    const db = require('../config/database');
+    const { isUserDonator } = require('../utils/donatorUtils');
+    const { user_id } = req.query;
+    const donator = await isUserDonator(user_id);
+
+    // Query all cardsets that have at least one card, with pack creator info.
+    // Use MIN() instead of ANY_VALUE() for compatibility with older MySQL versions.
+    const rows = await db('cardset as cs')
+      .leftJoin('cardsettype as ct', 'cs.cardset_type', 'ct.id')
+      .leftJoin('card as c', 'c.set_id', 'cs.id')
+      .leftJoin('pack as p', 'c.pack_id', 'p.id')
+      .groupBy('cs.id', 'cs.code', 'cs.name', 'cs.parent_code', 'ct.code', 'ct.name')
+      .havingRaw('COUNT(c.id) > 0')
+      .select(
+        'cs.id',
+        'cs.code',
+        'cs.name',
+        'cs.parent_code',
+        db.raw('MIN(ct.code) as type_code'),
+        db.raw('MIN(ct.name) as type_name'),
+        db.raw('MAX(p.creator) as creator'),
+        db.raw('MAX(p.visibility) as visibility'),
+        db.raw('COUNT(DISTINCT c.id) as card_count')
+      )
+      .orderBy('cs.name', 'asc');
+
+    // Non-donators cannot see sets from private packs
+    const visible = donator
+      ? rows
+      : rows.filter(r => (r.visibility || 'true') !== 'false');
+
+    // Build nemesis map: hero_set_code → nemesis_set_code
+    const nemesisMap = {};
+    for (const row of visible) {
+      if ((row.type_code || '').toLowerCase() === 'nemesis' && row.parent_code) {
+        nemesisMap[row.parent_code] = row.code;
+      }
+    }
+
+    // Types to include in the main groups (nemesis handled separately)
+    const INCLUDED_TYPES = ['hero', 'villain', 'modular', 'standard', 'expert'];
+
+    const result = {
+      official: { hero: [], villain: [], modular: [], standard: [], expert: [] },
+      fanmade:  { hero: [], villain: [], modular: [], standard: [], expert: [] },
+    };
+
+    for (const row of visible) {
+      const typeCode = (row.type_code || '').toLowerCase();
+      if (typeCode === 'nemesis') continue; // skip — attached to hero sets
+      if (!INCLUDED_TYPES.includes(typeCode)) continue;
+
+      // NULL creator means official (FFG)
+      const isOfficial = !row.creator;
+      const group = isOfficial ? 'official' : 'fanmade';
+
+      result[group][typeCode].push({
+        id: row.id,
+        code: row.code,
+        name: row.name,
+        type_code: row.type_code,
+        type_name: row.type_name,
+        nemesis_code: nemesisMap[row.code] || null,
+        creator: row.creator || 'FFG',
+        card_count: Number(row.card_count) || 0,
+      });
+    }
+
+    res.json(result);
+  } catch (err) {
+    next(err);
+  }
+});
+
 module.exports = router;

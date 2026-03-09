@@ -10,6 +10,16 @@
 /** Factions that are NOT aspects (always neutral / exempt from the single-aspect rule) */
 const NON_ASPECT_FACTIONS = new Set(['basic', 'hero', 'campaign', 'encounter']);
 
+/**
+ * Normalize deck_requirements to always be an array of requirement objects.
+ * The field can be either a plain object or an array depending on the data source.
+ */
+function normalizeDeckReqs(heroCard) {
+  const dr = heroCard?.deck_requirements;
+  if (!dr) return [];
+  return Array.isArray(dr) ? dr : [dr];
+}
+
 // ── Team-Up helpers ──────────────────────────────────────────────────────────
 
 /**
@@ -42,7 +52,7 @@ export function isTeamUpCard(card) {
  *
  * Note: `not` handling is done at a higher level; this function ignores it.
  */
-function checkOption(option, card, deckSlotsMap, allCards) {
+function checkOption(option, card, deckSlotsMap, allCards, prebuiltCardMap = null) {
   // faction check
   if (option.faction && option.faction.length > 0) {
     const fc  = (card.faction_code  || '').toLowerCase();
@@ -114,11 +124,11 @@ function checkOption(option, card, deckSlotsMap, allCards) {
     deckSlotsMap &&
     allCards
   ) {
-    const cardMap = Object.fromEntries(allCards.map(c => [c.code, c]));
+    const _cm = prebuiltCardMap || Object.fromEntries(allCards.map(c => [c.code, c]));
     const aspects = new Set();
     for (const [code, qty] of Object.entries(deckSlotsMap)) {
       if (!qty) continue;
-      const c = cardMap[code];
+      const c = _cm[code];
       if (!c) continue;
       const f = (c.faction_code || '').toLowerCase();
       if (f && !NON_ASPECT_FACTIONS.has(f)) aspects.add(f);
@@ -139,9 +149,9 @@ function checkOption(option, card, deckSlotsMap, allCards) {
  * cards of the deck's own aspect are excluded from the count — the limit
  * applies only to off-aspect cards (e.g. Gamora's attack/thwart events).
  */
-function countOptionMatches(option, deckSlotsMap, allCards, heroCard, deckAspect = null) {
+function countOptionMatches(option, deckSlotsMap, allCards, heroCard, deckAspect = null, prebuiltCardMap = null) {
   if (!deckSlotsMap || !allCards) return 0;
-  const cardMap = Object.fromEntries(allCards.map(c => [c.code, c]));
+  const cardMap = prebuiltCardMap || Object.fromEntries(allCards.map(c => [c.code, c]));
   const heroSetCode = heroCard?.card_set_code || null;
   const optNoLimit = { ...option, limit: undefined };
   // Faction-unrestricted options (like Gamora's): limit only counts off-aspect cards
@@ -159,9 +169,37 @@ function countOptionMatches(option, deckSlotsMap, allCards, heroCard, deckAspect
       const cf2 = (c.faction2_code || '').toLowerCase();
       if (cf === deckAspect || (cf2 && cf2 === deckAspect)) continue;
     }
-    if (checkOption(optNoLimit, c, deckSlotsMap, allCards)) count += qty;
+    if (checkOption(optNoLimit, c, deckSlotsMap, allCards, cardMap)) count += qty;
   }
   return count;
+}
+
+/**
+ * Count how many DISTINCT canonical card names in the deck satisfy an option's conditions.
+ * Used to enforce `name_limit` constraints (max N differently-named off-aspect cards).
+ */
+function countOptionNameMatches(option, deckSlotsMap, allCards, heroCard, deckAspect = null, prebuiltCardMap = null) {
+  if (!deckSlotsMap || !allCards) return 0;
+  const cardMap = prebuiltCardMap || Object.fromEntries(allCards.map(c => [c.code, c]));
+  const heroSetCode = heroCard?.card_set_code || null;
+  const optStripped = { ...option, limit: undefined, name_limit: undefined };
+  const limitIsOffAspectOnly = deckAspect && !(option.faction && option.faction.length > 0);
+  const names = new Set();
+  for (const [code, qty] of Object.entries(deckSlotsMap)) {
+    if (!qty) continue;
+    const c = cardMap[code];
+    if (!c) continue;
+    if (heroSetCode && c.card_set_code === heroSetCode) continue;
+    if (limitIsOffAspectOnly) {
+      const cf  = (c.faction_code  || '').toLowerCase();
+      const cf2 = (c.faction2_code || '').toLowerCase();
+      if (cf === deckAspect || (cf2 && cf2 === deckAspect)) continue;
+    }
+    if (checkOption(optStripped, c, deckSlotsMap, allCards, cardMap)) {
+      names.add(c.duplicate_of_code || code);
+    }
+  }
+  return names.size;
 }
 // ── Main validation function ─────────────────────────────────────────────────
 
@@ -181,7 +219,8 @@ export function canIncludeCard(
   heroCard,
   deckAspect,
   deckSlotsMap = {},
-  allCards = []
+  allCards = [],
+  prebuiltCardMap = null
 ) {
   // 1. Always exclude hero-type cards (they live in heroSpecialCards)
   if (card.type_code === 'hero') return false;
@@ -198,12 +237,55 @@ export function canIncludeCard(
   // 4. Cards that belong to ANY other hero's special set are always blocked
   if (cardSetCode) return false;
 
-  // 5. Basic faction always allowed
+  // 4.5. deck_requirements type_limit / faction_limit – permanent hard filters
+  //      e.g. { "type_limit": { "ally": 0 } } → ally cards always blocked
+  //           { "faction_limit": { "basic": 0 } } → basic cards always blocked
+  const dreqs = normalizeDeckReqs(heroCard);
+  if (dreqs.some(r => r.type_limit || r.faction_limit)) {
+    // Build cardMap lazily (reuse prebuiltCardMap when available)
+    let _dreqMap = null;
+    const getDreqMap = () => { if (!_dreqMap) _dreqMap = prebuiltCardMap || Object.fromEntries(allCards.map(c => [c.code, c])); return _dreqMap; };
+    for (const req of dreqs) {
+      if (req.type_limit) {
+        for (const [type, maxAllowed] of Object.entries(req.type_limit)) {
+          if ((card.type_code || '').toLowerCase() === type.toLowerCase()) {
+            const cm = getDreqMap();
+            let currentCount = 0;
+            for (const [code, qty] of Object.entries(deckSlotsMap)) {
+              if (!qty) continue;
+              const c = cm[code];
+              if (c && (c.type_code || '').toLowerCase() === type.toLowerCase()) currentCount += qty;
+            }
+            if (currentCount >= maxAllowed) return false;
+          }
+        }
+      }
+      if (req.faction_limit) {
+        for (const [faction, maxAllowed] of Object.entries(req.faction_limit)) {
+          const cardFc = (card.faction_code || '').toLowerCase();
+          if (cardFc === faction.toLowerCase()) {
+            const cm = getDreqMap();
+            let currentCount = 0;
+            for (const [code, qty] of Object.entries(deckSlotsMap)) {
+              if (!qty) continue;
+              const c = cm[code];
+              if (c && (c.faction_code || '').toLowerCase() === faction.toLowerCase()) currentCount += qty;
+            }
+            if (currentCount >= maxAllowed) return false;
+          }
+        }
+      }
+    }
+  }
+
+  // 5. Basic faction: allowed, EXCEPT for Team-Up cards (handled by step 6)
   const fc  = (card.faction_code  || '').toLowerCase();
   const fc2 = (card.faction2_code || '').toLowerCase();
-  if (fc === 'basic') return true;
+  if (fc === 'basic' && !isTeamUpCard(card)) return true;
 
-  // 6. Team-Up check – only allow if the hero is one of the named characters
+  // 6. Team-Up check – only allow if the hero is one of the named characters.
+  //    Applies to ALL factions (including basic) so that basic Team-Up events
+  //    are restricted to decks whose hero is listed in the card text.
   if (isTeamUpCard(card)) {
     const teamHeroes = parseTeamUpHeroes(card.text || card.real_text || '');
     if (teamHeroes.length > 0) {
@@ -215,6 +297,8 @@ export function canIncludeCard(
       });
       if (!heroMatches) return false;
     }
+    // Hero matches (or no heroes listed) → basic team-up card is allowed
+    if (fc === 'basic') return true;
   }
 
   // 7. Deck-options based validation (mirrors app.deck.js can_include_card)
@@ -233,11 +317,27 @@ export function canIncludeCard(
     // Helper: test option + enforce its limit (if any)
     // countOptionMatches counts all matching cards already IN the deck (including the card
     // being tested). So the comparison must be strictly ">" — at exactly the limit is valid.
+    //
+    // _cardMap is built lazily (once per canIncludeCard call) only when a limit check is needed.
+    let _cardMap = null;
+    const getCardMap = () => { if (!_cardMap) _cardMap = prebuiltCardMap || Object.fromEntries(allCards.map(c => [c.code, c])); return _cardMap; };
     const optionAllows = (option) => {
       if (!checkOption(option, card, deckSlotsMap, allCards)) return false;
       if (option.limit !== undefined && option.limit !== null) {
-        const used = countOptionMatches(option, deckSlotsMap, allCards, heroCard, deckAspect);
+        const used = countOptionMatches(option, deckSlotsMap, allCards, heroCard, deckAspect, getCardMap());
         if (used > option.limit) return false;
+      }
+      if (option.name_limit !== undefined && option.name_limit !== null) {
+        const cm = getCardMap();
+        const usedNames = countOptionNameMatches(option, deckSlotsMap, allCards, heroCard, deckAspect, cm);
+        const cardCanonical = card.duplicate_of_code || card.code;
+        // Adding this card only adds a new distinct name if it's not yet in the deck
+        const nameAlreadyInDeck = Object.keys(deckSlotsMap).some(code => {
+          if (!deckSlotsMap[code]) return false;
+          const c = cm[code];
+          return c && (c.duplicate_of_code || c.code) === cardCanonical;
+        });
+        if (!nameAlreadyInDeck && usedNames >= option.name_limit) return false;
       }
       return true;
     };
@@ -323,7 +423,7 @@ export function getInvalidCodes(slotsMap, heroCard, allCards, deckAspect) {
     if (!qty) continue;
     const card = cardMap[code];
     if (!card) continue;
-    if (!canIncludeCard(card, heroCard, deckAspect, slotsMap, allCards)) {
+    if (!canIncludeCard(card, heroCard, deckAspect, slotsMap, allCards, cardMap)) {
       invalid.add(code);
     }
   }
@@ -391,16 +491,50 @@ export function getDeckProblems(slotsMap, heroCard, allCards, deckAspect) {
   // ── Option limits (e.g. Gamora: max 6 attack/thwart events) ──
   if (heroCard?.deck_options) {
     for (const option of heroCard.deck_options) {
-      if (option.not || option.limit === undefined || option.limit === null) continue;
-      const used = countOptionMatches(option, slotsMap, allCards, heroCard, deckAspect);
-      if (used > option.limit) {
-        // Build a human-readable description of the option
-        const parts = [];
-        if (option.type)  parts.push(option.type.join('/'));
-        if (option.trait) parts.push(`[${option.trait.join('/')}]`);
-        if (option.faction) parts.push(option.faction.join('/'));
-        const desc = parts.length ? parts.join(' ') : 'cards';
-        problems.push(`Too many ${desc}: ${used}/${option.limit} allowed`);
+      if (option.not) continue;
+      const parts = [];
+      if (option.type)  parts.push(option.type.join('/'));
+      if (option.trait) parts.push(`[${option.trait.join('/')}]`);
+      if (option.faction) parts.push(option.faction.join('/'));
+      const desc = parts.length ? parts.join(' ') : 'cards';
+
+      // limit: max total quantity of matching off-aspect cards
+      if (option.limit !== undefined && option.limit !== null) {
+        const used = countOptionMatches(option, slotsMap, allCards, heroCard, deckAspect, cardMap);
+        if (used > option.limit) {
+          problems.push(`Too many ${desc}: ${used}/${option.limit} allowed`);
+        }
+      }
+
+      // name_limit: max number of distinct card names among matching off-aspect cards
+      if (option.name_limit !== undefined && option.name_limit !== null) {
+        const usedNames = countOptionNameMatches(option, slotsMap, allCards, heroCard, deckAspect, cardMap);
+        if (usedNames > option.name_limit) {
+          problems.push(`Too many distinct ${desc} names: ${usedNames}/${option.name_limit} allowed`);
+        }
+      }
+
+      // use_deck_limit: each matching off-aspect card must be included at its full deck_limit quantity
+      if (option.use_deck_limit) {
+        const heroSetCode2 = heroCard?.card_set_code || null;
+        const optStripped = { ...option, limit: undefined, name_limit: undefined, use_deck_limit: undefined };
+        for (const [code, qty] of Object.entries(slotsMap || {})) {
+          if (!qty) continue;
+          const c = cardMap[code];
+          if (!c) continue;
+          if (heroSetCode2 && c.card_set_code === heroSetCode2) continue;
+          // Only check own-aspect exclusion for faction-unrestricted options
+          if (deckAspect && !(option.faction && option.faction.length > 0)) {
+            const cf  = (c.faction_code  || '').toLowerCase();
+            const cf2 = (c.faction2_code || '').toLowerCase();
+            if (cf === deckAspect || (cf2 && cf2 === deckAspect)) continue;
+          }
+          if (!checkOption(optStripped, c, slotsMap, allCards, cardMap)) continue;
+          const required = c.deck_limit ?? 3;
+          if (qty !== required) {
+            problems.push(`"${c.name}" must be included at its deck limit (${required} copies)`);
+          }
+        }
       }
     }
   }
@@ -433,13 +567,69 @@ export function getDeckProblems(slotsMap, heroCard, allCards, deckAspect) {
     problems.push(`Invalid cards: ${names.join(', ')}${extra}`);
   }
 
-  // ── Required cards (deck_requirements) ──
-  if (heroCard?.deck_requirements?.card) {
-    const reqs = heroCard.deck_requirements.card;
-    for (const [, possible] of Object.entries(reqs)) {
+  // ── Required cards (deck_requirements.card) ──
+  for (const req of normalizeDeckReqs(heroCard)) {
+    if (!req.card) continue;
+    for (const [, possible] of Object.entries(req.card)) {
       const found = Object.keys(possible).some(code => (slotsMap[code] || 0) > 0);
-      if (!found) {
-        problems.push('Missing a required card');
+      if (!found) problems.push('Missing a required card');
+    }
+  }
+
+  return problems;
+}
+
+/**
+ * Validate deck_requirements rules that are only checked at save time:
+ *   - `limit`   : max copies of any single card
+ *   - `aspects` : exact number of aspects + equal card distribution per aspect
+ *
+ * Returns an array of human-readable problem strings (empty = valid).
+ */
+export function getSaveProblems(slotsMap, heroCard, allCards) {
+  const problems = [];
+  const cardMap = Object.fromEntries((allCards || []).map(c => [c.code, c]));
+
+  // Build canonicalQty (same as getDeckProblems)
+  const canonicalQty = {};
+  for (const [code, qty] of Object.entries(slotsMap || {})) {
+    if (!qty) continue;
+    const card = cardMap[code];
+    if (!card || card.permanent) continue;
+    const canonical = card.duplicate_of_code || code;
+    const name = cardMap[canonical]?.name || card.name || canonical;
+    if (!canonicalQty[canonical]) canonicalQty[canonical] = { total: 0, name };
+    canonicalQty[canonical].total += qty;
+  }
+
+  for (const req of normalizeDeckReqs(heroCard)) {
+    // limit: max copies of any single card
+    if (req.limit !== undefined && req.limit !== null) {
+      for (const { total, name } of Object.values(canonicalQty)) {
+        if (total > req.limit) {
+          problems.push(`Too many copies of "${name}": ${total}/${req.limit} allowed`);
+        }
+      }
+    }
+
+    // aspects: must use exactly N aspects with equal card counts
+    if (req.aspects !== undefined && req.aspects !== null) {
+      const aspectCounts = {};
+      for (const [code, qty] of Object.entries(slotsMap || {})) {
+        if (!qty) continue;
+        const c = cardMap[code];
+        if (!c) continue;
+        const f = (c.faction_code || '').toLowerCase();
+        if (f && !NON_ASPECT_FACTIONS.has(f)) aspectCounts[f] = (aspectCounts[f] || 0) + qty;
+      }
+      const usedAspects = Object.keys(aspectCounts);
+      if (usedAspects.length !== req.aspects) {
+        problems.push(`Must use exactly ${req.aspects} aspect(s) (currently ${usedAspects.length})`);
+      } else if (req.aspects > 1) {
+        const counts = Object.values(aspectCounts);
+        if (!counts.every(v => v === counts[0])) {
+          problems.push(`Each aspect must have the same number of cards`);
+        }
       }
     }
   }

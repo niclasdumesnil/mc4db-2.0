@@ -71,7 +71,7 @@ function CostCell({ cost }) {
  *   sort    — current sort key
  *   onSort  — callback(newSort) when a column header is clicked
  */
-export default function CardListDisplay({ cards, mode = 'checklist', sort, onSort }) {
+export default function CardListDisplay({ cards, mode = 'checklist', sort, onSort, onCardNameClick }) {
   const locale = localStorage.getItem('mc_locale') || window.__MC_LOCALE__ || 'en';
   const langDir = locale.toUpperCase() === 'FR' ? 'FR' : 'EN';
   if (!cards || cards.length === 0) return null;
@@ -99,12 +99,16 @@ export default function CardListDisplay({ cards, mode = 'checklist', sort, onSor
                   <div className="cl-card-name">
                     <FactionDot card={card} />
                     {card.is_unique ? <span className="icon-unique cl-unique-icon" title="Unique" /> : null}
-                    <a href={`/card/${card.code}`} className="card-tip" data-code={card.code}>{card.name}</a>
-                    {card.visibility === 'false' && <span className="mc-badge mc-badge-private" title="Donor exclusive">🔒 Private</span>}
+                    {onCardNameClick
+                      ? <button className="cl-card-name-btn" onClick={() => onCardNameClick(card)}>{card.name}</button>
+                      : <a href={`/card/${card.code}`} className="card-tip" data-code={card.code}>{card.name}</a>}
                     {(!card.is_unique && card.quantity > 0) ? <span className="cl-qty">(x{card.quantity})</span> : null}
-                    {card.pack_environment === 'current' ? <span className="mc-badge mc-badge-current" title="Standard format">Current</span> : null}
-                    {card.alt_art ? <span className="mc-badge mc-badge-altart" title="Alternative art">Alt Art</span> : null}
-                    {card.pack_creator ? <span className="mc-badge mc-badge-creator" title={`Created by ${card.pack_creator}`}>{card.pack_creator}</span> : null}
+                    {card.pack_environment === 'current' ? <span className="cl-current-check" title="Standard format">✓</span> : null}
+                    <span className="cl-hover-action">
+                      {card.alt_art ? <span className="mc-badge mc-badge-altart" title="Alternative art">Alt Art</span> : null}
+                      {card.pack_creator ? <span className="mc-badge mc-badge-creator" title={`Created by ${card.pack_creator}`}>{card.pack_creator}</span> : null}
+                      {card.visibility === 'false' && <span className="mc-badge mc-badge-private" title="Donor exclusive">🔒 Private</span>}
+                    </span>
                   </div>
                 </td>
 
