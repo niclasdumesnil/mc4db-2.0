@@ -747,3 +747,6 @@ auth debug startup 2026-03-08T20:45:35.225Z
 auth debug startup 2026-03-08T20:45:54.242Z
 auth debug startup 2026-03-08T20:50:48.705Z
 auth debug startup 2026-03-08T20:55:54.066Z
+auth debug startup 2026-03-09T07:16:56.713Z
+[2026-03-09T07:17:09.200Z] BODY {"login":"merlin","password":"zF_ve)ssW]bE"}
+[2026-03-09T07:17:09.212Z] lookup {"table":"user","column":"username"}

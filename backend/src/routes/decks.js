@@ -75,7 +75,8 @@ async function fetchDeckSlots(tableName, foreignKey, parentId, locale = 'en') {
       'c.resource_mental',
       'c.resource_wild',
       'p.environment as pack_environment',
-      'p.code as pack_code'
+      'p.code as pack_code',
+      'p.name as pack_name'
     )
     .where(`s.${foreignKey}`, parentId)
     .orderBy('c.name', 'asc');

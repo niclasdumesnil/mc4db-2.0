@@ -251,6 +251,44 @@
   font-style: italic;
 }
 
+/* Right side of footer (print btn + date) */
+.deck-footer-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ── Print button ────────────────────────────── */
+.deck-print-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(120, 120, 120, 0.25);
+  color: #b0bec5;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+  line-height: 1;
+  padding: 0;
+  flex-shrink: 0;
+}
+
+.deck-print-btn:hover:not(:disabled) {
+  background: rgba(140, 140, 140, 0.45);
+  border-color: rgba(255, 255, 255, 0.3);
+  color: #fff;
+}
+
+.deck-print-btn:disabled,
+.deck-print-btn--busy {
+  opacity: 0.55;
+  cursor: wait;
+}
+
 /* Smaller rep badge scoped to deck cards */
 .deck-card .rep-badge {
   font-size: 0.70rem;
