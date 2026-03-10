@@ -44,11 +44,17 @@ export default function EncounterStatistics({ cards = [], title = 'Encounter Sta
   const stats = useMemo(() => {
     if (!cards || cards.length === 0) return null;
 
-    const total = cards.reduce((n, c) => n + (c.quantity ?? 1), 0);
+    // Exclude main_scheme (shown in their own panel) and back-face cards (linked_card = double-sided B face)
+    const effectiveCards = cards.filter(c =>
+      (c.type_code || '').toLowerCase() !== 'main_scheme' && !c.linked_to_code
+    );
+    if (effectiveCards.length === 0) return null;
+
+    const total = effectiveCards.reduce((n, c) => n + (c.quantity ?? 1), 0);
 
     // --- Type breakdown ---
     const typeMap = {};
-    for (const c of cards) {
+    for (const c of effectiveCards) {
       const name = c.type_name || 'Other';
       typeMap[name] = (typeMap[name] || 0) + (c.quantity ?? 1);
     }
@@ -61,7 +67,7 @@ export default function EncounterStatistics({ cards = [], title = 'Encounter Sta
     let totalBoostStar = 0;
     const boostCount = { 0: 0, 1: 0, 2: 0, '3+': 0 };
 
-    for (const c of cards) {
+    for (const c of effectiveCards) {
       const qty = c.quantity ?? 1;
       const b = Math.max(0, parseInt(c.boost ?? 0, 10));
       totalBoost += b * qty;

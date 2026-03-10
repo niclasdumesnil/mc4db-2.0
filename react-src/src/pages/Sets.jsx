@@ -4,6 +4,7 @@ import DeckStatistics from '@components/DeckStatistics';
 import EncounterStatistics from '@components/EncounterStatistics';
 import '@css/Sets.css';
 import '@css/NewDeck.css';
+import '@css/Stories.css';
 
 function currentUserId() {
   try { const u = JSON.parse(localStorage.getItem('mc_user')); return u && (u.id || u.userId); } catch { return null; }
@@ -17,13 +18,69 @@ function isDonator(u) {
 }
 
 const DISPLAY_MODES = [
-  { key: 'checklist', icon: '☰', label: 'Checklist' },
+  { key: 'checklist', icon: '☰', label: 'List' },
   { key: 'grid',      icon: '⊞', label: 'Scan' },
   { key: 'preview',   icon: '◫', label: 'Preview' },
 ];
 
 const ENCOUNTER_TYPE_CODES = ['villain', 'modular', 'standard', 'expert'];
 const IDENTITY_TYPE_CODES  = ['hero', 'alter_ego', 'villain', 'main_scheme'];
+
+// ── Main Scheme panel helpers ──────────────────────────────────────────────────────
+const PerHeroIcon = () => <span className="icon icon-per_hero" style={{ fontSize: '0.78rem', verticalAlign: 'middle', marginLeft: '1px' }} />;
+const StarMark    = () => <span style={{ fontSize: '0.7rem', marginLeft: '1px', verticalAlign: 'middle', opacity: 0.8 }}>★</span>;
+
+function MainSchemeRow({ card }) {
+  const base      = card.base_threat != null ? card.base_threat : null;
+  const fixed     = card.base_threat_fixed;
+  const esc       = card.escalation_threat;
+  const escFixed  = card.escalation_threat_fixed;
+  const escStar   = card.escalation_threat_star;
+  const limit     = card.threat != null ? card.threat : null;
+  const limitFixed = card.threat_fixed;
+  const limitStar  = card.threat_star;
+  const stage      = card.stage || null;
+  const muted      = <span style={{ color: 'var(--st-text-muted)' }}>—</span>;
+  return (
+    <tr>
+      <td className="main-scheme-name">
+        {card.name || '?'}
+        {stage && <span className="main-scheme-stage">{stage}</span>}
+      </td>
+      <td className="main-scheme-threat">
+        {base != null ? <>{base}{fixed ? '' : <PerHeroIcon />}</> : muted}
+      </td>
+      <td className="main-scheme-threat">
+        {esc ? <>{esc}{escFixed ? '' : <PerHeroIcon />}{escStar ? <StarMark /> : ''}</> : muted}
+      </td>
+      <td className="main-scheme-threat">
+        {limit != null ? <>{limit}{limitFixed ? '' : <PerHeroIcon />}{limitStar ? <StarMark /> : ''}</> : muted}
+      </td>
+    </tr>
+  );
+}
+
+function MainSchemesPanel({ schemes }) {
+  if (!schemes || schemes.length === 0) return null;
+  return (
+    <div className="sets-main-schemes-panel">
+      <p className="sets-main-schemes-title">Main Schemes</p>
+      <table className="main-schemes-table">
+        <thead>
+          <tr>
+            <th>Scheme</th>
+            <th>Start</th>
+            <th>Esc.</th>
+            <th>Limit</th>
+          </tr>
+        </thead>
+        <tbody>
+          {schemes.map(card => <MainSchemeRow key={card.code} card={card} />)}
+        </tbody>
+      </table>
+    </div>
+  );
+}
 
 // ── Identity card block (NewDeck style) ──────────────────────────────────────
 
@@ -369,10 +426,21 @@ export default function Sets() {
   );
 
   // Regular cards (everything else) used for the checklist
+  // Exclude back-face cards: hidden:1 marks the B side of a double-sided card (e.g. Psi-Katana)
   const regularCardsBase = useMemo(
-    () => allCards.filter(c => !IDENTITY_TYPE_CODES.includes((c.type_code || '').toLowerCase())),
+    () => allCards.filter(c => !IDENTITY_TYPE_CODES.includes((c.type_code || '').toLowerCase()) && !c.hidden),
     [allCards]
   );
+
+  // For villain sets: front-face main scheme cards (shown as a panel above the card list)
+  const mainSchemeCards = useMemo(() => {
+    if (!selectedSet || (selectedSet.type_code || '').toLowerCase() !== 'villain') return [];
+    return identityCards.filter(c =>
+      (c.type_code || '').toLowerCase() === 'main_scheme' &&
+      !c.linked_to_code &&
+      String(c.stage || '').toUpperCase().endsWith('B')
+    );
+  }, [selectedSet, identityCards]);
 
   // Filtered card list (cost + boost filters)
   const displayCards = useMemo(() => {
@@ -393,16 +461,19 @@ export default function Sets() {
     if (cardsLoading)  return <div className="sets-stats-loading">Loading…</div>;
     const isEnc = ENCOUNTER_TYPE_CODES.includes((selectedSet.type_code || '').toLowerCase());
     if (isEnc) {
+      // Exclude main_scheme cards (shown in their own panel above the card list)
+      const encStatsCards = encounterCards.filter(c => (c.type_code || '').toLowerCase() !== 'main_scheme' && !c.linked_to_code);
       return <EncounterStatistics
-        cards={encounterCards}
+        cards={encStatsCards}
         title={selectedSet.name}
         activeBoost={boostFilter}
         onBoostClick={(b) => setBoostFilter(prev => prev === b ? null : b)}
       />;
     }
     // Hero set: separate obligation cards from deck cards
+    // Exclude hidden cards (back-faces like Betsy Braddock) — they are counted via their front face
     const obligationCards = heroCards.filter(c => (c.type_code || '').toLowerCase() === 'obligation');
-    const deckCards       = heroCards.filter(c => (c.type_code || '').toLowerCase() !== 'obligation');
+    const deckCards       = heroCards.filter(c => (c.type_code || '').toLowerCase() !== 'obligation' && !c.hidden);
     const deckSlots       = deckCards.map(c => ({ ...c, quantity: c.quantity ?? 1, permanent: false }));
     const encounterForStats = [...obligationCards, ...encounterCards];
     return (
@@ -490,6 +561,7 @@ export default function Sets() {
               )}
             </div>
           )}
+          {mainSchemeCards.length > 0 && <MainSchemesPanel schemes={mainSchemeCards} />}
           <div className="sets-stats-body">
             {renderStats()}
           </div>

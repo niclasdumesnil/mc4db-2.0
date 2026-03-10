@@ -275,3 +275,5 @@
 .cl-res-icon.icon-physical { color: #dc3545; border-color: #dc3545; }
 .cl-res-icon.icon-mental   { color: #007bff; border-color: #007bff; }
 .cl-res-icon.icon-wild     { color: #28a745; border-color: #28a745; }
+.cl-res-icon--boost        { color: #e2e8f0; border-color: #64748b; }
+.cl-res-empty { color: var(--st-text-muted, #64748b); font-size: 0.85rem; }

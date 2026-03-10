@@ -15,7 +15,7 @@ function currentUserId() {
 const _INIT_FILTERS = { ...EMPTY_FILTERS };
 
 const DISPLAY_MODES = [
-  { key: 'checklist', icon: '☰', label: 'Checklist' },
+  { key: 'checklist', icon: '☰', label: 'List' },
   { key: 'grid', icon: '⊞', label: 'Scan' },
   { key: 'preview', icon: '◫', label: 'Preview' },
 ];

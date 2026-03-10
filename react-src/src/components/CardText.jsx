@@ -34,7 +34,6 @@ export default function CardText({ card, showSpoilers }) {
         <div dangerouslySetInnerHTML={{ __html: html }} />
         <SchemeIcons card={card} />
       </div>
-      <BoostIcons card={card} />
     </div>
   );
 }

@@ -55,6 +55,24 @@ function ResourceIcons({ card }) {
 }
 
 /**
+ * Renders boost icons (star first, then B icons) for encounter cards.
+ * Uses the same cl-res-icon square style as ResourceIcons.
+ */
+function BoostIcons({ card }) {
+  const boostCount = Math.max(0, parseInt(card.boost ?? 0, 10));
+  const hasStar = !!card.boost_star;
+  if (boostCount === 0 && !hasStar) return <div className="cl-resources"><span className="cl-res-empty">—</span></div>;
+  return (
+    <div className="cl-resources">
+      {hasStar && <span className="cl-res-icon cl-res-icon--boost" title="Boost ★">★</span>}
+      {Array.from({ length: boostCount }, (_, i) => (
+        <span key={i} className="cl-res-icon icon-boost cl-res-icon--boost" title="Boost" />
+      ))}
+    </div>
+  );
+}
+
+/**
  * Displays cost — null/undefined shows '—', 'X' stays as 'X'.
  */
 function CostCell({ cost }) {
@@ -85,7 +103,7 @@ export default function CardListDisplay({ cards, mode = 'checklist', sort, onSor
               <ColHeader label="Name" col="name" current={sort} onSort={onSort} />
               <ColHeader label="Cost" col="cost" current={sort} onSort={onSort} />
               <th>Type</th>
-              <th>Resources</th>
+              <th>Res. / Boost</th>
               <th>Traits</th>
               <ColHeader label="Pack" col="pack" current={sort} onSort={onSort} />
               <th>Set</th>
@@ -118,11 +136,10 @@ export default function CardListDisplay({ cards, mode = 'checklist', sort, onSor
                 {/* Type */}
                 <td className="cl-type">
                   {card.type_name}
-                  {card.subtype_name ? <span style={{ color: 'rgba(148,163,184,0.6)' }}> — {card.subtype_name}</span> : null}
                 </td>
 
-                {/* Resources */}
-                <td><ResourceIcons card={card} /></td>
+                {/* Resources / Boost */}
+                <td>{card.faction_code === 'encounter' ? <BoostIcons card={card} /> : <ResourceIcons card={card} />}</td>
 
                 {/* Traits */}
                 <td className="cl-traits" title={card.traits || ''}>{card.traits || ''}</td>

@@ -606,7 +606,26 @@
   text-align: center;
 }
 
-/* ══════════════════════════════════════════════════════════════
+.sets-main-schemes-panel {
+  padding: 10px 16px 12px;
+  border-bottom: 1px solid var(--sets-border);
+  background: var(--sets-surface);
+}
+
+.sets-main-schemes-title {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--sets-muted);
+  margin: 0 0 8px;
+}
+
+.sets-main-schemes-panel .main-schemes-table {
+  margin-top: 0;
+}
+
+/* ─────────────────────────────────────────────────────────────
    RESPONSIVE
    ══════════════════════════════════════════════════════════════ */
 

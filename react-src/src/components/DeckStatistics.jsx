@@ -32,9 +32,11 @@ export default function DeckStatistics({ slots = [], packsRequired, activeCost =
       .sort((a, b) => b.count - a.count);
 
     // --- Types ---
+    // Merge Hero + Alter-Ego into one line (double-sided card counted once)
     const typeMap = {};
     for (const s of regular) {
-      const type = s.type_name || 'Other';
+      const tc = (s.type_code || '').toLowerCase();
+      const type = (tc === 'hero' || tc === 'alter_ego') ? 'Hero / Alter-Ego' : (s.type_name || 'Other');
       typeMap[type] = (typeMap[type] || 0) + s.quantity;
     }
     const types = Object.entries(typeMap)

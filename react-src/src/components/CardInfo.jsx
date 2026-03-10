@@ -172,8 +172,24 @@ function CardProps({ card }) {
   return (
     <>
       {propsElement}
-      <ResourceIcons card={card} />
+      {card.faction_code === 'encounter' ? <BoostSquares card={card} /> : <ResourceIcons card={card} />}
     </>
+  );
+}
+
+function BoostSquares({ card }) {
+  const boostCount = Math.max(0, parseInt(card.boost ?? 0, 10));
+  const hasStar = !!card.boost_star;
+  if (boostCount === 0 && !hasStar) return null;
+  return (
+    <div className="tw-flex tw-flex-wrap tw-gap-1 tw-mt-1">
+      {hasStar && (
+        <span className="cl-res-icon cl-res-icon--boost" title="Boost ★">★</span>
+      )}
+      {Array.from({ length: boostCount }, (_, i) => (
+        <span key={i} className="cl-res-icon icon-boost cl-res-icon--boost" title="Boost" />
+      ))}
+    </div>
   );
 }
 
