@@ -232,9 +232,9 @@ export default function CardPromo({ card, locale, isBack = false }) {
     return true;
   });
 
-  // Only render buttons that have a confirmed image URL
+  // Only render buttons that have a confirmed image URL (never show during probing)
   const visibleButtons = filteredPromoButtons.filter(
-    (btn) => !hiddenDirs[btn.dir] && (!!chosenSrcMap[btn.dir] || !!loadingDirs[btn.dir])
+    (btn) => !hiddenDirs[btn.dir] && !!chosenSrcMap[btn.dir]
   );
 
   if (visibleButtons.length === 0) return null;

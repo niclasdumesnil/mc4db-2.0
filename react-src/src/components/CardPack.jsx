@@ -10,7 +10,6 @@ export default function CardPack({ card }) {
     <div className="mc-card-pack">
       <span className="mc-pack-name">
         {card.pack_name} <span className="mc-pack-num">#{card.position}</span>
-        {card.visibility === 'false' && <span className="mc-badge mc-badge-private" title="Donor exclusive">🔒 Private</span>}
       </span>
       {card.card_set_code && (
         <span className="mc-pack-badges">
