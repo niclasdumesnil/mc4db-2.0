@@ -542,3 +542,80 @@
   font-size: 0.7rem;
   height: 20px;
 }
+
+/* ── Collection Search panel (input + résultats, panneau distinct au-dessus de Browse) ── */
+
+.editor-collection-panel {
+  background: #161f2e;
+  border: 1px solid rgba(99, 179, 237, 0.25);
+  border-radius: 10px;
+  margin-bottom: 14px;
+  overflow: hidden;
+}
+
+.editor-collection-panel__searchbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+}
+
+.editor-collection-panel__label {
+  flex: 0 0 auto;
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #7ab8e8;
+  white-space: nowrap;
+}
+
+/* Make the search input wider than the trait/text inputs */
+.editor-collection-search-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex: 1 1 260px;
+  max-width: 480px;
+}
+
+.editor-collection-search-input {
+  width: 100%;
+  font-size: 0.88rem;
+  padding: 5px 28px 5px 10px;
+}
+
+/* Results count badge */
+.editor-collection-results__count {
+  background: rgba(99, 179, 237, 0.18);
+  color: #90c8f0;
+  border-radius: 10px;
+  padding: 1px 7px;
+  font-size: 0.68rem;
+  white-space: nowrap;
+}
+
+.editor-collection-panel__empty {
+  padding: 10px 14px;
+  border-top: 1px solid rgba(99, 179, 237, 0.10);
+}
+
+/* Scrollable results list */
+.editor-collection-results__list {
+  max-height: 320px;
+  overflow-y: auto;
+  overflow-x: auto;
+  border-top: 1px solid rgba(99, 179, 237, 0.12);
+}
+
+.editor-collection-results__list thead {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: #161f2e;
+}
+
+/* Remove bottom margin from the cl-checklist inside results so it scrolls cleanly */
+.editor-collection-results__list .cl-checklist {
+  margin-bottom: 0;
+}

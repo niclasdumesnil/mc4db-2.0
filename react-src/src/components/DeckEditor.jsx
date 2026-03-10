@@ -8,6 +8,7 @@ import '../css/DeckEditor.css';
 const PLAYER_FACTIONS = new Set(['justice', 'leadership', 'aggression', 'protection', 'basic', 'hero', 'determination']);
 
 const FACTION_LIST = ['justice', 'leadership', 'aggression', 'protection', 'basic', 'determination'];
+const SEARCH_FACTIONS = new Set([...PLAYER_FACTIONS, 'hero', 'campaign']);
 const FACTION_LABELS = {
   justice: 'Justice', leadership: 'Leadership', aggression: 'Aggression',
   protection: 'Protection', basic: 'Basic', determination: 'Determination',
@@ -95,6 +96,7 @@ export default forwardRef(function DeckEditor(
   const [traitFilter, setTraitFilter] = useState('');
   const [textFilter, setTextFilter] = useState('');
   const [resFilter, setResFilter] = useState({ energy: 0, physical: 0, mental: 0, wild: 0 });
+  const [collectionSearch, setCollectionSearch] = useState('');
 
   const toggleRes = (type, val) =>
     setResFilter(prev => ({ ...prev, [type]: prev[type] === val ? 0 : val }));
@@ -358,6 +360,48 @@ export default forwardRef(function DeckEditor(
     });
   }, [allCards, heroCard, deckAspect, deckState.main, showUnauthorized, selectedFaction, selectedType, filters, sortBy, sortOrder, traitFilter, textFilter, resFilter]);
 
+  // --- COLLECTION SEARCH : toutes les factions + tous les filtres actifs ---
+  const collectionSearchResults = useMemo(() => {
+    const needle = collectionSearch.trim().toLowerCase();
+    if (needle.length < 2) return [];
+    return allCards.filter(card => {
+      if (!SEARCH_FACTIONS.has(card.faction_code?.toLowerCase())) return false;
+      // Faction (Browse)
+      if (selectedFaction && card.faction_code?.toLowerCase() !== selectedFaction) return false;
+      // Dédoublonnage alt-art
+      if (card.duplicate_of_code) {
+        if (!(filters.showAltArt && card.alt_art)) return false;
+      }
+      // Filtres Show
+      if (!filters.showFanMade && card.creator && card.creator !== 'FFG') return false;
+      if (filters.showCurrent && card.pack_environment !== 'current') return false;
+      // Nom (needle)
+      if (!(card.name || '').toLowerCase().includes(needle)) return false;
+      // Type
+      if (selectedType && card.type_code?.toLowerCase() !== selectedType) return false;
+      // Traits
+      if (traitFilter.trim()) {
+        const tn = traitFilter.trim().toLowerCase();
+        if (!(card.traits || '').toLowerCase().includes(tn)) return false;
+      }
+      // Text
+      if (textFilter.trim()) {
+        const tn = textFilter.trim().toLowerCase();
+        if (!(card.text || '').toLowerCase().includes(tn)) return false;
+      }
+      // Resources (min)
+      if (resFilter.energy   > 0 && (card.resource_energy   || 0) < resFilter.energy)   return false;
+      if (resFilter.physical > 0 && (card.resource_physical || 0) < resFilter.physical) return false;
+      if (resFilter.mental   > 0 && (card.resource_mental   || 0) < resFilter.mental)   return false;
+      if (resFilter.wild     > 0 && (card.resource_wild     || 0) < resFilter.wild)     return false;
+      // Validation deck-building (seulement pour les cartes joueur, pas hero/campaign)
+      if (!showUnauthorized && PLAYER_FACTIONS.has(card.faction_code?.toLowerCase())) {
+        if (!canIncludeCard(card, heroCard, deckAspect || null, deckState.main, allCards, allCardsMap)) return false;
+      }
+      return true;
+    }).sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+  }, [allCards, collectionSearch, filters, selectedFaction, selectedType, traitFilter, textFilter, resFilter, showUnauthorized, heroCard, deckAspect, deckState.main, allCardsMap]);
+
   const handleSort = useCallback((col) => {
     setSortBy(prev => {
       if (prev === col) { setSortOrder(o => o === 'asc' ? 'desc' : 'asc'); return prev; }
@@ -458,6 +502,51 @@ export default forwardRef(function DeckEditor(
     <div className="editor-container">
       {/* ── Main area: filter bar + card list ── */}
       <main className="editor-main">
+
+        {/* ── Panneau Search your collection ── */}
+        <div className="editor-collection-panel">
+          <div className="editor-collection-panel__searchbar">
+            <span className="editor-collection-panel__label">Search your collection</span>
+            <div className="editor-collection-search-wrap">
+              <input
+                className="editor-filter-text-input editor-collection-search-input"
+                type="text"
+                placeholder="Card name…"
+                value={collectionSearch}
+                onChange={e => setCollectionSearch(e.target.value)}
+                autoComplete="off"
+              />
+              {collectionSearch && (
+                <button className="editor-filter-text-clear" onClick={() => setCollectionSearch('')} title="Clear">✕</button>
+              )}
+            </div>
+            {collectionSearch.trim().length >= 2 && (
+              <span className="editor-collection-results__count">
+                {collectionSearchResults.length} card{collectionSearchResults.length !== 1 ? 's' : ''}
+              </span>
+            )}
+          </div>
+
+          {collectionSearch.trim().length >= 2 && (
+            collectionSearchResults.length === 0 ? (
+              <div className="cardlist-empty editor-collection-panel__empty">No cards match your search.</div>
+            ) : (
+              <div className="editor-collection-results__list">
+                <AvailableCardList
+                  cards={collectionSearchResults}
+                  slotsMap={deckState.main}
+                  onSetQty={setQty}
+                  sideMap={deckState.side}
+                  onSetSideQty={setSideQty}
+                  variantGroupMap={variantGroupMap}
+                  sortBy="name"
+                  sortOrder="asc"
+                  onSort={null}
+                />
+              </div>
+            )
+          )}
+        </div>
 
         {/* ── Horizontal filter bar ── */}
         <div className="editor-filter-bar">
