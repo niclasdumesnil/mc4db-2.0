@@ -131,10 +131,10 @@ export default function AvailableCardList({ cards, slotsMap = {}, onSetQty, side
                     <FactionDot card={card} />
                     {card.is_unique ? <span className="icon-unique cl-unique-icon" title="Unique" /> : null}
                     <span className="card-tip" data-code={card.code} style={{ color: 'var(--cl-text)', fontWeight: 500, cursor: 'pointer' }}>{card.name}</span>
-                    {card.visibility === 'false' && <span className="mc-badge mc-badge-private" title="Donor exclusive">🔒 Private</span>}
-                    {card.alt_art && <span className="mc-badge mc-badge-altart" title="Alternative art">Alt Art</span>}
                     {card.pack_environment === 'current' && <span className="mc-badge mc-badge-current" title="Standard format">Current</span>}
+                    {card.visibility === 'false' && <span className="mc-badge mc-badge-private" title="Donor exclusive">🔒 Private</span>}
                     {creator && <span className="mc-badge mc-badge-creator" title={`Created by ${creator}`}>{creator}</span>}
+                    {card.alt_art && <span className="mc-badge mc-badge-altart" title="Alternative art">Alt Art</span>}
                   </div>
                 </td>
 

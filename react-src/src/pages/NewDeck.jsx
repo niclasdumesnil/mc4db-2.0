@@ -56,25 +56,14 @@ function HeroCard({ hero, isOwned, onCreateDeck, creating }) {
         <div className="ndeck-hero-info">
           <div className="ndeck-hero-name">{hero.name}</div>
 
-          {/* Badges */}
+          {/* Badges — order: official, current, private, creator, status */}
           <div className="ndeck-hero-badges">
-            {isCurrent && (
-              <span className="mc-badge mc-badge-current">Current</span>
-            )}
-            {!isOfficial && status && (
-              <span className={`mc-badge mc-badge-${status}`}>{hero.pack_status}</span>
-            )}
-            {isPrivate && (
-              <span className="mc-badge mc-badge-private" title="Donor exclusive">🔒 Private</span>
-            )}
+            {isOfficial && <span className="mc-badge mc-badge-official">Official</span>}
+            {isCurrent && <span className="mc-badge mc-badge-current">Current</span>}
+            {isPrivate && <span className="mc-badge mc-badge-private" title="Donor exclusive">🔒 Private</span>}
+            {!isOfficial && hero.pack_creator && <span className="mc-badge mc-badge-creator">{hero.pack_creator}</span>}
+            {!isOfficial && status && <span className={`mc-badge mc-badge-${status}`}>{hero.pack_status}</span>}
           </div>
-
-          {/* Creator badge (fan made / private only) */}
-          {!isOfficial && hero.pack_creator && (
-            <div className="ndeck-hero-badges">
-              <span className="mc-badge mc-badge-creator">{hero.pack_creator}</span>
-            </div>
-          )}
 
           {/* Pack / theme meta */}
           <div className="ndeck-hero-meta">

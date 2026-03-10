@@ -557,15 +557,15 @@ export default function Sets() {
             <div className="sets-stats-title">
               <span className="sets-stats-title-name">{selectedSet.name}</span>
               {selectedSet.pack_environment === 'current' && <span className="mc-badge mc-badge-current" style={{ marginLeft: 8 }}>Current</span>}
+              {selectedSet.private && <span className="mc-badge mc-badge-private" style={{ marginLeft: 8 }} title="Pack privé (donateurs)">🔒 Private</span>}
+              {selectedSet.creator && selectedSet.creator !== 'FFG' && (
+                <span className="mc-badge mc-badge-creator" style={{ marginLeft: 8 }}>{selectedSet.creator}</span>
+              )}
               {selectedSet._src === 'fanmade' && selectedSet.pack_status && (() => {
                 const s = selectedSet.pack_status.toLowerCase();
                 const cls = s === 'released' ? 'mc-badge-released' : s === 'sealed' ? 'mc-badge-sealed' : s === 'beta' ? 'mc-badge-beta' : s === 'legacy' ? 'mc-badge-legacy' : 'mc-badge-alpha';
                 return <span className={`mc-badge ${cls}`} style={{ marginLeft: 8 }}>{selectedSet.pack_status.charAt(0).toUpperCase() + selectedSet.pack_status.slice(1)}</span>;
               })()}
-              {selectedSet.private && <span className="mc-badge mc-badge-private" style={{ marginLeft: 8 }} title="Pack privé (donateurs)">🔒 Private</span>}
-              {selectedSet.creator && selectedSet.creator !== 'FFG' && (
-                <span className="mc-badge mc-badge-creator" style={{ marginLeft: 8 }}>{selectedSet.creator}</span>
-              )}
             </div>
           )}
           {mainSchemeCards.length > 0 && <MainSchemesPanel schemes={mainSchemeCards} />}

@@ -6,7 +6,7 @@ export default function CardName({ card, showSpoilers }) {
 
   return (
     <div>
-      <span className="tw-flex tw-items-center tw-flex-wrap tw-gap-1">
+      <span className="tw-flex tw-items-center tw-flex-wrap tw-gap-2">
         {card.is_unique && <span className="icon-unique" />}
         <a
           href={card.url}
@@ -21,7 +21,7 @@ export default function CardName({ card, showSpoilers }) {
           !card.is_unique &&
           card.type_code !== 'villain' &&
           card.type_code !== 'main_scheme' && (
-            <span className="tw-opacity-70 tw-text-base tw-font-semibold tw-ml-1">
+            <span className="tw-opacity-70 tw-text-base tw-font-semibold">
               (x{card.quantity || 1})
             </span>
           )}
@@ -49,38 +49,22 @@ function CardStage({ card }) {
 }
 
 function StatusTag({ card }) {
-  const badges = [];
   const creator = card.creator || card.pack_creator;
   const isFFG = !creator || creator === 'FFG' || creator === '';
+  const hasStatus = card.status && ['released', 'sealed', 'beta', 'alpha'].includes(card.status);
 
-  // Status badge
-  if (card.status === 'released' || card.status === 'sealed') {
-    badges.push(
-      <span key="status" className="mc-badge mc-badge-released">{card.status}</span>
-    );
-  } else if (card.status === 'beta' || card.status === 'alpha') {
-    badges.push(
-      <span key="status" className={`mc-badge mc-badge-${card.status}`}>{card.status}</span>
-    );
-  } else if (isFFG) {
-    badges.push(
-      <span key="official" className="mc-badge mc-badge-official">Official</span>
-    );
-    if (card.pack_environment === 'current') {
-      badges.push(
-        <span key="current" className="mc-badge mc-badge-current">Current</span>
-      );
-    }
-  }
-
-  // Creator badge — always shown when creator is not FFG
-  if (!isFFG) {
-    badges.push(
-      <span key="creator" className="mc-badge mc-badge-creator" title={`Created by ${creator}`}>
-        {creator}
-      </span>
-    );
-  }
-
-  return <>{badges}</>;
+  return (
+    <>
+      {/* 1. Official */}
+      {isFFG && !hasStatus && <span className="mc-badge mc-badge-official">Official</span>}
+      {/* 2. Current */}
+      {card.pack_environment === 'current' && <span className="mc-badge mc-badge-current">Current</span>}
+      {/* 3. Private */}
+      {card.visibility === 'false' && <span className="mc-badge mc-badge-private" title="Donor exclusive">🔒 Private</span>}
+      {/* 4. Creator */}
+      {!isFFG && <span className="mc-badge mc-badge-creator" title={`Created by ${creator}`}>{creator}</span>}
+      {/* 5. Status */}
+      {hasStatus && <span className={`mc-badge mc-badge-${card.status}`}>{card.status}</span>}
+    </>
+  );
 }
