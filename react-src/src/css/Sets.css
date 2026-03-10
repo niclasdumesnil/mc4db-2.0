@@ -270,7 +270,7 @@
   grid-template-columns: var(--sets-identity-w) 1fr var(--sets-stats-w);
   flex: 1;
   min-height: 0;
-  overflow: hidden;
+  overflow: visible;
 }
 
 /* 2-column layout when identity panel is removed */
@@ -390,7 +390,7 @@
   display: flex;
   flex-direction: column;
   min-width: 0;
-  overflow: hidden;
+  overflow: visible;
   border: 1px solid var(--sets-border);
   border-radius: 10px;
   background: var(--sets-surface);

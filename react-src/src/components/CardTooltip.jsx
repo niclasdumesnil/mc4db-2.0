@@ -79,6 +79,9 @@ export default function CardTooltip() {
         function onMouseOut(e) {
             const target = e.target.closest('.card-tip[data-code]');
             if (!target) return;
+            // Don't hide if the mouse is still inside the same .card-tip element
+            // (e.g. moving from the <a> to a child <span>)
+            if (target.contains(e.relatedTarget)) return;
             activeCode.current = null;
             if (timeoutId.current) clearTimeout(timeoutId.current);
             setHoverCode(null);

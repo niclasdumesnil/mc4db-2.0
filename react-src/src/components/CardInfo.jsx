@@ -14,12 +14,6 @@ export default function CardInfo({ card, showSpoilers, showType = true }) {
         </div>
       )}
 
-      {card.cost != null && card.cost !== '' && (
-        <div className="mc-card-cost">
-          Cost: {card.cost}
-        </div>
-      )}
-
       {card.traits && (
         <div className="mc-card-traits">
           {card.traits}
@@ -205,36 +199,29 @@ function CostIcons({ count }) {
 }
 
 function ResourceIcons({ card }) {
-  const resources = [
-    { key: 'mental', value: card.resource_mental, color: '#007bff' },
-    { key: 'physical', value: card.resource_physical, color: '#dc3545' },
-    { key: 'energy', value: card.resource_energy, color: '#ffc107' },
-    { key: 'wild', value: card.resource_wild, color: '#28a745' },
+  const slots = [
+    { key: 'energy',   value: card.resource_energy },
+    { key: 'physical', value: card.resource_physical },
+    { key: 'mental',   value: card.resource_mental },
+    { key: 'wild',     value: card.resource_wild },
   ];
 
-  const hasResources = resources.some((r) => r.value);
+  const hasResources = slots.some((r) => r.value);
   if (!hasResources) return null;
 
+  const icons = [];
+  for (const { key, value } of slots) {
+    for (let i = 0; i < (value || 0); i++) {
+      icons.push(
+        <span key={`${key}-${i}`} className={`cl-res-icon icon-${key}`} title={key.charAt(0).toUpperCase() + key.slice(1)} />
+      );
+    }
+  }
+
   return (
-    <div className="tw-flex tw-flex-wrap tw-gap-2 tw-mt-1">
-      {resources
-        .filter((r) => r.value)
-        .map((r) => (
-          <span
-            key={r.key}
-            className="mc-resource-bar"
-            style={{ borderColor: r.color }}
-          >
-            <span>Resource:</span>
-            {Array.from({ length: r.value }, (_, i) => (
-              <span
-                key={i}
-                title={r.key.charAt(0).toUpperCase() + r.key.slice(1)}
-                className={`icon icon-${r.key} color-${r.key}`}
-              />
-            ))}
-          </span>
-        ))}
+    <div className="tw-flex tw-items-center tw-gap-1 tw-mt-1">
+      <span style={{ fontSize: '13px', color: '#94a3b8' }}>Resource:</span>
+      <div className="cl-resources">{icons}</div>
     </div>
   );
 }

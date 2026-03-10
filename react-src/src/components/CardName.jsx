@@ -49,26 +49,38 @@ function CardStage({ card }) {
 }
 
 function StatusTag({ card }) {
+  const badges = [];
+  const creator = card.creator || card.pack_creator;
+  const isFFG = !creator || creator === 'FFG' || creator === '';
+
+  // Status badge
   if (card.status === 'released' || card.status === 'sealed') {
-    return <span className={`mc-tag mc-tag-status-green`}>{card.status}</span>;
+    badges.push(
+      <span key="status" className="mc-badge mc-badge-released">{card.status}</span>
+    );
+  } else if (card.status === 'beta' || card.status === 'alpha') {
+    badges.push(
+      <span key="status" className={`mc-badge mc-badge-${card.status}`}>{card.status}</span>
+    );
+  } else if (isFFG) {
+    badges.push(
+      <span key="official" className="mc-badge mc-badge-official">Official</span>
+    );
+    if (card.pack_environment === 'current') {
+      badges.push(
+        <span key="current" className="mc-badge mc-badge-current">Current</span>
+      );
+    }
   }
-  if (card.status === 'beta' || card.status === 'alpha') {
-    return <span className={`mc-tag mc-tag-status`}>{card.status}</span>;
-  }
-  if (!card.creator || card.creator === 'FFG' || card.creator === '') {
-    return (
-      <>
-        <span className="mc-tag mc-tag-ffg">Official</span>
-        {card.pack_environment === 'current' && (
-          <span className="mc-tag mc-tag-current">current</span>
-        )}
-      </>
+
+  // Creator badge — always shown when creator is not FFG
+  if (!isFFG) {
+    badges.push(
+      <span key="creator" className="mc-badge mc-badge-creator" title={`Created by ${creator}`}>
+        {creator}
+      </span>
     );
   }
-  return (
-    <>
-      <span className="mc-tag mc-tag-fanmade">Fan made</span>
-      <span className="mc-tag mc-tag-creator">{card.creator}</span>
-    </>
-  );
+
+  return <>{badges}</>;
 }

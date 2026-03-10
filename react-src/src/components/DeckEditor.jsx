@@ -12,7 +12,14 @@ const FACTION_LABELS = {
   justice: 'Justice', leadership: 'Leadership', aggression: 'Aggression',
   protection: 'Protection', basic: 'Basic', determination: 'Determination',
 };
-const TYPE_LIST = ['ally', 'event', 'support', 'upgrade', 'resource'];
+const TYPE_LIST = [
+  { code: 'ally',               label: 'Ally' },
+  { code: 'event',              label: 'Event' },
+  { code: 'support',            label: 'Support' },
+  { code: 'upgrade',            label: 'Upgrade' },
+  { code: 'resource',           label: 'Resource' },
+  { code: 'player_side_scheme', label: 'Player Side Scheme' },
+];
 
 function currentUserId() {
   try {
@@ -485,15 +492,15 @@ export default forwardRef(function DeckEditor(
           <div className="editor-filter-row">
             <span className="editor-filter-bar-label">Type</span>
             <div className="editor-filter-pills">
-              {TYPE_LIST.map(type => {
-                const active = selectedType === type;
+              {TYPE_LIST.map(({ code, label }) => {
+                const active = selectedType === code;
                 return (
                   <button
-                    key={type}
+                    key={code}
                     className={`editor-faction-btn${active ? ' editor-faction-btn--active editor-faction-btn--type-active' : ''}`}
-                    onClick={() => setSelectedType(prev => prev === type ? null : type)}
+                    onClick={() => setSelectedType(prev => prev === code ? null : code)}
                   >
-                    {type.charAt(0).toUpperCase() + type.slice(1)}
+                    {label}
                   </button>
                 );
               })}

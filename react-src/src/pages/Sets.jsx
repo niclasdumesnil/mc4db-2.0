@@ -19,7 +19,7 @@ function isDonator(u) {
 
 const DISPLAY_MODES = [
   { key: 'checklist', icon: '☰', label: 'List' },
-  { key: 'grid',      icon: '⊞', label: 'Scan' },
+  { key: 'grid',      icon: '⊞', label: 'Image' },
   { key: 'preview',   icon: '◫', label: 'Preview' },
 ];
 
@@ -514,21 +514,21 @@ export default function Sets() {
 
         {/* Center: card list */}
         <main className="sets-main">
+          <SetBanner
+            identityCards={identityCards}
+            fallbackCard={regularCardsBase[0] || null}
+            mode={mode}
+            onModeChange={setMode}
+            selectedSet={selectedSet}
+            cardCount={displayCards.length}
+            regularCount={regularCardsBase.length}
+            costFilter={costFilter}
+            onClearCost={() => setCostFilter(null)}
+            boostFilter={boostFilter}
+            onClearBoost={() => setBoostFilter(null)}
+            loading={cardsLoading}
+          />
           <div className="sets-main-body">
-            <SetBanner
-              identityCards={identityCards}
-              fallbackCard={regularCardsBase[0] || null}
-              mode={mode}
-              onModeChange={setMode}
-              selectedSet={selectedSet}
-              cardCount={displayCards.length}
-              regularCount={regularCardsBase.length}
-              costFilter={costFilter}
-              onClearCost={() => setCostFilter(null)}
-              boostFilter={boostFilter}
-              onClearBoost={() => setBoostFilter(null)}
-              loading={cardsLoading}
-            />
             {!selectedSet ? (
               <div className="sets-empty-state">
                 <div className="sets-empty-icon">⊞</div>

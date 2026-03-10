@@ -7,11 +7,13 @@ import {
 	Package, 
 	Terminal,
 	FileText,
+	MessageSquare,
 	AlertCircle
 } from 'lucide-react';
 import CardName from './components/CardName';
 import CardInfo from './components/CardInfo';
 import CardText from './components/CardText';
+import CardFlavor from './components/CardFlavor';
 import CardIllustrator from './components/CardIllustrator';
 import CardPack from './components/CardPack';
 import CardPromo from './components/CardPromo';
@@ -98,6 +100,18 @@ export default function CardFront({ card, showSpoilers, locale, langDir, preferW
 								<CardText card={card} showSpoilers={showSpoilers} />
 							</div>
 						</section>
+
+						{card.flavor && (
+							<section>
+								<div className="card-frame__section-label">
+									<MessageSquare size={16} />
+									<h3>Flavor</h3>
+								</div>
+								<div className="card-frame__section-box">
+									<CardFlavor card={card} showSpoilers={showSpoilers} />
+								</div>
+							</section>
+						)}
 
 						<section>
 							{card.illustrator && (

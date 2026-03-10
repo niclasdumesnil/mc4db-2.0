@@ -78,11 +78,6 @@ export default function PackNav({ card, locale = 'en', onNavigate }) {
 
       <div className="pack-nav-center">
         <div className="pack-nav-title-row">
-          {creator ? (
-            <span className={`pack-nav-creator ${creator !== 'FFG' ? 'pack-nav-creator--alt' : ''}`}>
-              {creator}
-            </span>
-          ) : null}
           <span className="pack-nav-pack-name">{packName}</span>
           {card.visibility === 'false' && <span className="mc-badge mc-badge-private" title="Donor exclusive">🔒 Private</span>}
         </div>

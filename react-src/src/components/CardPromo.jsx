@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
 export default function CardPromo({ card, locale, isBack = false }) {
   const promoButtons = [
@@ -11,6 +11,9 @@ export default function CardPromo({ card, locale, isBack = false }) {
   const [activeDir, setActiveDir] = useState(null);
   const [loadingDirs, setLoadingDirs] = useState({});
   const [hiddenDirs, setHiddenDirs] = useState({});
+  // Ref to the latest chosenSrcMap so async probes can read fresh state
+  const chosenSrcMapRef = useRef({});
+  chosenSrcMapRef.current = chosenSrcMap;
 
   const imagesrc = card.imagesrc || card.backimagesrc;
   if (!imagesrc) return null;
@@ -49,19 +52,91 @@ export default function CardPromo({ card, locale, isBack = false }) {
     } catch (e) { }
   };
 
+  // On card change: load cache/promo_urls then auto-probe any remaining buttons
   useEffect(() => {
-    try {
-      const all = readCache();
-      if (all && all[card.code] && all[card.code].map) {
-        setChosenSrcMap(all[card.code].map || {});
+    // Reset state for the new card
+    setChosenSrcMap({});
+    setActiveDir(null);
+    setLoadingDirs({});
+    setHiddenDirs({});
+
+    // Build initial known map from cache + server-supplied promo_urls
+    const all = readCache();
+    const cachedMap = (all && all[card.code] && all[card.code].map) ? all[card.code].map : {};
+    const knownMap = { ...cachedMap, ...(card.promo_urls || {}) };
+    if (Object.keys(knownMap).length > 0) {
+      setChosenSrcMap(knownMap);
+    }
+
+    // Determine buttons to probe (those not already cached)
+    const toProbe = promoButtons.filter((btn) => {
+      if (btn.dir === 'alt-FFG' && (card.creator || '').toString().toUpperCase() !== 'FFG') return false;
+      if (knownMap[btn.dir]) return false; // already confirmed from cache
+      return true;
+    });
+
+    if (toProbe.length === 0) return;
+
+    const baseName = filename.replace(/\.(webp|jpe?g|png)$/i, '');
+    const exts = ['.webp', '.jpg', '.png'];
+    let cancelled = false;
+
+    (async () => {
+      // Mark all pending buttons as loading
+      const loadingInit = {};
+      toProbe.forEach((btn) => { loadingInit[btn.dir] = true; });
+      setLoadingDirs(loadingInit);
+
+      for (const btn of toProbe) {
+        if (cancelled) break;
+        const candidateBases = [
+          `${parentBase}/${btn.dir}`,
+          `${basePath}/${btn.dir}`,
+          `${parentBase}/EN/${btn.dir}`,
+        ];
+        let found = false;
+        outer: for (const base of candidateBases) {
+          for (const ext of exts) {
+            if (cancelled) break outer;
+            const cand = `${base}/${baseName}${ext}`;
+            let ok = null;
+            try { ok = await probeWithFetch(cand); } catch (e) { ok = null; }
+            if (ok === true) {
+              if (!cancelled) {
+                setChosenSrcMap((p) => {
+                  const m = { ...p, [btn.dir]: cand };
+                  writeCache(card.code, m);
+                  return m;
+                });
+                found = true;
+              }
+              break outer;
+            }
+            const probeImg = await probeWithImage(cand);
+            if (probeImg) {
+              if (!cancelled) {
+                setChosenSrcMap((p) => {
+                  const m = { ...p, [btn.dir]: cand };
+                  writeCache(card.code, m);
+                  return m;
+                });
+                found = true;
+              }
+              break outer;
+            }
+          }
+        }
+        if (!found && !cancelled) {
+          setHiddenDirs((p) => ({ ...p, [btn.dir]: true }));
+        }
+        if (!cancelled) {
+          setLoadingDirs((p) => { const np = { ...p }; delete np[btn.dir]; return np; });
+        }
       }
-    } catch (e) {}
-    try {
-      if (card.promo_urls) {
-        setChosenSrcMap((p) => ({ ...(p || {}), ...(card.promo_urls || {}) }));
-      }
-    } catch (e) {}
-  }, []);
+    })();
+
+    return () => { cancelled = true; };
+  }, [card.code]);
 
   const setImgSrcAndClearSources = (imgEl, src) => {
     const pic = imgEl && imgEl.closest && imgEl.closest('picture');
@@ -157,12 +232,17 @@ export default function CardPromo({ card, locale, isBack = false }) {
     return true;
   });
 
+  // Only render buttons that have a confirmed image URL
+  const visibleButtons = filteredPromoButtons.filter(
+    (btn) => !hiddenDirs[btn.dir] && (!!chosenSrcMap[btn.dir] || !!loadingDirs[btn.dir])
+  );
+
+  if (visibleButtons.length === 0) return null;
+
   return (
     <div className="tw-flex tw-flex-wrap tw-gap-2 tw-mt-2">
-      {filteredPromoButtons.map((btn) => {
-        if (hiddenDirs[btn.dir]) return null;
+      {visibleButtons.map((btn) => {
         const loading = !!loadingDirs[btn.dir];
-        const available = !!chosenSrcMap[btn.dir];
         return (
           <button
             key={btn.dir}
@@ -171,7 +251,7 @@ export default function CardPromo({ card, locale, isBack = false }) {
             onClick={() => handlePromoClick(btn.dir)}
             disabled={loading}
           >
-            {btn.label}{loading ? ' …' : available ? '' : ''}
+            {btn.label}{loading ? ' …' : ''}
           </button>
         );
       })}

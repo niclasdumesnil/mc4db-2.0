@@ -16,7 +16,7 @@ const _INIT_FILTERS = { ...EMPTY_FILTERS };
 
 const DISPLAY_MODES = [
   { key: 'checklist', icon: '☰', label: 'List' },
-  { key: 'grid', icon: '⊞', label: 'Scan' },
+  { key: 'grid', icon: '⊞', label: 'Image' },
   { key: 'preview', icon: '◫', label: 'Preview' },
 ];
 

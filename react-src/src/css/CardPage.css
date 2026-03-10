@@ -87,6 +87,24 @@ button.pack-nav-btn:hover {
   color: #fff;
 }
 
+/* Reduce pack-nav font sizes on card page */
+.card-page .pack-nav-pack-name { font-size: 0.92rem; }
+.card-page .pack-nav-position  { font-size: 0.78rem; }
+.card-page .pack-nav-creator   { font-size: 0.72rem; }
+.card-page .pack-nav-btn       { font-size: 0.82rem; padding: 6px 14px; }
+.card-page .pack-nav-arrow     { font-size: 0.88rem; }
+.card-page .pack-nav-label     { font-size: 0.82rem; }
+
+/* ── Card frame — font alignment with card list ── */
+/* Reduce description text size to match card list density */
+.card-frame .mc-card-text,
+.card-frame .mc-card-text p  { font-size: 13px !important; line-height: 1.65; }
+/* Section box base size */
+.card-frame .card-frame__section-box { font-size: 13px; }
+/* Props / traits / cost match card list */
+.card-frame .mc-card-props   { font-size: 13px !important; }
+.card-frame .mc-card-traits  { font-size: 12px !important; }
+
 /* Card names are always white in the card page */
 .card-page .card-name,
 .card-page a.card-name,

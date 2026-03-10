@@ -323,7 +323,7 @@ export default function DeckView() {
           <button
             className={`deck-view-mode-btn${displayMode === 'grid' ? ' active' : ''}`}
             onClick={() => setDisplayMode('grid')}
-          >⊞ Scan</button>
+          >⊞ Image</button>
         </div>
 
         {showEditor && (

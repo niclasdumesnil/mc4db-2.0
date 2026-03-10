@@ -69,11 +69,14 @@ function checkOption(option, card, deckSlotsMap, allCards, prebuiltCardMap = nul
   }
 
   // trait check – "Avenger." must appear in the card's real_traits
+  // Strip any trailing dot from the option value before appending one, so that
+  // traits like "S.H.I.E.L.D." (already dot-terminated) don't become "S.H.I.E.L.D.."
   if (option.trait && option.trait.length > 0) {
     const realTraits = (card.real_traits || card.traits || '').toUpperCase();
-    const traitValid = option.trait.some(t =>
-      realTraits.includes(t.toUpperCase() + '.')
-    );
+    const traitValid = option.trait.some(t => {
+      const normalized = t.replace(/\.$/, '');
+      return realTraits.includes(normalized.toUpperCase() + '.');
+    });
     if (!traitValid) return false;
   }
 
