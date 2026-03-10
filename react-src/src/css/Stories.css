@@ -878,6 +878,7 @@
 .set-stat-bar-fill {
   height: 100%;
   border-radius: 999px;
+  background: linear-gradient(to right, #3b82f6, #60a5fa);
   transition: width 0.3s ease;
   min-width: 2px;
 }
@@ -1185,6 +1186,31 @@
   gap: 3px;
   flex: 1;
   min-width: 28px;
+}
+
+/* ── Clickable boost bars ─────────────────────────────────────────────────── */
+.st-boost-col--clickable {
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background 0.12s;
+}
+
+.st-boost-col--clickable:hover {
+  background: rgba(251, 191, 36, 0.1);
+}
+
+.st-boost-col--active .st-boost-bar,
+.st-boost-bar--active {
+  background: linear-gradient(to top, #2563eb, #60a5fa) !important;
+}
+
+.st-boost-col--active .st-boost-label {
+  color: #60a5fa;
+  font-weight: 700;
+}
+
+.st-boost-col--active .st-boost-count {
+  color: #60a5fa;
 }
 
 .st-boost-count {

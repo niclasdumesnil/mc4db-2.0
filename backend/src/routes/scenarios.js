@@ -201,10 +201,17 @@ router.get('/sets', async (req, res, next) => {
       : rows.filter(r => (r.visibility || 'true') !== 'false');
 
     // Build nemesis map: hero_set_code → nemesis_set_code
+    // 1. Use explicit parent_code if available
+    // 2. Fall back to convention: nemesis code = hero_code + '_nemesis'
     const nemesisMap = {};
+    // First pass: build a set of all known nemesis codes
+    const allNemesisCodes = new Set(
+      visible.filter(r => (r.type_code || '').toLowerCase() === 'nemesis').map(r => r.code)
+    );
     for (const row of visible) {
-      if ((row.type_code || '').toLowerCase() === 'nemesis' && row.parent_code) {
-        nemesisMap[row.parent_code] = row.code;
+      if ((row.type_code || '').toLowerCase() === 'nemesis') {
+        const parentCode = row.parent_code || row.code.replace(/_nemesis$/, '');
+        nemesisMap[parentCode] = row.code;
       }
     }
 
@@ -234,6 +241,7 @@ router.get('/sets', async (req, res, next) => {
         nemesis_code: nemesisMap[row.code] || null,
         creator: row.creator || 'FFG',
         card_count: Number(row.card_count) || 0,
+        private: row.visibility === 'false' || row.visibility === false,
       });
     }
 

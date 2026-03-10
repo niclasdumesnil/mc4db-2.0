@@ -2,26 +2,36 @@ import React, { useMemo } from 'react';
 import '@css/Stories.css';
 
 const ENCOUNTER_TYPES = [
-  'Villain',
-  'Main Scheme',
-  'Side Scheme',
-  'Minion',
-  'Treachery',
-  'Attachment',
-  'Environment',
-  'Obligation',
+  { name: 'Villain',      color: '#ef4444' },
+  { name: 'Main Scheme',  color: '#8b5cf6' },
+  { name: 'Side Scheme',  color: '#3b82f6' },
+  { name: 'Minion',       color: '#f97316' },
+  { name: 'Treachery',    color: '#a855f7' },
+  { name: 'Attachment',   color: '#eab308' },
+  { name: 'Environment',  color: '#22c55e' },
+  { name: 'Obligation',   color: '#6b7280' },
 ];
 
-const TYPE_COLORS = {
-  'Villain':      '#ef4444',
-  'Main Scheme':  '#8b5cf6',
-  'Side Scheme':  '#3b82f6',
-  'Minion':       '#f97316',
-  'Treachery':    '#a855f7',
-  'Attachment':   '#eab308',
-  'Environment':  '#22c55e',
-  'Obligation':   '#6b7280',
-};
+const TYPE_COLOR_MAP = Object.fromEntries(ENCOUNTER_TYPES.map(t => [t.name, t.color]));
+
+const BOOST_ROWS = [
+  { key: 0,    iconCount: 0 },
+  { key: 1,    iconCount: 1 },
+  { key: 2,    iconCount: 2 },
+  { key: '3+', iconCount: 3, plus: true },
+];
+
+function BoostSymbol({ iconCount, plus }) {
+  if (iconCount === 0) return <span style={{ color: 'var(--st-text-muted)', fontSize: '0.75rem', fontWeight: 400 }}>—</span>;
+  return (
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 0 }}>
+      {Array.from({ length: iconCount }, (_, i) => (
+        <span key={i} className="icon icon-boost" style={{ fontSize: '0.72rem', lineHeight: 1, fontWeight: 400 }} />
+      ))}
+      {plus && <span style={{ fontSize: '0.65rem', marginLeft: 1, color: 'var(--st-text-muted)', fontWeight: 400 }}>+</span>}
+    </span>
+  );
+}
 
 /**
  * EncounterStatistics
@@ -30,7 +40,7 @@ const TYPE_COLORS = {
  *   cards  — raw card objects from the search API
  *   title  — optional header title (default "Encounter Statistics")
  */
-export default function EncounterStatistics({ cards = [], title = 'Encounter Statistics' }) {
+export default function EncounterStatistics({ cards = [], title = 'Encounter Statistics', activeBoost = null, onBoostClick }) {
   const stats = useMemo(() => {
     if (!cards || cards.length === 0) return null;
 
@@ -46,27 +56,23 @@ export default function EncounterStatistics({ cards = [], title = 'Encounter Sta
       .map(([name, count]) => ({ name, count }))
       .sort((a, b) => b.count - a.count);
 
-    // --- Boost ---
+    // --- Boost distribution (histogram by boost value) ---
     let totalBoost = 0;
     let totalBoostStar = 0;
-    const boostByType = {};
+    const boostCount = { 0: 0, 1: 0, 2: 0, '3+': 0 };
 
     for (const c of cards) {
       const qty = c.quantity ?? 1;
-      const boost = typeof c.boost === 'number' ? c.boost : 0;
-      const boostStar = c.boost_star ? 1 : 0;
-
-      totalBoost += boost * qty;
-      totalBoostStar += boostStar * qty;
-
-      const typeName = c.type_name || 'Other';
-      if (!boostByType[typeName]) boostByType[typeName] = 0;
-      boostByType[typeName] += boost * qty;
+      const b = Math.max(0, parseInt(c.boost ?? 0, 10));
+      totalBoost += b * qty;
+      if (c.boost_star) totalBoostStar += qty;
+      const bKey = b >= 3 ? '3+' : b;
+      boostCount[bKey] = (boostCount[bKey] || 0) + qty;
     }
 
     const avgBoost = total > 0 ? (totalBoost / total).toFixed(2) : null;
 
-    return { total, types, totalBoost, totalBoostStar, avgBoost, boostByType };
+    return { total, types, totalBoost, totalBoostStar, avgBoost, boostCount };
   }, [cards]);
 
   if (!stats) return null;
@@ -110,7 +116,7 @@ export default function EncounterStatistics({ cards = [], title = 'Encounter Sta
         <table className="set-stats-table">
           <tbody>
             {stats.types.map(({ name, count }) => {
-              const color = TYPE_COLORS[name] || '#94a3b8';
+              const color = TYPE_COLOR_MAP[name] || '#94a3b8';
               return (
                 <tr key={name}>
                   <td className="set-stats-type-label">{name}</td>
@@ -127,37 +133,42 @@ export default function EncounterStatistics({ cards = [], title = 'Encounter Sta
         </table>
       </div>
 
-      {/* Boost by type */}
-      {stats.totalBoost > 0 && (
-        <div className="set-stats-section">
-          <p className="set-stats-section-title">
-            Boost
-            <span className="st-boost-avg">avg {stats.avgBoost}</span>
-          </p>
-          <table className="set-stats-table">
-            <tbody>
-              {Object.entries(stats.boostByType)
-                .filter(([, v]) => v > 0)
-                .sort((a, b) => b[1] - a[1])
-                .map(([typeName, boostTotal]) => {
-                  const color = TYPE_COLORS[typeName] || '#94a3b8';
-                  const maxBoost = Math.max(...Object.values(stats.boostByType).filter(v => v > 0), 1);
-                  return (
-                    <tr key={typeName}>
-                      <td className="set-stats-type-label">{typeName}</td>
-                      <td className="set-stats-bar-cell">
-                        <div className="set-stat-bar-bg">
-                          <div className="set-stat-bar-fill" style={{ width: `${Math.round((boostTotal / maxBoost) * 100)}%`, background: color, opacity: 0.8 }} />
-                        </div>
-                      </td>
-                      <td className="set-stats-count-cell">{boostTotal}</td>
-                    </tr>
-                  );
-                })}
-            </tbody>
-          </table>
-        </div>
-      )}
+      {/* Boost histogram (colonnes par valeur de boost) */}
+      <div className="set-stats-section">
+        <p className="set-stats-section-title">
+          Boost
+          {stats.avgBoost !== null && <span className="st-boost-avg">avg {stats.avgBoost}</span>}
+        </p>
+        {(() => {
+          const maxCount = Math.max(...BOOST_ROWS.map(({ key }) => stats.boostCount[key] || 0), 1);
+          return (
+            <div className="st-boost-chart">
+              {BOOST_ROWS.map(({ key, iconCount, plus }) => {
+                const count = stats.boostCount[key] || 0;
+                const isActive = String(key) === String(activeBoost);
+                const barH = Math.round((count / maxCount) * 56);
+                return (
+                  <div
+                    key={key}
+                    className={['st-boost-col', onBoostClick ? 'st-boost-col--clickable' : '', isActive ? 'st-boost-col--active' : ''].filter(Boolean).join(' ')}
+                    onClick={() => onBoostClick && onBoostClick(String(key))}
+                    role={onBoostClick ? 'button' : undefined}
+                    tabIndex={onBoostClick ? 0 : undefined}
+                    onKeyDown={e => e.key === 'Enter' && onBoostClick && onBoostClick(String(key))}
+                    title={onBoostClick ? `Filtrer boost = ${key}` : undefined}
+                  >
+                    <span className="st-boost-count">{count}</span>
+                    <div className={['st-boost-bar', isActive ? 'st-boost-bar--active' : ''].filter(Boolean).join(' ')} style={{ height: `${Math.max(barH, count > 0 ? 4 : 0)}px` }} />
+                    <span className="st-boost-label">
+                      <BoostSymbol iconCount={iconCount} plus={plus} />
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          );
+        })()}
+      </div>
 
     </div>
   );

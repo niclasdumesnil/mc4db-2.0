@@ -8,6 +8,13 @@ import '@css/NewDeck.css';
 function currentUserId() {
   try { const u = JSON.parse(localStorage.getItem('mc_user')); return u && (u.id || u.userId); } catch { return null; }
 }
+function currentUser() {
+  try { return JSON.parse(localStorage.getItem('mc_user')) || null; } catch { return null; }
+}
+function isDonator(u) {
+  if (!u) return false;
+  return !!(u.is_donator || u.donator || u.isDonator);
+}
 
 const DISPLAY_MODES = [
   { key: 'checklist', icon: '☰', label: 'Checklist' },
@@ -20,7 +27,7 @@ const IDENTITY_TYPE_CODES  = ['hero', 'alter_ego', 'villain', 'main_scheme'];
 
 // ── Identity card block (NewDeck style) ──────────────────────────────────────
 
-function SetBanner({ identityCards = [], fallbackCard, mode, onModeChange, selectedSet, cardCount, regularCount, costFilter, onClearCost, loading }) {
+function SetBanner({ identityCards = [], fallbackCard, mode, onModeChange, selectedSet, cardCount, regularCount, costFilter, onClearCost, boostFilter, onClearBoost, loading }) {
   const heroFaces = [
     ...identityCards.filter(c => c.type_code === 'hero'),
     ...identityCards.filter(c => c.type_code === 'alter_ego'),
@@ -51,7 +58,7 @@ function SetBanner({ identityCards = [], fallbackCard, mode, onModeChange, selec
           ))}
         </div>
 
-        {/* Center: spacer so name can flex */}
+        {/* Center: plain spacer between card groups */}
         <div className="shb-name-center" />
 
         {/* Right: main scheme */}
@@ -69,18 +76,15 @@ function SetBanner({ identityCards = [], fallbackCard, mode, onModeChange, selec
       </div>
 
       <div className="shb-strip">
-        {selectedSet && (
-          <span className="shb-set-name">
-            {selectedSet.name}
-            {selectedSet.creator && selectedSet.creator !== 'FFG' && (
-              <span className="mc-badge mc-badge-creator" style={{ marginLeft: 8 }}>{selectedSet.creator}</span>
-            )}
-          </span>
-        )}
         <div className="shb-right">
           {costFilter !== null && (
             <button className="sets-cost-filter-pill" onClick={onClearCost} title="Clear cost filter">
               Cost = {costFilter} ✕
+            </button>
+          )}
+          {boostFilter !== null && (
+            <button className="sets-cost-filter-pill sets-boost-filter-pill" onClick={onClearBoost} title="Clear boost filter">
+              Boost = {boostFilter} ✕
             </button>
           )}
           {selectedSet && !loading && (
@@ -260,8 +264,8 @@ function HorizontalSetsBar({ setsData, setsLoading, selectedSet, onSelect }) {
                   onClick={() => handleSelect(set)}
                 >
                   <span>{set.name}</span>
+                  {set.private && <span className="mc-badge mc-badge-private sets-topbar-badge" title="Pack privé">🔒</span>}
                   {set.creator && set.creator !== 'FFG' && <span className="mc-badge mc-badge-creator sets-topbar-badge">{set.creator}</span>}
-                  {set.nemesis_code && <span className="sets-topbar-badge-nemesis" title="Has nemesis set">N</span>}
                 </button>
               ))}
             </div>
@@ -304,6 +308,7 @@ export default function Sets() {
   const [mode, setMode]         = useState('checklist');
   const [sort, setSort]         = useState('pack');
   const [costFilter, setCostFilter] = useState(null);
+  const [boostFilter, setBoostFilter] = useState(null);
 
   // Load sets index
   useEffect(() => {
@@ -327,6 +332,7 @@ export default function Sets() {
     if (!selectedSet) { setHeroCards([]); setEncounterCards([]); return; }
     setCardsLoading(true);
     setCostFilter(null);
+    setBoostFilter(null);
     const isEnc = ENCOUNTER_TYPE_CODES.includes((selectedSet.type_code || '').toLowerCase());
     if (isEnc) {
       fetchSetCards(selectedSet.code, locale)
@@ -334,15 +340,17 @@ export default function Sets() {
         .finally(() => setCardsLoading(false));
     } else {
       // Hero set: load hero set + nemesis set together
+      // Try nemesis_code from set data, or fall back to "{code}_nemesis"
+      const nemesisCode = selectedSet.nemesis_code || (selectedSet.code + '_nemesis');
       Promise.all([
         fetchSetCards(selectedSet.code, locale),
-        selectedSet.nemesis_code ? fetchSetCards(selectedSet.nemesis_code, locale) : Promise.resolve([]),
+        fetchSetCards(nemesisCode, locale),
       ]).then(([hero, nemesis]) => {
         setHeroCards(hero);
         setEncounterCards(nemesis);
       }).finally(() => setCardsLoading(false));
     }
-  }, [selectedSet?.code, selectedSet?.nemesis_code, locale]);
+  }, [selectedSet?.code, locale]);
 
   const handleSelectSet = useCallback((set) => setSelectedSet(set), []);
   const handleSort      = useCallback((col) => setSort(col), []);
@@ -366,28 +374,55 @@ export default function Sets() {
     [allCards]
   );
 
-  // Filtered card list (cost filter only)
+  // Filtered card list (cost + boost filters)
   const displayCards = useMemo(() => {
-    if (costFilter === null) return regularCardsBase;
-    return regularCardsBase.filter(c => String(c.cost ?? '—') === String(costFilter));
-  }, [regularCardsBase, costFilter]);
+    let list = regularCardsBase;
+    if (costFilter !== null)
+      list = list.filter(c => String(c.cost ?? '\u2014') === String(costFilter));
+    if (boostFilter !== null) {
+      list = list.filter(c => {
+        const b = Math.max(0, parseInt(c.boost ?? 0, 10));
+        return boostFilter === '3+' ? b >= 3 : String(b) === boostFilter;
+      });
+    }
+    return list;
+  }, [regularCardsBase, costFilter, boostFilter]);
 
   function renderStats() {
     if (!selectedSet) return <div className="sets-stats-empty">Select a set to view statistics.</div>;
     if (cardsLoading)  return <div className="sets-stats-loading">Loading…</div>;
     const isEnc = ENCOUNTER_TYPE_CODES.includes((selectedSet.type_code || '').toLowerCase());
     if (isEnc) {
-      return <EncounterStatistics cards={encounterCards} title={selectedSet.name} />;
+      return <EncounterStatistics
+        cards={encounterCards}
+        title={selectedSet.name}
+        activeBoost={boostFilter}
+        onBoostClick={(b) => setBoostFilter(prev => prev === b ? null : b)}
+      />;
     }
-    // Hero set: deck statistics for hero cards only
-    const deckSlots = heroCards.map(c => ({ ...c, quantity: c.quantity ?? 1, permanent: false }));
+    // Hero set: separate obligation cards from deck cards
+    const obligationCards = heroCards.filter(c => (c.type_code || '').toLowerCase() === 'obligation');
+    const deckCards       = heroCards.filter(c => (c.type_code || '').toLowerCase() !== 'obligation');
+    const deckSlots       = deckCards.map(c => ({ ...c, quantity: c.quantity ?? 1, permanent: false }));
+    const encounterForStats = [...obligationCards, ...encounterCards];
     return (
-      <DeckStatistics
-        slots={deckSlots}
-        packsRequired={1}
-        activeCost={costFilter}
-        onCostClick={(cost) => setCostFilter(prev => prev === cost ? null : cost)}
-      />
+      <>
+        <DeckStatistics
+          slots={deckSlots}
+          packsRequired={1}
+          activeCost={costFilter}
+          onCostClick={(cost) => setCostFilter(prev => prev === cost ? null : cost)}
+        />
+        {encounterForStats.length > 0 && (
+          <div className="sets-stats-encounter-divider">
+            <EncounterStatistics
+              cards={encounterForStats}
+              activeBoost={boostFilter}
+              onBoostClick={(b) => setBoostFilter(prev => prev === b ? null : b)}
+            />
+          </div>
+        )}
+      </>
     );
   }
 
@@ -418,6 +453,8 @@ export default function Sets() {
               regularCount={regularCardsBase.length}
               costFilter={costFilter}
               onClearCost={() => setCostFilter(null)}
+              boostFilter={boostFilter}
+              onClearBoost={() => setBoostFilter(null)}
               loading={cardsLoading}
             />
             {!selectedSet ? (
@@ -429,7 +466,7 @@ export default function Sets() {
               <div className="sets-loading">Loading cards…</div>
             ) : displayCards.length === 0 ? (
               <div className="sets-empty">
-                {costFilter !== null ? 'No cards match the current filters.' : 'No cards found for this set.'}
+                {(costFilter !== null || boostFilter !== null) ? 'No cards match the current filters.' : 'No cards found for this set.'}
               </div>
             ) : (
               <CardListDisplay
@@ -444,6 +481,15 @@ export default function Sets() {
 
         {/* Right: statistics */}
         <aside className="sets-stats">
+          {selectedSet && (
+            <div className="sets-stats-title">
+              <span className="sets-stats-title-name">{selectedSet.name}</span>
+              {selectedSet.private && <span className="mc-badge mc-badge-private" style={{ marginLeft: 8 }} title="Pack privé (donateurs)">🔒 Private</span>}
+              {selectedSet.creator && selectedSet.creator !== 'FFG' && (
+                <span className="mc-badge mc-badge-creator" style={{ marginLeft: 8 }}>{selectedSet.creator}</span>
+              )}
+            </div>
+          )}
           <div className="sets-stats-body">
             {renderStats()}
           </div>

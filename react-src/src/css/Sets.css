@@ -261,16 +261,6 @@
   padding: 1px 5px;
 }
 
-.sets-topbar-badge-nemesis {
-  flex-shrink: 0;
-  font-size: 0.6rem;
-  font-weight: 700;
-  background: rgba(239, 68, 68, 0.18);
-  color: #f87171;
-  border-radius: 4px;
-  padding: 1px 5px;
-}
-
 /* ══════════════════════════════════════════════════════════════
    CONTENT ROW — three independent panels
    ══════════════════════════════════════════════════════════════ */
@@ -498,19 +488,6 @@
   border-bottom-right-radius: 0;
 }
 
-.shb-set-name {
-  flex: 1;
-  font-size: 0.82rem;
-  font-weight: 700;
-  color: var(--sets-text);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  text-align: center;
-  padding: 0 8px;
-}
 
 .shb-modes {
   display: flex;
@@ -522,6 +499,7 @@
 /* spacer between left faces and right faces */
 .shb-name-center {
   flex: 1;
+  pointer-events: none;
 }
 
 .shb-right {
@@ -584,6 +562,33 @@
   max-height: calc(100vh - var(--sets-nav-h) - 56px - 24px);
   align-self: start;
   min-width: 0;
+}
+
+.sets-stats-title {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0;
+  padding: 10px 14px 9px;
+  border-bottom: 1px solid var(--sets-border);
+  background: var(--sets-surface);
+  flex-shrink: 0;
+}
+
+.sets-stats-title-name {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: var(--sets-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sets-stats-encounter-divider {
+  border-top: 2px solid var(--sets-border);
+  margin-top: 4px;
 }
 
 .sets-stats-body {
@@ -711,17 +716,6 @@
 }
 .sets-topbar-dropdown-section:first-child { border-top: none; margin-top: 0; }
 
-.sets-topbar-badge-nemesis {
-  margin-left: auto;
-  font-size: 0.66rem;
-  font-weight: 800;
-  background: rgba(239,68,68,0.15);
-  color: #f87171;
-  border: 1px solid rgba(239,68,68,0.3);
-  border-radius: 4px;
-  padding: 1px 5px;
-}
-
 /* ── Search bar ─────────────────────────────────────────────────────────── */
 
 .sets-search-wrap {
@@ -775,6 +769,12 @@
 .sets-search-clear:hover { color: var(--sets-fg); }
 
 /* ── Cost filter pill ────────────────────────────────────────────────────── */
+
+.sets-boost-filter-pill {
+  background: rgba(59, 130, 246, 0.15);
+  border-color: rgba(59, 130, 246, 0.35);
+  color: #60a5fa;
+}
 
 .sets-cost-filter-pill {
   all: unset;
