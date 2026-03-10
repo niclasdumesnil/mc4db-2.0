@@ -129,20 +129,20 @@ function SetStatsDisplay({ cards, loading }) {
         </div>
         <div className="set-stats-summary-item">
           <span className="set-stats-summary-value" style={{ color: '#fbbf24' }}>
-            <span className="icon icon-boost" style={{ fontSize: '0.85rem', fontWeight: 400 }} />{s.totalBoost}
+            {s.totalBoost}{' '}<span className="icon icon-boost" style={{ fontSize: '0.85rem', fontWeight: 400 }} />
           </span>
           <span className="set-stats-summary-label">boost</span>
         </div>
         {s.totalBoostStar > 0 && (
           <div className="set-stats-summary-item">
             <span className="set-stats-summary-value" style={{ color: '#fbbf24' }}>
-              <span className="icon icon-boost" style={{ fontSize: '0.85rem', fontWeight: 400 }} />★{s.totalBoostStar}
+              {s.totalBoostStar}{' '}★
             </span>
             <span className="set-stats-summary-label">boost ★</span>
           </div>
         )}
         <div className="set-stats-summary-item">
-          <span className="set-stats-summary-value" style={{ color: '#60a5fa' }}>{s.avgBoost}</span>
+          <span className="set-stats-summary-value" style={{ color: '#fbbf24' }}>{s.avgBoost}</span>
           <span className="set-stats-summary-label">avg boost</span>
         </div>
       </div>
@@ -840,6 +840,18 @@ function ScenarioTab() {
         {/* View mode toggle */}
         <div className="scenario-view-toggle">
           <button
+            className={`scenario-view-btn${viewMode === 'list' ? ' scenario-view-btn--active' : ''}`}
+            onClick={() => switchViewMode('list')}
+            title="Vue liste"
+            aria-label="Vue liste"
+          >
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+              <rect x="1" y="2" width="14" height="2" rx="1"/>
+              <rect x="1" y="7" width="14" height="2" rx="1"/>
+              <rect x="1" y="12" width="14" height="2" rx="1"/>
+            </svg>
+          </button>
+          <button
             className={`scenario-view-btn${viewMode === 'grid' ? ' scenario-view-btn--active' : ''}`}
             onClick={() => switchViewMode('grid')}
             title="Vue panneau"
@@ -850,18 +862,6 @@ function ScenarioTab() {
               <rect x="9" y="1" width="6" height="6" rx="1.5"/>
               <rect x="1" y="9" width="6" height="6" rx="1.5"/>
               <rect x="9" y="9" width="6" height="6" rx="1.5"/>
-            </svg>
-          </button>
-          <button
-            className={`scenario-view-btn${viewMode === 'list' ? ' scenario-view-btn--active' : ''}`}
-            onClick={() => switchViewMode('list')}
-            title="Vue liste"
-            aria-label="Vue liste"
-          >
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-              <rect x="1" y="2" width="14" height="2" rx="1"/>
-              <rect x="1" y="7" width="14" height="2" rx="1"/>
-              <rect x="1" y="12" width="14" height="2" rx="1"/>
             </svg>
           </button>
         </div>

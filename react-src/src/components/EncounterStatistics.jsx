@@ -95,7 +95,7 @@ export default function EncounterStatistics({ cards = [], title = 'Encounter Sta
         {stats.totalBoost > 0 && (
           <div className="set-stats-summary-item">
             <span className="set-stats-summary-value" style={{ color: '#fbbf24' }}>
-              <span className="icon icon-boost" style={{ fontSize: '0.85rem', fontWeight: 400 }} />{stats.totalBoost}
+              {stats.totalBoost}{' '}<span className="icon icon-boost" style={{ fontSize: '0.85rem', fontWeight: 400 }} />
             </span>
             <span className="set-stats-summary-label">Boost</span>
           </div>
@@ -103,7 +103,7 @@ export default function EncounterStatistics({ cards = [], title = 'Encounter Sta
         {stats.totalBoostStar > 0 && (
           <div className="set-stats-summary-item">
             <span className="set-stats-summary-value" style={{ color: '#fbbf24' }}>
-              ★{stats.totalBoostStar}
+              {stats.totalBoostStar}{' '}★
             </span>
             <span className="set-stats-summary-label">Boost ★</span>
           </div>

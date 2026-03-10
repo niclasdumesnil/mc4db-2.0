@@ -474,7 +474,7 @@ export default function Sets() {
     // Hero set: separate obligation cards from deck cards
     // Exclude hidden cards (back-faces like Betsy Braddock) — they are counted via their front face
     const obligationCards = heroCards.filter(c => (c.type_code || '').toLowerCase() === 'obligation');
-    const deckCards       = heroCards.filter(c => (c.type_code || '').toLowerCase() !== 'obligation' && !c.hidden);
+    const deckCards       = heroCards.filter(c => !['obligation', 'hero', 'alter_ego'].includes((c.type_code || '').toLowerCase()) && !c.hidden);
     const deckSlots       = deckCards.map(c => ({ ...c, quantity: c.quantity ?? 1, permanent: false }));
     const encounterForStats = [...obligationCards, ...encounterCards];
     return (
