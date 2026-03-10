@@ -429,6 +429,14 @@
   border-radius: 10px;
   padding: 2px 10px;
   white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.sets-card-count-icon {
+  font-size: 0.7rem;
+  opacity: 0.6;
+  line-height: 1;
 }
 
 .sets-main-body {

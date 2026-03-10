@@ -44,9 +44,9 @@ export default function EncounterStatistics({ cards = [], title = 'Encounter Sta
   const stats = useMemo(() => {
     if (!cards || cards.length === 0) return null;
 
-    // Exclude main_scheme (shown in their own panel) and back-face cards (linked_card = double-sided B face)
+    // Exclude main_scheme (shown in their own panel) and back-face cards (hidden:1 = double-sided B face)
     const effectiveCards = cards.filter(c =>
-      (c.type_code || '').toLowerCase() !== 'main_scheme' && !c.linked_to_code
+      (c.type_code || '').toLowerCase() !== 'main_scheme' && !c.hidden
     );
     if (effectiveCards.length === 0) return null;
 
@@ -103,14 +103,14 @@ export default function EncounterStatistics({ cards = [], title = 'Encounter Sta
         {stats.totalBoostStar > 0 && (
           <div className="set-stats-summary-item">
             <span className="set-stats-summary-value" style={{ color: '#fbbf24' }}>
-              <span className="icon icon-boost" style={{ fontSize: '0.85rem', fontWeight: 400 }} />★{stats.totalBoostStar}
+              ★{stats.totalBoostStar}
             </span>
             <span className="set-stats-summary-label">Boost ★</span>
           </div>
         )}
         {stats.avgBoost !== null && (
           <div className="set-stats-summary-item">
-            <span className="set-stats-summary-value" style={{ color: '#60a5fa' }}>{stats.avgBoost}</span>
+            <span className="set-stats-summary-value" style={{ color: '#fbbf24' }}>{stats.avgBoost}</span>
             <span className="set-stats-summary-label">Avg Boost</span>
           </div>
         )}

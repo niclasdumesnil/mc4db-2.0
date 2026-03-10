@@ -191,6 +191,8 @@ router.get('/sets', async (req, res, next) => {
         db.raw('MIN(ct.name) as type_name'),
         db.raw('MAX(p.creator) as creator'),
         db.raw('MAX(p.visibility) as visibility'),
+        db.raw('MIN(p.environment) as pack_environment'),
+        db.raw('MIN(p.status) as pack_status'),
         db.raw('COUNT(DISTINCT c.id) as card_count')
       )
       .orderBy('cs.name', 'asc');
@@ -241,6 +243,8 @@ router.get('/sets', async (req, res, next) => {
         nemesis_code: nemesisMap[row.code] || null,
         creator: row.creator || 'FFG',
         card_count: Number(row.card_count) || 0,
+        pack_environment: row.pack_environment || null,
+        pack_status: row.pack_status || null,
         private: row.visibility === 'false' || row.visibility === false,
       });
     }
