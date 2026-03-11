@@ -384,7 +384,7 @@ export default function CardList() {
             <div className="cardlist-empty">No cards match your filters.</div>
           ) : (
             <CardListDisplay
-              cards={cards.filter(c => c.type_code !== 'hero' && c.type_code !== 'alter_ego')}
+              cards={cards}
               mode={mode}
               sort={sort}
               onSort={handleSort}
