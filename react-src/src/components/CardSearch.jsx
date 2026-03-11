@@ -327,14 +327,22 @@ export default function CardSearch({ filters, onChange, types = [], subtypes = [
         </div>
         <div style={{ marginBottom: 8 }} />
 
-        <div className="card-search__unique-row">
-          <span className="card-search__numeric-label">Unique</span>
-          <button
-            className={`card-search__unique-toggle${filters.is_unique === '1' ? ' card-search__unique-toggle--active' : ''}`}
-            onClick={() => set({ is_unique: filters.is_unique === '1' ? '' : '1' })}
-          >
-            {filters.is_unique === '1' ? '✦ Yes' : 'No'}
-          </button>
+        <div className="card-search__unique-row" style={{ display: 'flex', alignItems: 'center' }}>
+          <span className="card-search__numeric-label" style={{ minWidth: '70px' }}>Unique</span>
+          <div className="card-search__res-qty-btns">
+            <button
+              className={`card-search__res-qty-btn${filters.is_unique === '' ? ' card-search__res-qty-btn--active' : ''}`}
+              onClick={() => set({ is_unique: '' })}
+            >Any</button>
+            <button
+              className={`card-search__res-qty-btn${filters.is_unique === '1' ? ' card-search__res-qty-btn--active' : ''}`}
+              onClick={() => set({ is_unique: '1' })}
+            >Yes</button>
+            <button
+              className={`card-search__res-qty-btn${filters.is_unique === '0' ? ' card-search__res-qty-btn--active' : ''}`}
+              onClick={() => set({ is_unique: '0' })}
+            >No</button>
+          </div>
         </div>
       </Section>
 
