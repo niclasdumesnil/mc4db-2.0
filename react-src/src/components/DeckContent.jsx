@@ -64,7 +64,7 @@ function FactionDot({ card }) {
   );
 }
 
-export default function DeckContent({ slots, mode = 'list', heroSpecialCards = [], sideSlots = [], invalidCodes = null, onTransferToSide = null, onTransferToMain = null, onChangeQty = null, onChangeSideQty = null }) {
+export default function DeckContent({ slots, mode = 'list', heroSpecialCards = [], sideSlots = [], invalidCodes = null, onTransferToSide = null, onTransferToMain = null, onChangeQty = null, onChangeSideQty = null, heroSetCode = null }) {
   // Flash animation: set of card codes currently flashing
   const [flashCodes, setFlashCodes] = useState(new Set());
 
@@ -185,7 +185,8 @@ export default function DeckContent({ slots, mode = 'list', heroSpecialCards = [
                 {[...groupedSlots[type].cards]
                   .sort((a, b) => (a.name || '').localeCompare(b.name || ''))
                   .map(card => {
-                    const isHero = card.faction_code === 'hero' || card.faction_code === 'campaign';
+                    const isHero = (card.faction_code === 'hero' || card.faction_code === 'campaign')
+                      && (!heroSetCode || card.card_set_code === heroSetCode);
                     const canToSide = !!onTransferToSide && !isHero && !(card.is_unique && sideCodes.has(card.code));
                     const isInvalid = !isHero && invalidCodes?.has(card.code);
                     return (
@@ -258,7 +259,8 @@ export default function DeckContent({ slots, mode = 'list', heroSpecialCards = [
                 {[...permanentSlots.cards]
                   .sort((a, b) => (a.name || '').localeCompare(b.name || ''))
                   .map(card => {
-                    const isHero = card.faction_code === 'hero' || card.faction_code === 'campaign';
+                    const isHero = (card.faction_code === 'hero' || card.faction_code === 'campaign')
+                      && (!heroSetCode || card.card_set_code === heroSetCode);
                     const canToSide = !!onTransferToSide && !isHero && !(card.is_unique && sideCodes.has(card.code));
                     const isInvalid = !isHero && invalidCodes?.has(card.code);
                     return (

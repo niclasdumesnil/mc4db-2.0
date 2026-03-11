@@ -161,6 +161,7 @@ export default forwardRef(function DeckEditor(
           pack_environment: card.pack_environment,
           alt_art: card.alt_art,
           duplicate_of_code: card.duplicate_of_code || null,
+          card_set_code: card.card_set_code || null,
         };
       })
       .filter(Boolean);
@@ -194,6 +195,7 @@ export default forwardRef(function DeckEditor(
           pack_environment: card.pack_environment,
           alt_art: card.alt_art,
           duplicate_of_code: card.duplicate_of_code || null,
+          card_set_code: card.card_set_code || null,
         };
       })
       .filter(Boolean);
@@ -366,8 +368,13 @@ export default forwardRef(function DeckEditor(
     if (needle.length < 2) return [];
     return allCards.filter(card => {
       if (!SEARCH_FACTIONS.has(card.faction_code?.toLowerCase())) return false;
-      // Faction (Browse)
-      if (selectedFaction && card.faction_code?.toLowerCase() !== selectedFaction) return false;
+      // Faction (Browse) — ne s'applique pas aux cartes hero/campaign
+      const isHeroFaction = card.faction_code === 'hero' || card.faction_code === 'campaign';
+      if (!isHeroFaction && selectedFaction && card.faction_code?.toLowerCase() !== selectedFaction) return false;
+      // Exclure les cartes hero/campaign du set du héros actif (déjà dans le deck principal)
+      if (isHeroFaction && heroCard?.card_set_code && card.card_set_code === heroCard.card_set_code) return false;
+      // Exclure les cartes de type Hero et Alter-Ego
+      if (card.type_code === 'hero' || card.type_code === 'alter_ego') return false;
       // Dédoublonnage alt-art
       if (card.duplicate_of_code) {
         if (!(filters.showAltArt && card.alt_art)) return false;
@@ -394,8 +401,8 @@ export default forwardRef(function DeckEditor(
       if (resFilter.physical > 0 && (card.resource_physical || 0) < resFilter.physical) return false;
       if (resFilter.mental   > 0 && (card.resource_mental   || 0) < resFilter.mental)   return false;
       if (resFilter.wild     > 0 && (card.resource_wild     || 0) < resFilter.wild)     return false;
-      // Validation deck-building (seulement pour les cartes joueur, pas hero/campaign)
-      if (!showUnauthorized && PLAYER_FACTIONS.has(card.faction_code?.toLowerCase())) {
+      // Validation deck-building (seulement pour les cartes joueur non-héros)
+      if (!showUnauthorized && !isHeroFaction && PLAYER_FACTIONS.has(card.faction_code?.toLowerCase())) {
         if (!canIncludeCard(card, heroCard, deckAspect || null, deckState.main, allCards, allCardsMap)) return false;
       }
       return true;

@@ -95,6 +95,16 @@ export default function DeckView() {
     return getDeckProblems(slotsMap, heroCard, validationCards, deckAspect);
   }, [liveSlots, deck?.slots, heroCard, validationCards, deckAspect]);
 
+  // Determine the current hero's card_set_code to allow editing of hero cards from other sets
+  const heroSetCode = useMemo(() => {
+    if (heroCard?.card_set_code) return heroCard.card_set_code;
+    const heroCode = deck?.hero_code;
+    if (!heroCode) return null;
+    const currentSlots = liveSlots ?? deck?.slots ?? [];
+    const heroSlot = currentSlots.find(s => s.code === heroCode);
+    return heroSlot?.card_set_code || null;
+  }, [heroCard, deck?.hero_code, deck?.slots, liveSlots]);
+
   // Determine if public or private from URL
   const path = window.location.pathname;
   const isPrivate = path.startsWith('/my-decks/') || path.startsWith('/deck/view/');
@@ -400,6 +410,7 @@ export default function DeckView() {
             mode={displayMode}
             heroSpecialCards={deck.hero_special_cards ?? []}
             invalidCodes={invalidCodes}
+            heroSetCode={heroSetCode}
             onTransferToSide={showEditor ? (code) => editorRef.current?.transfer(code, 'toSide') : null}
             onTransferToMain={showEditor ? (code) => editorRef.current?.transfer(code, 'toMain') : null}
             onChangeQty={showEditor ? (code, qty, limit) => editorRef.current?.setQty(code, qty, limit) : null}
