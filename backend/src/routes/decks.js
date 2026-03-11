@@ -64,9 +64,12 @@ async function fetchDeckSlots(tableName, foreignKey, parentId, locale = 'en') {
       's.quantity',
       'c.code',
       'c.name',
+      'c.text',
+      'c.real_text',
       'c.alt_art',
       'c.permanent',
       'c.is_unique',
+      'c.octgn_id',
       't.name as type_name',
       'f.code as faction_code',
       'c.cost',
@@ -134,6 +137,7 @@ async function fetchHeroSpecialCards(heroCode, locale = 'en') {
       'c.name',
       'c.quantity',
       'c.is_unique',
+      'c.octgn_id',
       'f.code as faction_code',
       'f.name as faction_name',
       'cs.code as card_set_code',
@@ -227,7 +231,7 @@ router.get('/decks/:id', async (req, res) => {
     const deck = await db('decklist as d')
       .join('user as u', 'd.user_id', 'u.id')
       .join('card as c', 'd.card_id', 'c.id')
-      .select('d.*', 'u.username as author_name', 'c.name as hero_name', 'c.code as hero_code', 'c.meta as hero_meta')
+      .select('d.*', 'u.username as author_name', 'c.name as hero_name', 'c.code as hero_code', 'c.meta as hero_meta', 'c.octgn_id as hero_octgn_id')
       .where('d.id', id)
       .first();
 
@@ -528,7 +532,7 @@ router.get('/user/:userId/decks/:deckId', async (req, res) => {
 
     const deck = await db('deck as d')
       .join('card as c', 'd.character_id', 'c.id')
-      .select('d.*', 'c.name as hero_name', 'c.code as hero_code', 'c.meta as hero_meta')
+      .select('d.*', 'c.name as hero_name', 'c.code as hero_code', 'c.meta as hero_meta', 'c.octgn_id as hero_octgn_id')
       .where('d.id', deckId)
       .andWhere('d.user_id', userId)
       .first();
@@ -572,11 +576,12 @@ router.put('/user/:userId/decks/:deckId/slots', async (req, res) => {
     const deck = await db('deck').where({ id: deckId, user_id: userId }).first();
     if (!deck) return res.status(404).json({ error: 'Deck not found or unauthorized' });
 
-    const { slots, sideSlots, name, meta, tags } = req.body; // slots: [{ code, quantity }], sideSlots?: [...], name?: string, meta?: object, tags?: string
+    const { slots, sideSlots, name, meta, tags, description_md } = req.body; // slots: [{ code, quantity }], sideSlots?: [...], name?: string, meta?: object, tags?: string
     if (!Array.isArray(slots)) return res.status(400).json({ error: 'Invalid slots' });
     const newName = (typeof name === 'string' && name.trim()) ? name.trim() : null;
     const newMeta = (meta && typeof meta === 'object') ? JSON.stringify(meta) : null;
     const newTags = (typeof tags === 'string') ? tags.trim() : null;
+    const newDesc = (typeof description_md === 'string') ? description_md : undefined;
 
     // Ne garder que les slots avec quantity > 0
     const toInsert = slots.filter(s => s.quantity > 0);
@@ -663,6 +668,7 @@ router.put('/user/:userId/decks/:deckId/slots', async (req, res) => {
           ...(newName ? { name: newName } : {}),
           ...(newMeta !== null ? { meta: newMeta } : {}),
           ...(newTags !== null ? { tags: newTags } : {}),
+          ...(newDesc !== undefined ? { description_md: newDesc } : {}),
         });
       } else {
         await trx('deck').where('id', deckId).update({
@@ -670,6 +676,7 @@ router.put('/user/:userId/decks/:deckId/slots', async (req, res) => {
           ...(newName ? { name: newName } : {}),
           ...(newMeta !== null ? { meta: newMeta } : {}),
           ...(newTags !== null ? { tags: newTags } : {}),
+          ...(newDesc !== undefined ? { description_md: newDesc } : {}),
         });
       }
     });

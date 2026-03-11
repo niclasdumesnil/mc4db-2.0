@@ -5,6 +5,8 @@ import DeckHistory from '@components/DeckHistory';
 import DeckEditor from '@components/DeckEditor';
 import { getFactionColor } from '@utils/dataUtils';
 import { getDeckProblems, getSaveProblems, getInvalidCodes, inferDeckAspect } from '@utils/deckValidation';
+import MarkdownEditor from '@components/MarkdownEditor';
+import MarkdownViewer from '@components/MarkdownViewer';
 import '@css/DeckView.css';
 
 const ASPECT_LIST = ['aggression', 'justice', 'leadership', 'protection', 'determination'];
@@ -25,6 +27,7 @@ export default function DeckView() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showEditor, setShowEditor] = useState(false);
+  const [showDescriptionPanel, setShowDescriptionPanel] = useState(false);
   const [displayMode, setDisplayMode] = useState('list'); // 'list' | 'grid'
   const [liveSlots, setLiveSlots] = useState(null); // preview en temps réel
   const [liveSideSlots, setLiveSideSlots] = useState(null); // side deck preview en temps réel
@@ -32,6 +35,7 @@ export default function DeckView() {
   const [saveError, setSaveError] = useState(null);
   const [historyRefreshKey, setHistoryRefreshKey] = useState(0);
   const [liveTitle, setLiveTitle] = useState(null);
+  const [liveDescription, setLiveDescription] = useState(null);
   const [deleting, setDeleting] = useState(false);
   const [cloning, setCloning] = useState(false);
   const [publishing, setPublishing] = useState(false);
@@ -65,6 +69,7 @@ export default function DeckView() {
     } catch (_) {}
     setDeckTags(deck.tags || '');
     setLiveTitle(null); // reset live title on deck change
+    setLiveDescription(null);
   }, [deck?.id]);
 
   // Auto-infer aspect from live slots when editing
@@ -227,7 +232,7 @@ export default function DeckView() {
 
   return (
     <div className="deck-view-container">
-      <div className="deck-view-actions">
+      <div className="deck-view-actions" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <button className="deck-view-back" onClick={handleBack}>← Back</button>
       </div>
 
@@ -300,9 +305,11 @@ export default function DeckView() {
                           return;
                         }
                         const titleToSave = (liveTitle ?? deck?.name ?? '').trim() || undefined;
+                        const descriptionToSave = (liveDescription ?? deck?.description_md ?? '').trim() || undefined;
                         const metaToSave = { aspect: deckAspect || undefined };
                         await editorRef.current?.save({
                           name: titleToSave,
+                          description_md: descriptionToSave,
                           meta: metaToSave,
                           tags: deckTags,
                         });
@@ -311,7 +318,7 @@ export default function DeckView() {
                       finally { setSaving(false); }
                     }}
                   >{saving ? 'Saving…' : 'Save'}</button>
-                  <button className="deck-view-cancel-btn" onClick={() => { setShowEditor(false); setLiveSlots(null); setLiveSideSlots(null); setSaveError(null); setLiveTitle(null); setSaveProblems([]); }}>Cancel</button>
+                  <button className="deck-view-cancel-btn" onClick={() => { setShowEditor(false); setLiveSlots(null); setLiveSideSlots(null); setSaveError(null); setLiveTitle(null); setLiveDescription(null); setSaveProblems([]); }}>Cancel</button>
                 </>
               )}
             </div>
@@ -398,6 +405,18 @@ export default function DeckView() {
             ))}
           </div>
         )}
+
+        {/* Bouton pour la description (à l'extrême droite) */}
+        {!showEditor && deck?.description_md && (
+          <div className="dvt-section" style={{ marginLeft: 'auto' }}>
+            <button
+              className={`deck-view-mode-btn${showDescriptionPanel ? ' active' : ''}`}
+              onClick={() => setShowDescriptionPanel(!showDescriptionPanel)}
+            >
+              📝 {showDescriptionPanel ? 'Hide Description' : 'Show Description'}
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Corps : layout conditionnel selon mode édition */}
@@ -416,15 +435,30 @@ export default function DeckView() {
             onChangeQty={showEditor ? (code, qty, limit) => editorRef.current?.setQty(code, qty, limit) : null}
             onChangeSideQty={showEditor ? (code, qty, limit) => editorRef.current?.setSideQty(code, qty, limit) : null}
           />
+        {showEditor && (
+          <div className="deck-view-description-editor" style={{ marginTop: '20px' }}>
+            <MarkdownEditor 
+              value={liveDescription ?? deck?.description_md ?? ''} 
+              onChange={setLiveDescription} 
+            />
+          </div>
+        )}
         </div>
-        {!showEditor && (
-          <div className="deck-view-right">
+        {!showEditor && !showDescriptionPanel && (
+          <div className="deck-view-middle">
             <div className="deck-stats">
               <DeckStatistics slots={liveSlots ?? deck.slots ?? []} packsRequired={deck.packs_required} />
             </div>
           </div>
         )}
-        {!showEditor && (
+        {!showEditor && showDescriptionPanel && deck?.description_md && (
+          <div className="deck-view-right" style={{ flex: '0 0 640px', maxWidth: '100%' }}>
+            <div className="deck-description-container">
+              <MarkdownViewer content={deck.description_md} />
+            </div>
+          </div>
+        )}
+        {!showEditor && !showDescriptionPanel && isPrivate && (
           <div className="deck-view-history-col">
             <DeckHistory
               deckId={deckId}
@@ -433,6 +467,9 @@ export default function DeckView() {
               refreshKey={historyRefreshKey}
             />
           </div>
+        )}
+        {!showEditor && !showDescriptionPanel && !isPrivate && (
+          <div className="deck-view-right"></div>
         )}
         {showEditor && (
           <div className="deck-view-editor-panel">
@@ -449,7 +486,7 @@ export default function DeckView() {
                 setHeroCard(hc);
                 setValidationCards(ac);
               }}
-              onClose={() => { setShowEditor(false); setLiveSlots(null); setLiveSideSlots(null); setSaveError(null); setLiveTitle(null); }}
+              onClose={() => { setShowEditor(false); setLiveSlots(null); setLiveSideSlots(null); setSaveError(null); setLiveTitle(null); setLiveDescription(null); }}
               onSaved={() => {
                 setShowEditor(false);
                 setLiveSlots(null);

@@ -1,0 +1,51 @@
+.markdown-editor-container {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #2e3b4e;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #111a28;
+  margin-top: 20px;
+}
+
+.markdown-toolbar {
+  display: flex;
+  gap: 8px;
+  padding: 8px;
+  background: #1a2436;
+  border-bottom: 1px solid #2e3b4e;
+}
+
+.markdown-toolbar button {
+  background: transparent;
+  border: none;
+  color: #8fa1b8;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.markdown-toolbar button:hover {
+  background: #2a374a;
+  color: #fff;
+}
+
+.markdown-textarea {
+  min-height: 200px;
+  padding: 12px;
+  background: transparent;
+  color: #e2e8f0;
+  border: none;
+  resize: vertical;
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.markdown-textarea:focus {
+  outline: none;
+}

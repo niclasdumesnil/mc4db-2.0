@@ -419,6 +419,7 @@
   display: flex;
   align-items: flex-start;
   gap: 20px;
+  flex-wrap: wrap;
 }
 
 .deck-view-body--editing {
@@ -427,7 +428,7 @@
 
 .deck-view-left {
   flex: 1;
-  min-width: 320px;
+  min-width: 400px;
   position: relative;
   /* Anchor for absolutely positioned list/scan toggles */
 }
@@ -443,13 +444,24 @@
 }
 
 .deck-view-editor-panel {
-  flex: 0 0 50%;
-  min-width: 0;
+  flex: 1 1 500px;
+  min-width: 500px;
   overflow: hidden;
 }
 
-.deck-view-right {
+.deck-view-middle {
   flex: 0 0 300px;
+}
+
+.deck-view-right {
+  flex: 0 0 320px;
+}
+
+.deck-description-container {
+  background: #111827;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 10px;
+  padding: 24px;
 }
 
 /* ── States ───────────────────────────────────────── */

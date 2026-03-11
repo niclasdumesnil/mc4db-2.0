@@ -1,6 +1,7 @@
 import React from 'react';
 import { getFactionColor, getFactionFaintColor, DECK_TAGS } from '@utils/dataUtils';
 import PrintDeckButton from '@components/PrintDeckButton';
+import ExportOctgnButton from '@components/ExportOctgnButton';
 
 // ── Reputation medal (same logic as Profile.jsx) ─────────────────────────────
 const MEDAL_STYLES = {
@@ -119,6 +120,7 @@ export default function PublicDeck({ deck }) {
         </div>
         <div className="deck-footer-right">
           <PrintDeckButton deckId={deck.id} deckName={deck.name} isPrivate={false} />
+          <ExportOctgnButton deckId={deck.id} deckName={deck.name} isPrivate={false} />
           <div className="deck-date">
             {new Date(deck.date_creation).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
           </div>

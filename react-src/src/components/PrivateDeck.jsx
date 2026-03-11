@@ -1,6 +1,7 @@
 import React from 'react';
 import { getFactionColor, getFactionFaintColor, DECK_TAGS } from '@utils/dataUtils';
 import PrintDeckButton from '@components/PrintDeckButton';
+import ExportOctgnButton from '@components/ExportOctgnButton';
 
 export default function PrivateDeck({ deck }) {
   // Aspect (couleur) depuis meta JSON
@@ -89,6 +90,7 @@ export default function PrivateDeck({ deck }) {
         <span className="deck-footer-private-badge">🔒 Private</span>
         <div className="deck-footer-right">
           <PrintDeckButton deckId={deck.id} deckName={deck.name} isPrivate={true} />
+          <ExportOctgnButton deckId={deck.id} deckName={deck.name} isPrivate={true} />
           {updatedAt && <span className="deck-footer-date">Updated {updatedAt}</span>}
         </div>
       </div>

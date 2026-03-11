@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useMemo, useCallback, useImperativeHandle, forwardRef } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useImperativeHandle, forwardRef } from 'react';
 import AvailableCardList from './AvailableCardList';
 import { getFactionColor } from '@utils/dataUtils';
 import { canIncludeCard } from '@utils/deckValidation';
@@ -419,7 +419,7 @@ export default forwardRef(function DeckEditor(
 
   // --- SAVE ---
   // name, meta, tags are provided by the parent toolbar (DeckView) and forwarded to the API
-  const handleSave = useCallback(async ({ name, meta, tags } = {}) => {
+  const handleSave = useCallback(async ({ name, meta, tags, description_md } = {}) => {
     const userId = currentUserId();
     if (!userId || !deckId) {
       throw new Error('Cannot save: user not logged in.');
@@ -439,6 +439,7 @@ export default forwardRef(function DeckEditor(
       if (name  !== undefined) body.name  = name;
       if (meta  !== undefined) body.meta  = meta;
       if (tags  !== undefined) body.tags  = tags;
+      if (description_md !== undefined) body.description_md = description_md;
 
       const res = await fetch(`/api/public/user/${userId}/decks/${deckId}/slots`, {
         method: 'PUT',
