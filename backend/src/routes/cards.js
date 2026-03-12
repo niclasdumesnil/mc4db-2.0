@@ -200,12 +200,14 @@ router.get('/cards/search', async (req, res, next) => {
     const {
       name, text, flavor, pack, cardset, faction, type, subtype,
       traits, illustrator, is_unique,
-      cost_op = '=', cost,
-      qty_op = '=', qty,
-      atk_op = '=', atk,
-      thw_op = '=', thw,
-      def_op = '=', def,
-      health_op = '=', health,
+      cost_op = '=', cost, cost_op2 = '=', cost2,
+      qty_op = '=', qty, qty_op2 = '=', qty2,
+      atk_op = '=', atk, atk_op2 = '=', atk2,
+      thw_op = '=', thw, thw_op2 = '=', thw2,
+      def_op = '=', def, def_op2 = '=', def2,
+      health_op = '=', health, health_op2 = '=', health2,
+      boost_op = '=', boost, boost_op2 = '=', boost2,
+      scheme_op = '=', scheme, scheme_op2 = '=', scheme2,
       res_physical, res_mental, res_energy, res_wild,
       page = 1, limit = 50, sort = 'name', order = 'asc',
       hide_duplicates, show_alt_art, creator_filter,
@@ -246,15 +248,30 @@ router.get('/cards/search', async (req, res, next) => {
         'cs.code as card_set_code', 'cs.name as card_set_name',
       ]);
 
+    if (locale && locale !== 'en') {
+      q = q.leftJoin('card_translation as ct', function() {
+        this.on('c.code', '=', 'ct.code').andOn('ct.locale', '=', db.raw('?', [locale]));
+      });
+    }
+
     // By default exclude hidden cards (back-faces of double-sided cards);
     // pass include_hidden=1 to get all sides (e.g. for main scheme threat data).
     if (include_hidden !== '1') {
       q = q.where('c.hidden', 0);
     }
 
-    if (name) q = q.whereRaw('c.name LIKE ?', [`%${name}%`]);
-    if (text) q = q.whereRaw('(c.text LIKE ? OR c.real_text LIKE ?)', [`%${text}%`, `%${text}%`]);
-    if (flavor) q = q.whereRaw('c.flavor LIKE ?', [`%${flavor}%`]);
+    if (name) {
+      if (locale && locale !== 'en') q = q.whereRaw('COALESCE(ct.name, c.name) LIKE ?', [`%${name}%`]);
+      else q = q.whereRaw('c.name LIKE ?', [`%${name}%`]);
+    }
+    if (text) {
+      if (locale && locale !== 'en') q = q.whereRaw('(COALESCE(ct.text, c.text) LIKE ? OR COALESCE(ct.real_text, c.real_text) LIKE ?)', [`%${text}%`, `%${text}%`]);
+      else q = q.whereRaw('(c.text LIKE ? OR c.real_text LIKE ?)', [`%${text}%`, `%${text}%`]);
+    }
+    if (flavor) {
+      if (locale && locale !== 'en') q = q.whereRaw('COALESCE(ct.flavor, c.flavor) LIKE ?', [`%${flavor}%`]);
+      else q = q.whereRaw('c.flavor LIKE ?', [`%${flavor}%`]);
+    }
     if (pack) q = q.where('p.code', pack);
     if (cardset) q = q.where('cs.code', cardset);
     if (faction) q = q.where(function () { this.where('f.code', faction).orWhere('f2.code', faction); });
@@ -269,22 +286,34 @@ router.get('/cards/search', async (req, res, next) => {
     }
     if (type) q = q.where('t.code', type);
     if (subtype) q = q.where('st.code', subtype);
-    if (traits) q = q.whereRaw('c.traits LIKE ?', [`%${traits}%`]);
+    if (traits) {
+      if (locale && locale !== 'en') q = q.whereRaw('COALESCE(ct.traits, c.traits) LIKE ?', [`%${traits}%`]);
+      else q = q.whereRaw('c.traits LIKE ?', [`%${traits}%`]);
+    }
     if (illustrator) q = q.whereRaw('c.illustrator LIKE ?', [`%${illustrator}%`]);
     if (is_unique === '1') q = q.where('c.is_unique', 1);
     if (is_unique === '0') q = q.where('c.is_unique', 0);
 
-    const applyNumeric = (field, val, op) => {
-      if (val === undefined || val === '') return q;
-      const sqlOp = VALID_OPS[op] || '=';
-      return q.where(field, sqlOp, parseInt(val, 10));
+    const applyNumeric = (field, val, op, val2, op2) => {
+      let queryFn = q;
+      if (val !== undefined && val !== '') {
+        const sqlOp = VALID_OPS[op] || '=';
+        queryFn = queryFn.where(field, sqlOp, parseInt(val, 10));
+      }
+      if (val2 !== undefined && val2 !== '') {
+        const sqlOp2 = VALID_OPS[op2] || '=';
+        queryFn = queryFn.where(field, sqlOp2, parseInt(val2, 10));
+      }
+      return queryFn;
     };
-    q = applyNumeric('c.cost', cost, cost_op);
-    q = applyNumeric('c.quantity', qty, qty_op);
-    q = applyNumeric('c.attack', atk, atk_op);
-    q = applyNumeric('c.thwart', thw, thw_op);
-    q = applyNumeric('c.defense', def, def_op);
-    q = applyNumeric('c.health', health, health_op);
+    q = applyNumeric('c.cost', cost, cost_op, cost2, cost_op2);
+    q = applyNumeric('c.quantity', qty, qty_op, qty2, qty_op2);
+    q = applyNumeric('c.attack', atk, atk_op, atk2, atk_op2);
+    q = applyNumeric('c.thwart', thw, thw_op, thw2, thw_op2);
+    q = applyNumeric('c.defense', def, def_op, def2, def_op2);
+    q = applyNumeric('c.health', health, health_op, health2, health_op2);
+    q = applyNumeric('c.boost', boost, boost_op, boost2, boost_op2);
+    q = applyNumeric('c.scheme', scheme, scheme_op, scheme2, scheme_op2);
 
     if (res_physical) q = q.where('c.resource_physical', '>=', parseInt(res_physical, 10));
     if (res_mental) q = q.where('c.resource_mental', '>=', parseInt(res_mental, 10));

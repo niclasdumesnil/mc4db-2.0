@@ -60,17 +60,23 @@ function buildSearchUrl(filters, page, sort, order, showDuplicates, showAltArt, 
   }
 
   const numPairs = [
-    ['cost', 'cost_op'],
-    ['qty', 'qty_op'],
-    ['atk', 'atk_op'],
-    ['thw', 'thw_op'],
-    ['def', 'def_op'],
-    ['health', 'health_op'],
+    ['cost', 'cost_op', 'cost2', 'cost_op2'],
+    ['qty', 'qty_op', 'qty2', 'qty_op2'],
+    ['atk', 'atk_op', 'atk2', 'atk_op2'],
+    ['thw', 'thw_op', 'thw2', 'thw_op2'],
+    ['def', 'def_op', 'def2', 'def_op2'],
+    ['health', 'health_op', 'health2', 'health_op2'],
+    ['boost', 'boost_op', 'boost2', 'boost_op2'],
+    ['scheme', 'scheme_op', 'scheme2', 'scheme_op2'],
   ];
-  for (const [val, op] of numPairs) {
+  for (const [val, op, val2, op2] of numPairs) {
     if (filters[val] !== '' && filters[val] !== undefined) {
       params.set(val, filters[val]);
       params.set(op, filters[op] || '=');
+    }
+    if (filters[val2] !== '' && filters[val2] !== undefined) {
+      params.set(val2, filters[val2]);
+      params.set(op2, filters[op2] || '=');
     }
   }
 
@@ -240,7 +246,6 @@ export default function CardList() {
         setTotalFanmade(data.meta?.total_fanmade ?? 0);
         setTotalDuplicates(data.meta?.total_duplicates ?? 0);
         setLoading(false);
-        window.scrollTo({ top: 0, behavior: 'smooth' });
       })
       .catch((err) => {
         // AbortError is expected when a newer filter is applied — ignore silently.

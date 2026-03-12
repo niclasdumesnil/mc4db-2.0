@@ -27,10 +27,25 @@ const OP_OPTIONS = [
 ];
 
 function NumericField({ label, valKey, opKey, filters, onChange }) {
+  const valKey2 = `${valKey}2`;
+  const opKey2 = `${opKey}2`;
+  const [showSecond, setShowSecond] = useState(filters[valKey2] !== undefined && filters[valKey2] !== '');
+
   return (
     <div style={{ marginBottom: 8 }}>
-      <span className="card-search__numeric-label">{label}</span>
-      <div className="card-search__numeric-row">
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <span className="card-search__numeric-label">{label}</span>
+        {!showSecond && filters[opKey] && filters[opKey] !== '=' && (
+          <button
+            className="card-search__section-reset"
+            style={{ fontSize: '0.7rem', opacity: 0.7, background: 'none', border: 'none', color: '#cbd5e1', cursor: 'pointer' }}
+            onClick={() => setShowSecond(true)}
+          >
+            + Add
+          </button>
+        )}
+      </div>
+      <div className="card-search__numeric-row" style={{ marginBottom: showSecond ? '4px' : '0' }}>
         <select
           className="card-search__op-select"
           value={filters[opKey] || '='}
@@ -49,6 +64,38 @@ function NumericField({ label, valKey, opKey, filters, onChange }) {
           onChange={e => onChange({ ...filters, [valKey]: e.target.value })}
         />
       </div>
+      {showSecond && (
+        <div className="card-search__numeric-row">
+          <select
+            className="card-search__op-select"
+            value={filters[opKey2] || '='}
+            onChange={e => onChange({ ...filters, [opKey2]: e.target.value })}
+          >
+            {OP_OPTIONS.map(o => (
+              <option key={o.value} value={o.value}>{o.label}</option>
+            ))}
+          </select>
+          <div style={{ display: 'flex', width: '100%', gap: '4px' }}>
+            <input
+              className="card-search__number"
+              type="number"
+              min="0"
+              placeholder="—"
+              value={filters[valKey2] ?? ''}
+              onChange={e => onChange({ ...filters, [valKey2]: e.target.value })}
+            />
+            <button
+              className="card-search__section-reset"
+              style={{ padding: '0 4px', fontSize: '0.8rem' }}
+              onClick={() => {
+                setShowSecond(false);
+                onChange({ ...filters, [valKey2]: '', [opKey2]: '=' });
+              }}
+              title="Remove condition"
+            >✕</button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -348,20 +395,35 @@ export default function CardSearch({ filters, onChange, types = [], subtypes = [
 
       {/* ── Numerics ── */}
       <Section label="Numerics" defaultOpen={false}
-        active={!!(filters.cost !== '' || filters.qty !== '' || filters.atk !== '' ||
-          filters.thw !== '' || filters.def !== '' || filters.health !== '')}
+      active={!!(
+          filters.cost !== '' || filters.cost2 !== '' ||
+          filters.qty !== '' || filters.qty2 !== '' ||
+          filters.atk !== '' || filters.atk2 !== '' ||
+          filters.thw !== '' || filters.thw2 !== '' ||
+          filters.def !== '' || filters.def2 !== '' ||
+          filters.health !== '' || filters.health2 !== '' ||
+          filters.boost !== '' || filters.boost2 !== '' ||
+          filters.scheme !== '' || filters.scheme2 !== ''
+        )}
         onReset={() => set({
-          cost: '', cost_op: '=', qty: '', qty_op: '=',
-          atk: '', atk_op: '=', thw: '', thw_op: '=', def: '', def_op: '=',
-          health: '', health_op: '='
+          cost: '', cost_op: '=', cost2: '', cost_op2: '=',
+          qty: '', qty_op: '=', qty2: '', qty_op2: '=',
+          atk: '', atk_op: '=', atk2: '', atk_op2: '=',
+          thw: '', thw_op: '=', thw2: '', thw_op2: '=',
+          def: '', def_op: '=', def2: '', def_op2: '=',
+          health: '', health_op: '=', health2: '', health_op2: '=',
+          boost: '', boost_op: '=', boost2: '', boost_op2: '=',
+          scheme: '', scheme_op: '=', scheme2: '', scheme_op2: '='
         })}
       >
         <NumericField label="Cost" valKey="cost" opKey="cost_op" filters={filters} onChange={onChange} />
         <NumericField label="Quantity" valKey="qty" opKey="qty_op" filters={filters} onChange={onChange} />
         <NumericField label="Attack" valKey="atk" opKey="atk_op" filters={filters} onChange={onChange} />
         <NumericField label="Thwart" valKey="thw" opKey="thw_op" filters={filters} onChange={onChange} />
-        <NumericField label="Defend" valKey="def" opKey="def_op" filters={filters} onChange={onChange} />
+        <NumericField label="Defense" valKey="def" opKey="def_op" filters={filters} onChange={onChange} />
         <NumericField label="Health" valKey="health" opKey="health_op" filters={filters} onChange={onChange} />
+        <NumericField label="Boost" valKey="boost" opKey="boost_op" filters={filters} onChange={onChange} />
+        <NumericField label="Scheme" valKey="scheme" opKey="scheme_op" filters={filters} onChange={onChange} />
 
       </Section>
 
@@ -389,12 +451,14 @@ export const EMPTY_FILTERS = {
   name: '', text: '', flavor: '',
   factions: [],
   type: '', subtype: '', traits: '', is_unique: '',
-  cost: '', cost_op: '=',
-  qty: '', qty_op: '=',
-  atk: '', atk_op: '=',
-  thw: '', thw_op: '=',
-  def: '', def_op: '=',
-  health: '', health_op: '=',
+  cost: '', cost_op: '=', cost2: '', cost_op2: '=',
+  qty: '', qty_op: '=', qty2: '', qty_op2: '=',
+  atk: '', atk_op: '=', atk2: '', atk_op2: '=',
+  thw: '', thw_op: '=', thw2: '', thw_op2: '=',
+  def: '', def_op: '=', def2: '', def_op2: '=',
+  health: '', health_op: '=', health2: '', health_op2: '=',
+  boost: '', boost_op: '=', boost2: '', boost_op2: '=',
+  scheme: '', scheme_op: '=', scheme2: '', scheme_op2: '=',
   res_physical: '', res_mental: '', res_energy: '', res_wild: '',
   illustrator: '',
 };
