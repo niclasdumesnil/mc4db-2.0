@@ -280,6 +280,40 @@ export default function DeckView() {
               {deck.favorites != null && <span className="deck-view-stat">★ {deck.favorites}</span>}
               {deck.comments != null && <span className="deck-view-stat">💬 {deck.comments}</span>}
             </div>
+            {/* Affichage des tags (Mode Edition ET Mode Lecture) */}
+            {(showEditor || (deckTags && deckTags.length > 0)) && (
+              <div className="deck-view-tags-editor flex-row" style={{ marginTop: '14px', display: 'flex', alignItems: 'center', gap: '1rem', backgroundColor: 'rgba(255, 255, 255, 0.05)', padding: '6px 12px', borderRadius: '6px', width: '100%', boxSizing: 'border-box' }}>
+                <span className="deck-view-tags-label" style={{ color: '#8a99af', fontWeight: 'bold', letterSpacing: '0.05em', fontSize: '0.8rem' }}>TAGS <span style={{ color: '#444', marginLeft: '0.5rem' }}>|</span></span>
+                <div className="deck-filters__tags" style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                  {Object.entries(DECK_TAGS).map(([key, t]) => {
+                    const currentTags = deckTags ? deckTags.split(',').map(tag => tag.trim()).filter(Boolean) : [];
+                    const active = currentTags.includes(key);
+
+                    // En lecture seule, on ne montre que les tags actifs
+                    if (!showEditor && !active) return null;
+
+                    return (
+                      <button
+                        key={key}
+                        className={`deck-view-tag-btn ${active ? `deck-tag-icon--${key} active` : ''}`}
+                        title={t.label}
+                        style={{ cursor: showEditor ? 'pointer' : 'default' }}
+                        onClick={() => {
+                          if (!showEditor) return;
+                          const newTags = active
+                            ? currentTags.filter(tag => tag !== key)
+                            : [...currentTags, key];
+                          setDeckTags(newTags.join(','));
+                        }}
+                      >
+                        <span style={{ fontSize: '1.2em' }}>{t.icon}</span>
+                        <span style={{ fontSize: '0.75rem', marginLeft: '6px' }}>{t.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Boutons à droite */}
@@ -468,29 +502,6 @@ export default function DeckView() {
           />
         {showEditor && (
           <>
-            <div className="deck-view-tags-editor flex-row" style={{ marginTop: '20px', display: 'flex', alignItems: 'center', gap: '1rem', backgroundColor: '#0f1423', padding: '10px 16px', borderRadius: '6px' }}>
-              <span className="deck-view-tags-label" style={{ color: '#8a99af', fontWeight: 'bold', letterSpacing: '0.05em' }}>TAGS <span style={{ color: '#444', marginLeft: '0.5rem' }}>|</span></span>
-              <div className="deck-filters__tags" style={{ display: 'flex', gap: '0.5rem' }}>
-                {Object.entries(DECK_TAGS).map(([key, t]) => {
-                  const currentTags = deckTags ? deckTags.split(',').map(tag => tag.trim()).filter(Boolean) : [];
-                  const active = currentTags.includes(key);
-                  return (
-                    <button
-                      key={key}
-                      className={`deck-tag-icon deck-tag-icon--${key}${active ? ' deck-tag-icon--active' : ''}`}
-                      title={t.title}
-                      onClick={() => {
-                        const newTags = active ? currentTags.filter(tg => tg !== key) : [...currentTags, key];
-                        setDeckTags(newTags.join(', '));
-                      }}
-                      style={{ opacity: active ? 1 : 0.45, transform: active ? 'scale(1.15)' : 'none' }}
-                    >
-                      {t.icon}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
             <div className="deck-view-description-editor" style={{ marginTop: '20px' }}>
               <MarkdownEditor 
                 value={liveDescription ?? deck?.description_md ?? ''} 

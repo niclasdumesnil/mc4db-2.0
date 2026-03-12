@@ -91,6 +91,7 @@ function serializeCard(row, opts = {}) {
   const imageLang = (locale && locale.toUpperCase() === 'FR') ? 'FR' : packLang;
 
   const card = {
+    pack_id: row.pack_id ?? null,
     pack_code: row.pack_code || '',
     pack_name: row.pack_name || '',
     pack_creator: row.pack_creator || null,

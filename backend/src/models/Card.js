@@ -8,6 +8,7 @@ const db = require('../config/database');
 
 const BASE_CARD_COLUMNS = [
   'c.id',
+  'c.pack_id',
   'c.code',
   'c.name',
   'c.real_name',

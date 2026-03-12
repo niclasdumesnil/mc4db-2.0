@@ -181,4 +181,27 @@ router.put('/user/:id/packs', async (req, res) => {
   }
 });
 
+// ==========================================
+// GET : Rechercher un utilisateur par pseudo (autocomplete)
+// ==========================================
+router.get('/users/search', async (req, res) => {
+  try {
+    const q = req.query.q || '';
+    if (q.trim().length < 2) {
+      return res.json({ ok: true, users: [] });
+    }
+
+    const users = await db('user')
+      .where('username', 'like', `%${q}%`)
+      // .where('is_share_decks', 1) // Optionally restrict to users who share decks, but for now we just find users
+      .select('id', 'username')
+      .limit(10);
+
+    return res.json({ ok: true, users });
+  } catch (err) {
+    console.error('GET /users/search error', err && err.message ? err.message : err);
+    return res.status(500).json({ error: 'Internal error' });
+  }
+});
+
 module.exports = router;

@@ -98,6 +98,13 @@ export default forwardRef(function DeckEditor(
   const [resFilter, setResFilter] = useState({ energy: 0, physical: 0, mental: 0, wild: 0 });
   const [collectionSearch, setCollectionSearch] = useState('');
 
+  // --- COLLECTION FILTERS ---
+  const [collectionMode, setCollectionMode] = useState(currentUserId() ? 'yours' : 'all'); // 'all', 'yours', 'user'
+  const [collectionPackIds, setCollectionPackIds] = useState(null); // Set<number>
+  const [collectionUserId, setCollectionUserId] = useState(null);
+  const [userSearchTerm, setUserSearchTerm] = useState('');
+  const [userSearchResults, setUserSearchResults] = useState([]);
+
   const toggleRes = (type, val) =>
     setResFilter(prev => ({ ...prev, [type]: prev[type] === val ? 0 : val }));
 
@@ -133,6 +140,47 @@ export default forwardRef(function DeckEditor(
         setLoading(false);
       });
   }, [lang]);
+
+  // --- FETCH COLLECTION PACKS ---
+  useEffect(() => {
+    if (collectionMode === 'all') {
+      setCollectionPackIds(null);
+      return;
+    }
+    const targetUserId = collectionMode === 'yours' ? currentUserId() : collectionUserId;
+    if (!targetUserId) {
+      setCollectionPackIds(null);
+      return;
+    }
+    fetch(`/api/public/user/${targetUserId}`)
+      .then(r => r.json())
+      .then(d => {
+        if (d.ok && d.user?.owned_packs) {
+          setCollectionPackIds(new Set(d.user.owned_packs.split(',').map(Number).filter(Boolean)));
+        } else {
+          setCollectionPackIds(new Set()); // empty collection
+        }
+      })
+      .catch(() => setCollectionPackIds(null));
+  }, [collectionMode, collectionUserId]);
+
+  // --- USER AUTOCOMPLETE ---
+  useEffect(() => {
+    if (collectionMode !== 'user' || userSearchTerm.length < 2) {
+      setUserSearchResults([]);
+      return;
+    }
+    const timer = setTimeout(() => {
+      fetch(`/api/public/users/search?q=${encodeURIComponent(userSearchTerm)}`)
+        .then(r => r.json())
+        .then(d => {
+          if (d.ok) setUserSearchResults(d.users);
+        })
+        .catch(console.error);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [userSearchTerm, collectionMode]);
+
 
   // --- LIVE PREVIEW : propager les changements de slotsMap vers DeckView ---
   useEffect(() => {
@@ -319,6 +367,8 @@ export default forwardRef(function DeckEditor(
       if (selectedFaction && card.faction_code?.toLowerCase() !== selectedFaction) return false;
       // Type
       if (selectedType && card.type_code?.toLowerCase() !== selectedType) return false;
+      // Collection limits
+      if (collectionPackIds && !collectionPackIds.has(card.pack_id)) return false;
       // Fan Made
       if (!filters.showFanMade && card.creator && card.creator !== 'FFG') return false;
       // Current: when active, only show cards from the current format
@@ -360,7 +410,7 @@ export default forwardRef(function DeckEditor(
       const cmp = (a.name || '').localeCompare(b.name || '');
       return sortOrder === 'asc' || sortBy !== 'name' ? cmp : -cmp;
     });
-  }, [allCards, heroCard, deckAspect, deckState.main, showUnauthorized, selectedFaction, selectedType, filters, sortBy, sortOrder, traitFilter, textFilter, resFilter]);
+  }, [allCards, heroCard, deckAspect, deckState.main, showUnauthorized, selectedFaction, selectedType, filters, sortBy, sortOrder, traitFilter, textFilter, resFilter, collectionPackIds]);
 
   // --- COLLECTION SEARCH : toutes les factions + tous les filtres actifs ---
   const collectionSearchResults = useMemo(() => {
@@ -407,7 +457,7 @@ export default forwardRef(function DeckEditor(
       }
       return true;
     }).sort((a, b) => (a.name || '').localeCompare(b.name || ''));
-  }, [allCards, collectionSearch, filters, selectedFaction, selectedType, traitFilter, textFilter, resFilter, showUnauthorized, heroCard, deckAspect, deckState.main, allCardsMap]);
+  }, [allCards, collectionSearch, filters, selectedFaction, selectedType, traitFilter, textFilter, resFilter, showUnauthorized, heroCard, deckAspect, deckState.main, allCardsMap, collectionPackIds]);
 
   const handleSort = useCallback((col) => {
     setSortBy(prev => {
@@ -511,10 +561,10 @@ export default forwardRef(function DeckEditor(
       {/* ── Main area: filter bar + card list ── */}
       <main className="editor-main">
 
-        {/* ── Panneau Search your collection ── */}
+        {/* ── Panneau Search all collection ── */}
         <div className="editor-collection-panel">
           <div className="editor-collection-panel__searchbar">
-            <span className="editor-collection-panel__label">Search your collection</span>
+            <span className="editor-collection-panel__label">SEARCH ALL COLLECTION</span>
             <div className="editor-collection-search-wrap">
               <input
                 className="editor-filter-text-input editor-collection-search-input"
@@ -558,6 +608,65 @@ export default forwardRef(function DeckEditor(
 
         {/* ── Horizontal filter bar ── */}
         <div className="editor-filter-bar">
+
+          {/* Collection row */}
+          <div className="editor-filter-row">
+            <span className="editor-filter-bar-label">Collection</span>
+            <div className="editor-filter-pills" style={{ flexWrap: 'nowrap', alignItems: 'center', gap: '8px' }}>
+              <button
+                className={`editor-faction-btn${collectionMode === 'all' ? ' editor-faction-btn--active editor-faction-btn--type-active' : ''}`}
+                style={{ '--fac-color': '#808080' }}
+                onClick={() => { setCollectionMode('all'); setCollectionUserId(null); setUserSearchTerm(''); }}
+              >
+                All Cards
+              </button>
+              {currentUserId() && (
+                <button
+                  className={`editor-faction-btn${collectionMode === 'yours' ? ' editor-faction-btn--active editor-faction-btn--type-active' : ''}`}
+                  style={{ '--fac-color': '#10b981' }}
+                  onClick={() => { setCollectionMode('yours'); setCollectionUserId(null); setUserSearchTerm(''); }}
+                >
+                  Your Collection
+                </button>
+              )}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <button
+                  className={`editor-faction-btn${collectionMode === 'user' ? ' editor-faction-btn--active editor-faction-btn--type-active' : ''}`}
+                  style={{ '--fac-color': '#3b82f6' }}
+                  onClick={() => setCollectionMode('user')}
+                >
+                  User Search
+                </button>
+                {collectionMode === 'user' && (
+                  <div style={{ position: 'relative', display: 'inline-block' }}>
+                    <input
+                      className="editor-filter-text-input"
+                      placeholder="Username..."
+                      value={userSearchTerm}
+                      onChange={e => { setUserSearchTerm(e.target.value); setCollectionUserId(null); }}
+                      style={{ width: '160px', padding: '4px 8px', fontSize: '0.85rem' }}
+                    />
+                    {userSearchResults.length > 0 && !collectionUserId && (
+                      <div className="user-autocomplete-results" style={{
+                        position: 'absolute', top: '100%', left: 0, right: 0,
+                        background: '#1e293b', border: '1px solid #334155', borderRadius: '4px', zIndex: 100, maxHeight: '150px', overflowY: 'auto', marginTop: '4px'
+                      }}>
+                        {userSearchResults.map(u => (
+                          <div key={u.id} style={{ padding: '6px 10px', cursor: 'pointer', fontSize: '0.85rem', color: '#e2e8f0' }}
+                               onClick={() => { setCollectionUserId(u.id); setUserSearchTerm(u.username); setUserSearchResults([]); }}
+                               onMouseEnter={e => Object.assign(e.target.style, { background: '#334155', color: '#fff' })}
+                               onMouseLeave={e => Object.assign(e.target.style, { background: 'transparent', color: '#e2e8f0' })}
+                          >
+                            {u.username}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
 
           {/* Browse faction row (filtre bibliothèque) */}
           <div className="editor-filter-row">

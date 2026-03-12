@@ -60,8 +60,6 @@ export const DECK_TAGS = {
   theme: { label: 'Theme', icon: '\u{1F3A8}', title: 'Thematic build' },
   campaign: { label: 'Campaign', icon: '\u{1F4DC}', title: 'Campaign mode' },
   competitive: { label: 'Competitive', icon: '\u2694', title: 'Competitive' },
-  fast: { label: 'Fast', icon: '\u26A1', title: 'Fast play' },
-  hard: { label: 'Hard', icon: '\u{1F480}', title: 'Hard difficulty' },
 };
 
 /**

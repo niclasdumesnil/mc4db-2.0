@@ -68,8 +68,8 @@ function QtySelector({ cardCode, deckLimit = 3, slotsMap, onSetQty }) {
 }
 
 export default function AvailableCardList({ cards, slotsMap = {}, onSetQty, sideMap = {}, onSetSideQty, variantGroupMap = {}, sortBy = 'name', sortOrder = 'asc', onSort }) {
-  if (!cards || cards.length === 0) {
-    return <div className="cardlist-empty">Aucune carte ne correspond à ces filtres.</div>;
+  if (!cards || !cards.length) {
+    return <div className="cardlist-empty">No cards match these filters.</div>;
   }
 
   const arrow = (col) => {
