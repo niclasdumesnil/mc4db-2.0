@@ -146,8 +146,7 @@ function SetBanner({ identityCards = [], fallbackCard, mode, onModeChange, selec
           )}
           {selectedSet && !loading && (
             <span className="sets-card-count" title="Number of different cards">
-              <span className="sets-card-count-icon" title="Different cards">◈</span>
-              {cardCount}{cardCount !== regularCount ? `/${regularCount}` : ''}
+              {cardCount}{cardCount !== regularCount ? `/${regularCount}` : ''} id
             </span>
           )}
           <div className="shb-modes">

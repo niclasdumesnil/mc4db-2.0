@@ -23,7 +23,7 @@ const DISPLAY_MODES = [
 /**
  * Build the search API URL from filters + pagination state.
  */
-function buildSearchUrl(filters, page, sort, order, showDuplicates, showAltArt, showOfficial, showFanmade, locale = 'en', limit = 50, userId = null, selectedTheme = 'Marvel') {
+function buildSearchUrl(filters, page, sort, order, showDuplicates, showAltArt, showOfficial, showFanmade, showOnlyCurrent, locale = 'en', limit = 50, userId = null, selectedTheme = 'Marvel') {
   const params = new URLSearchParams();
   params.set('page', page);
   params.set('limit', limit);
@@ -33,6 +33,7 @@ function buildSearchUrl(filters, page, sort, order, showDuplicates, showAltArt, 
   if (showAltArt) params.set('show_alt_art', '1');
   if (showOfficial && !showFanmade) params.set('creator_filter', 'official');
   if (!showOfficial && showFanmade) params.set('creator_filter', 'fanmade');
+  if (showOnlyCurrent) params.set('current_only', '1');
   if (locale && locale !== 'en') params.set('locale', locale);
   if (userId) params.set('user_id', userId);
   if (selectedTheme && selectedTheme !== 'all') params.set('theme', selectedTheme);
@@ -161,8 +162,11 @@ export default function CardList() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
+  const [totalSumItems, setTotalSumItems] = useState(0);
   const [totalOfficial, setTotalOfficial] = useState(0);
+  const [totalSumOfficial, setTotalSumOfficial] = useState(0);
   const [totalFanmade, setTotalFanmade] = useState(0);
+  const [totalSumFanmade, setTotalSumFanmade] = useState(0);
   const [totalDuplicates, setTotalDuplicates] = useState(0);
   const [sort, setSort] = useState('pack');
   const [order, setOrder] = useState('asc');
@@ -170,6 +174,11 @@ export default function CardList() {
   const [showAltArt, setShowAltArt] = useState(true);
   const [showOfficial, setShowOfficial] = useState(true);
   const [showFanmade, setShowFanmade] = useState(true);
+  const [showOnlyCurrent, setShowOnlyCurrent] = useState(false);
+  const [totalSumDuplicates, setTotalSumDuplicates] = useState(0);
+  const [totalCurrentOfficial, setTotalCurrentOfficial] = useState(0);
+  const [totalSumCurrentOfficial, setTotalSumCurrentOfficial] = useState(0);
+  const [totalAltArts, setTotalAltArts] = useState(0);
   const [mode, setMode] = useState('checklist');
   const [filters, setFilters] = useState(_INIT_FILTERS);
   const [attributes, setAttributes] = useState({ types: [], subtypes: [], illustrators: [] });
@@ -221,7 +230,12 @@ export default function CardList() {
     // Both off → nothing to show, skip API call
     if (!showOfficial && !showFanmade) {
       setCards([]);
-      setTotalItems(0); setTotalOfficial(0); setTotalFanmade(0); setTotalDuplicates(0);
+      setTotalItems(0); setTotalSumItems(0);
+      setTotalOfficial(0); setTotalSumOfficial(0);
+      setTotalFanmade(0); setTotalSumFanmade(0);
+      setTotalDuplicates(0); setTotalSumDuplicates(0);
+      setTotalCurrentOfficial(0); setTotalSumCurrentOfficial(0);
+      setTotalAltArts(0);
       setTotalPages(1); setLoading(false);
       return;
     }
@@ -232,7 +246,7 @@ export default function CardList() {
     const controller = new AbortController();
     setLoading(true);
 
-    const url = buildSearchUrl(debouncedFilters, page, sort, order, showDuplicates, showAltArt, showOfficial, showFanmade, locale, 50, currentUserId(), selectedTheme);
+    const url = buildSearchUrl(debouncedFilters, page, sort, order, showDuplicates, showAltArt, showOfficial, showFanmade, showOnlyCurrent, locale, 50, currentUserId(), selectedTheme);
     fetch(url, { signal: controller.signal })
       .then(r => {
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
@@ -242,9 +256,16 @@ export default function CardList() {
         setCards(data.cards || []);
         setTotalPages(data.meta?.total_pages ?? 1);
         setTotalItems(data.meta?.total_items ?? 0);
+        setTotalSumItems(data.meta?.total_sum_items ?? 0);
         setTotalOfficial(data.meta?.total_official ?? 0);
+        setTotalSumOfficial(data.meta?.total_sum_official ?? 0);
         setTotalFanmade(data.meta?.total_fanmade ?? 0);
+        setTotalSumFanmade(data.meta?.total_sum_fanmade ?? 0);
         setTotalDuplicates(data.meta?.total_duplicates ?? 0);
+        setTotalSumDuplicates(data.meta?.total_sum_duplicates ?? 0);
+        setTotalCurrentOfficial(data.meta?.total_current_official ?? 0);
+        setTotalSumCurrentOfficial(data.meta?.total_sum_current_official ?? 0);
+        setTotalAltArts(data.meta?.total_alt_arts ?? 0);
         setLoading(false);
       })
       .catch((err) => {
@@ -255,7 +276,7 @@ export default function CardList() {
       });
 
     return () => { controller.abort(); };
-  }, [debouncedFilters, page, sort, order, showDuplicates, showAltArt, showOfficial, showFanmade, locale, selectedTheme]);
+  }, [debouncedFilters, page, sort, order, showDuplicates, showAltArt, showOfficial, showFanmade, showOnlyCurrent, locale, selectedTheme]);
 
   const handleFiltersChange = useCallback((newFilters) => {
     setFilters(newFilters);
@@ -313,15 +334,35 @@ export default function CardList() {
           {!loading && (
             <span className="cardlist-count" style={{ marginLeft: 'auto' }}>
               <span className="cardlist-count-breakdown">
-                <span className="cardlist-count-official" title="Official">{totalOfficial.toLocaleString()} official</span>
+                <span className="cardlist-count-official" title={`Official cards\nid: unique cards\nqty: total physical cards`}>
+                  official {totalOfficial.toLocaleString()} id &bull; {totalSumOfficial.toLocaleString()} qty
+                </span>
+                {showOnlyCurrent && totalCurrentOfficial > 0 && (
+                  <><span className="cardlist-count-sep">/</span>
+                    <span className="cardlist-count-current" style={{ color: '#fed7aa' }} title={`Current official cards\nid: unique cards\nqty: total physical cards`}>
+                      current {totalCurrentOfficial.toLocaleString()} id &bull; {totalSumCurrentOfficial.toLocaleString()} qty
+                    </span></>
+                )}
+                {showAltArt && totalAltArts > 0 && (
+                  <><span className="cardlist-count-sep">/</span>
+                    <span className="cardlist-count-altart" style={{ color: '#bbf7d0' }} title="Alt Art Cards">
+                      alt art {totalAltArts.toLocaleString()} id
+                    </span></>
+                )}
                 {showDuplicates && totalDuplicates > 0 && (
                   <><span className="cardlist-count-sep">/</span>
-                    <span className="cardlist-count-dup" title="Duplicates">{totalDuplicates.toLocaleString()} Duplicate{totalDuplicates !== 1 ? 's' : ''}</span></>
+                    <span className="cardlist-count-dup" title={`Duplicate cards\nid: unique cards\nqty: total physical cards`}>
+                      duplicates {totalDuplicates.toLocaleString()} id &bull; {totalSumDuplicates.toLocaleString()} qty
+                    </span></>
                 )}
                 <span className="cardlist-count-sep">/</span>
-                <span className="cardlist-count-fanmade" title="Fan-made">{totalFanmade.toLocaleString()} fan-made</span>
+                <span className="cardlist-count-fanmade" title={`Fan-made cards\nid: unique cards\nqty: total physical cards`}>
+                  fan-made {totalFanmade.toLocaleString()} id &bull; {totalSumFanmade.toLocaleString()} qty
+                </span>
                 <span className="cardlist-count-sep">/</span>
-                <span className="cardlist-count-total">{totalItems.toLocaleString()} card{totalItems !== 1 ? 's' : ''}</span>
+                <span className="cardlist-count-total" title={`Total cards\nid: unique cards\nqty: total physical cards`}>
+                  total {totalItems.toLocaleString()} id &bull; {totalSumItems.toLocaleString()} qty
+                </span>
               </span>
             </span>
           )}
@@ -348,17 +389,28 @@ export default function CardList() {
                 title={showFanmade ? 'Masquer les cartes fan-made' : 'Afficher les cartes fan-made'}
               >Fan-Made</button>
               <button
-                className={`cardlist-altart-btn${showAltArt ? ' cardlist-altart-btn--active' : ''}`}
+                className={`cardlist-altart-btn${!showAltArt ? ' cardlist-filtertype-btn--off' : ' cardlist-altart-btn--active'}`}
                 onClick={() => { setShowAltArt(v => !v); setPage(1); }}
                 title={showAltArt ? 'Hide alt-art cards' : 'Show alt-art cards'}
               >
                 🎨 Alt Art
               </button>
               <button
-                className={`cardlist-showdup-btn${showDuplicates ? ' cardlist-showdup-btn--active' : ''}`}
+                className={`cardlist-showdup-btn${!showDuplicates ? ' cardlist-filtertype-btn--off' : ' cardlist-showdup-btn--active'}`}
                 onClick={() => { setShowDuplicates(v => !v); setPage(1); }}
                 title={showDuplicates ? 'Hide duplicates' : 'Show duplicates'}>
                 {showDuplicates ? '⊕' : '⊕'} Duplicates
+              </button>
+              <button
+                className={`cardlist-current-btn${!showOnlyCurrent ? ' cardlist-filtertype-btn--off' : ' cardlist-current-btn--active'}`}
+                onClick={() => {
+                  if (!showOfficial) return; // Cannot toggle if official is off
+                  setShowOnlyCurrent(v => !v); setPage(1);
+                }}
+                disabled={!showOfficial}
+                title={showOnlyCurrent ? 'Show all official cards' : 'Show only current official cards'}
+              >
+                Show Current Only
               </button>
               <span className="cardlist-sort-label">Sort:</span>
               <select

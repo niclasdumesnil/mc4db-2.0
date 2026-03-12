@@ -210,7 +210,7 @@ router.get('/cards/search', async (req, res, next) => {
       scheme_op = '=', scheme, scheme_op2 = '=', scheme2,
       res_physical, res_mental, res_energy, res_wild,
       page = 1, limit = 50, sort = 'name', order = 'asc',
-      hide_duplicates, show_alt_art, creator_filter,
+      hide_duplicates, show_alt_art, creator_filter, current_only,
       locale = 'en',
       user_id,
       theme,
@@ -330,7 +330,19 @@ router.get('/cards/search', async (req, res, next) => {
         q = q.whereNull('c.duplicate_id');
       }
     }
-    if (creator_filter === 'official') q = q.whereNull('p.creator');
+    if (creator_filter === 'official') {
+      if (current_only === '1') {
+        q = q.where(function() {
+          this.whereNull('p.creator').andWhere('p.environment', 'current');
+        });
+      } else {
+        q = q.whereNull('p.creator');
+      }
+    } else if (current_only === '1') {
+       q = q.where(function() {
+          this.where('p.environment', 'current').orWhereNotNull('p.creator');
+       });
+    }
     if (creator_filter === 'fanmade') q = q.whereNotNull('p.creator');
     // Theme filter: absent/null theme is treated as 'Marvel' (case-insensitive)
     if (theme && theme !== 'all') {
@@ -360,14 +372,28 @@ router.get('/cards/search', async (req, res, next) => {
 
     const statsRow = await q.clone().clearSelect().clearOrder().select(
       db.raw('COUNT(*) as total'),
+      db.raw('SUM(c.quantity) as sum_total'),
       db.raw('SUM(p.creator IS NULL) as official'),
+      db.raw('SUM(IF(p.creator IS NULL, c.quantity, 0)) as sum_official'),
       db.raw('SUM(p.creator IS NOT NULL) as fanmade'),
+      db.raw('SUM(IF(p.creator IS NOT NULL, c.quantity, 0)) as sum_fanmade'),
       db.raw('SUM(c.duplicate_id IS NOT NULL) as duplicates'),
+      db.raw('SUM(IF(c.duplicate_id IS NOT NULL, c.quantity, 0)) as sum_duplicates'),
+      db.raw('SUM(IF(p.creator IS NULL AND p.environment = "current", 1, 0)) as current_official'),
+      db.raw('SUM(IF(p.creator IS NULL AND p.environment = "current", c.quantity, 0)) as sum_current_official'),
+      db.raw('SUM(c.alt_art = 1) as alt_arts'),
     ).first();
     const totalItems = Number(statsRow?.total ?? 0);
+    const totalSumItems = Number(statsRow?.sum_total ?? 0);
     const totalOfficial = Number(statsRow?.official ?? 0);
+    const totalSumOfficial = Number(statsRow?.sum_official ?? 0);
     const totalFanmade = Number(statsRow?.fanmade ?? 0);
+    const totalSumFanmade = Number(statsRow?.sum_fanmade ?? 0);
     const totalDuplicates = Number(statsRow?.duplicates ?? 0);
+    const totalSumDuplicates = Number(statsRow?.sum_duplicates ?? 0);
+    const totalCurrentOfficial = Number(statsRow?.current_official ?? 0);
+    const totalSumCurrentOfficial = Number(statsRow?.sum_current_official ?? 0);
+    const totalAltArts = Number(statsRow?.alt_arts ?? 0);
     const totalPages = Math.ceil(totalItems / limitNum);
 
     const rows = await q.offset((pageNum - 1) * limitNum).limit(limitNum);
@@ -402,8 +428,18 @@ router.get('/cards/search', async (req, res, next) => {
     res.json({
       cards: finalCards,
       meta: {
-        page: pageNum, limit: limitNum, total_pages: totalPages, total_items: totalItems,
-        total_official: totalOfficial, total_fanmade: totalFanmade, total_duplicates: totalDuplicates,
+        total_items: totalItems,
+        total_sum_items: totalSumItems,
+        total_pages: Math.ceil(totalItems / limitNum),
+        total_official: totalOfficial,
+        total_sum_official: totalSumOfficial,
+        total_fanmade: totalFanmade,
+        total_sum_fanmade: totalSumFanmade,
+        total_duplicates: totalDuplicates,
+        total_sum_duplicates: totalSumDuplicates,
+        total_current_official: totalCurrentOfficial,
+        total_sum_current_official: totalSumCurrentOfficial,
+        total_alt_arts: totalAltArts,
       },
     });
   } catch (err) {

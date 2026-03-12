@@ -61,11 +61,15 @@ router.get('/user/:id', async (req, res) => {
         .whereIn('p.id', ownedPackIds)
         .select(
           db.raw('SUM(p.creator IS NULL) as official'),
+          db.raw('SUM(IF(p.creator IS NULL, c.quantity, 0)) as sum_official'),
           db.raw('SUM(p.creator IS NOT NULL) as fanmade'),
+          db.raw('SUM(IF(p.creator IS NOT NULL, c.quantity, 0)) as sum_fanmade')
         )
         .first();
       collectionOfficial = Number(collStats?.official ?? 0);
+      collectionSumOfficial = Number(collStats?.sum_official ?? 0);
       collectionFanmade  = Number(collStats?.fanmade  ?? 0);
+      collectionSumFanmade  = Number(collStats?.sum_fanmade  ?? 0);
     }
 
     // Mapping exhaustif basé sur l'entité PHP et le fichier ORM YML
@@ -88,7 +92,9 @@ router.get('/user/:id', async (req, res) => {
       // Packs & Collections
       owned_packs: row.owned_packs,
       collection_official: collectionOfficial,
+      collection_sum_official: collectionSumOfficial,
       collection_fanmade:  collectionFanmade,
+      collection_sum_fanmade: collectionSumFanmade,
 
       // UI & Settings
       is_share_decks: !!row.is_share_decks,

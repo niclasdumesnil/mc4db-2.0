@@ -239,12 +239,13 @@
   background: rgba(18, 120, 216, 0.2);
 }
 
-/* État off : très atténué */
+/* État off : très atténué - utilisé par tous les filtres inactifs */
 .cardlist-filtertype-btn--off {
-  background: transparent !important;
-  border-color: transparent !important;
+  background: rgba(255, 255, 255, 0.02) !important;
   color: rgba(148, 163, 184, 0.35) !important;
+  border-color: rgba(255, 255, 255, 0.05) !important;
   text-decoration: line-through;
+  opacity: 0.8;
 }
 
 .cardlist-filtertype-btn--off:hover {
@@ -358,6 +359,42 @@
   background: #16a34a22;
   border-color: #16a34a88;
   color: #4ade80;
+}
+
+.cardlist-current-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 28px;
+  padding: 0 10px;
+  background: var(--cl-surface);
+  border: 1px solid var(--cl-border);
+  border-radius: 5px;
+  color: var(--cl-text-muted);
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.cardlist-current-btn:hover:not(:disabled) {
+  background: rgba(180, 186, 195, 0.25);
+  color: #e2e8f0;
+  border-color: rgba(180, 186, 195, 0.6);
+}
+
+.cardlist-current-btn--active {
+  background: rgba(180, 186, 195, 0.15);
+  color: #bac0ca;
+  border-color: rgba(180, 186, 195, 0.4);
+}
+
+.cardlist-current-btn:disabled,
+.cardlist-current-btn[disabled] {
+  opacity: 0.4;
+  cursor: not-allowed;
 }
 
 /* ── Loading / empty ─────────────────────────────── */

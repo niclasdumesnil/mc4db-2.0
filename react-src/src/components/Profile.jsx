@@ -189,12 +189,13 @@ export default function Profile({ user }) {
           <div className="info-item info-item--collection">
             <span className="label">Collection</span>
             <span className="value collection-counts">
-              <span className="collection-count-official">
-                {(user.collection_official ?? 0).toLocaleString()} official cards
+              <span className="collection-count-official" title={`id: unique cards\nqty: total physical cards`}>
+                official {(user.collection_official ?? 0).toLocaleString()} id &bull; {(user.collection_sum_official ?? 0).toLocaleString()} qty
               </span>
               {user.collection_fanmade > 0 && (
-                <span className="collection-count-fanmade">
-                  {(user.collection_fanmade ?? 0).toLocaleString()} fan-made cards
+                <span className="collection-count-fanmade" title={`id: unique cards\nqty: total physical cards`}>
+                  <br />
+                  fan-made {(user.collection_fanmade ?? 0).toLocaleString()} id &bull; {(user.collection_sum_fanmade ?? 0).toLocaleString()} qty
                 </span>
               )}
             </span>
