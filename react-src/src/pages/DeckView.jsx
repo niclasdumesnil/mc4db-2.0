@@ -11,10 +11,10 @@ import PrintDeckButton from '@components/PrintDeckButton';
 import ExportOctgnButton from '@components/ExportOctgnButton';
 import '@css/DeckView.css';
 
-const ASPECT_LIST = ['aggression', 'justice', 'leadership', 'protection', 'determination'];
+const ASPECT_LIST = ['aggression', 'justice', 'leadership', 'protection', 'determination', 'pool'];
 const ASPECT_LABELS = {
   aggression: 'Aggression', justice: 'Justice', leadership: 'Leadership',
-  protection: 'Protection', determination: 'Determination',
+  protection: 'Protection', determination: 'Determination', pool: "'Pool"
 };
 
 function currentUserId() {
@@ -141,7 +141,7 @@ export default function DeckView() {
       url = `/api/public/decks/${deckId}?locale=${locale}`;
     }
 
-    setLoading(true);
+    if (!deck) setLoading(true);
     fetch(url)
       .then(res => res.json())
       .then(data => {
@@ -554,13 +554,23 @@ export default function DeckView() {
                 setValidationCards(ac);
               }}
               onClose={() => { setShowEditor(false); setLiveSlots(null); setLiveSideSlots(null); setSaveError(null); setLiveTitle(null); setLiveDescription(null); }}
-              onSaved={() => {
+              onSaved={async () => {
                 setShowEditor(false);
                 setLiveSlots(null);
                 setLiveSideSlots(null);
                 setSaveError(null);
                 setHistoryRefreshKey(k => k + 1);
-                window.location.reload();
+                
+                // Fetch the updated deck without full page reload
+                const userId = currentUserId();
+                const url = isPrivate ? `/api/public/user/${userId}/decks/${deckId}?locale=${locale}` : `/api/public/decks/${deckId}?locale=${locale}`;
+                try {
+                  const res = await fetch(url);
+                  const data = await res.json();
+                  if (data.ok) setDeck(data.data);
+                } catch (e) {
+                  console.error('Failed to reload deck after save', e);
+                }
               }}
             />
           </div>

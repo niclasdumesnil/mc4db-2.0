@@ -9,7 +9,7 @@ const ASPECT_LABELS = {
   aggression: 'Aggression',
   protection: 'Protection',
   justice: 'Justice',
-  pool: 'Pool',
+  pool: "'Pool",
   determination: 'Determination',
   basic: 'Basic',
 };

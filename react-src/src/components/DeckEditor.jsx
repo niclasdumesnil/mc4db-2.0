@@ -5,13 +5,13 @@ import { canIncludeCard } from '@utils/deckValidation';
 import '../css/DeckEditor.css';
 
 // Player-card factions — excludes encounter cards
-const PLAYER_FACTIONS = new Set(['justice', 'leadership', 'aggression', 'protection', 'basic', 'hero', 'determination']);
+const PLAYER_FACTIONS = new Set(['justice', 'leadership', 'aggression', 'protection', 'basic', 'hero', 'determination', 'pool']);
 
-const FACTION_LIST = ['justice', 'leadership', 'aggression', 'protection', 'basic', 'determination'];
+const FACTION_LIST = ['justice', 'leadership', 'aggression', 'protection', 'basic', 'determination', 'pool'];
 const SEARCH_FACTIONS = new Set([...PLAYER_FACTIONS, 'hero', 'campaign']);
 const FACTION_LABELS = {
   justice: 'Justice', leadership: 'Leadership', aggression: 'Aggression',
-  protection: 'Protection', basic: 'Basic', determination: 'Determination',
+  protection: 'Protection', basic: 'Basic', determination: 'Determination', pool: "'Pool",
 };
 const TYPE_LIST = [
   { code: 'ally',               label: 'Ally' },
