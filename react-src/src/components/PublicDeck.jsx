@@ -32,6 +32,14 @@ function RepBadge({ reputation }) {
 }
 
 export default function PublicDeck({ deck }) {
+  const [busy, setBusy] = React.useState(null);
+
+  const currentUserId = () => {
+    try {
+      const u = JSON.parse(localStorage.getItem('mc_user'));
+      return u && (u.id || u.userId);
+    } catch (e) { return null; }
+  };
   // Aspect (couleur) depuis meta JSON : {"aspect":"justice"}
   let aspect = 'basic';
   try {
@@ -55,10 +63,41 @@ export default function PublicDeck({ deck }) {
   // Tags utilisateur
   const tags = deck.tags ? deck.tags.split(',').map(t => t.trim()).filter(Boolean) : [];
 
-  const handleClick = () => { window.location.href = `/decklist/view/${deck.id}`; };
+  const handleCardClick = () => { window.location.href = `/decklist/view/${deck.id}`; };
+
+  const handleClone = async (e) => {
+    e.stopPropagation();
+    if (!window.confirm('Are you sure you want to clone this deck?')) return;
+    setBusy('clone');
+    try {
+      const uid = currentUserId();
+      const r = await fetch(`/api/public/user/${uid}/decklists/${deck.id}/clone`, { method: 'POST' });
+      const data = await r.json();
+      if (data.ok) window.location.href = `/my-decks/${data.data.id}`;
+      else alert(data.error || 'Clone failed.');
+    } catch { alert('Network error.'); }
+    finally { setBusy(null); }
+  };
+
+  const handleUnpublish = async (e) => {
+    e.stopPropagation();
+    if (!window.confirm('Are you sure you want to unpublish this public deck?')) return;
+    setBusy('unpublish');
+    try {
+      const uid = currentUserId();
+      const r = await fetch(`/api/public/user/${uid}/decklists/${deck.id}`, { method: 'DELETE' });
+      const data = await r.json();
+      if (data.ok) window.location.reload();
+      else alert(data.error || 'Unpublish failed.');
+    } catch { alert('Network error.'); }
+    finally { setBusy(null); }
+  };
+
+  const uid = currentUserId();
+  const isOwner = uid && String(deck.user_id) === String(uid);
 
   return (
-    <div className="deck-card" onClick={handleClick} style={{ cursor: 'pointer' }}>
+    <div className="deck-card" onClick={handleCardClick} style={{ cursor: 'pointer' }}>
       {/* En-tête : fond blanc + overlay faint faction */}
       <div className="deck-header" style={{ backgroundColor: 'white', backgroundImage: `linear-gradient(${headerFaint}, ${headerFaint})` }}>
         <div className="deck-header-content">
@@ -96,7 +135,7 @@ export default function PublicDeck({ deck }) {
             {tags.map((tag, i) => {
               const t = DECK_TAGS[tag.toLowerCase()];
               return t ? (
-                <span key={i} className={`deck-tag-icon deck-tag-icon--${tag.toLowerCase()}`} title={t.title}>
+                <span key={i} className={`deck-tag-icon deck-tag-icon--${tag.toLowerCase()}`} title={t.title} style={{ opacity: 1 }}>
                   {t.icon}
                 </span>
               ) : (
@@ -118,10 +157,18 @@ export default function PublicDeck({ deck }) {
           <span className="author-name">{deck.author_name}</span>
           <RepBadge reputation={deck.author_reputation} />
         </div>
-        <div className="deck-footer-right">
+        <div className="deck-footer-right" style={{ display: 'flex', gap: '8px', zIndex: 10, position: 'relative' }}>
+          <button className="deck-action-btn deck-action-btn--disabled" disabled={true} title="Cannot edit a public deck">✏️</button>
+          <button className="deck-action-btn" disabled={busy === 'clone'} onClick={handleClone} title="Clone">
+            {busy === 'clone' ? '…' : '📋'}
+          </button>
+          <button className="deck-action-btn deck-action-btn--disabled" disabled={true} title="Already published">📤</button>
+          <button className="deck-action-btn" disabled={!isOwner || busy === 'unpublish'} onClick={isOwner ? handleUnpublish : undefined} title={isOwner ? "Unpublish" : "You can only unpublish your own decks"}>
+            {busy === 'unpublish' ? '…' : '📥'}
+          </button>
           <PrintDeckButton deckId={deck.id} deckName={deck.name} isPrivate={false} />
           <ExportOctgnButton deckId={deck.id} deckName={deck.name} isPrivate={false} />
-          <div className="deck-date">
+          <div className="deck-date" style={{ marginLeft: '4px' }}>
             {new Date(deck.date_creation).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
           </div>
         </div>

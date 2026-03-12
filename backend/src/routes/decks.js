@@ -189,9 +189,9 @@ router.get('/decks', async (req, res) => {
       .whereNull('d.next_deck')
       .modify(q => applyCommonFilters(q, req.query));
 
-    const query = baseQuery()
+      const query = baseQuery()
       .select(
-        'd.id', 'd.name', 'd.date_creation',
+        'd.id', 'd.name', 'd.date_creation', 'd.user_id',
         'd.nb_votes as likes', 'd.nb_favorites as favorites', 'd.nb_comments as comments',
         'd.version', 'd.tags', 'd.meta',
         'u.username as author_name', 'u.reputation as author_reputation',
@@ -464,6 +464,88 @@ router.get(['/deck/:id.json', '/deck/:id'], async (req, res) => {
     return res.json(legacyFormat);
   } catch (err) {
     console.error('GET /deck/:id error', err);
+    return res.status(500).json({ error: 'Internal error' });
+  }
+});
+
+// 1G. Supprimer un deck public (decklist)
+router.delete('/user/:userId/decklists/:deckId', async (req, res) => {
+  try {
+    const userId = parseInt(req.params.userId, 10);
+    const deckId = parseInt(req.params.deckId, 10);
+
+    const decklist = await db('decklist').where({ id: deckId, user_id: userId }).first();
+    if (!decklist) return res.status(404).json({ error: 'Decklist not found or unauthorized' });
+
+    // Clear constraints on private decks that link to this decklist
+    await db('deck').where({ parent_decklist_id: deckId }).update({ parent_decklist_id: null });
+    await db('deck').where({ next_deck: deckId }).update({ next_deck: null });
+
+    // Clear constraints on other decklists that link to this decklist
+    await db('decklist').where({ next_deck: deckId }).update({ next_deck: null });
+    await db('decklist').where({ previous_deck: deckId }).update({ previous_deck: null });
+    await db('decklist').where({ precedent_decklist_id: deckId }).update({ precedent_decklist_id: null });
+
+    // Delete child records
+    await db('comment').where({ decklist_id: deckId }).delete();
+    await db('favorite').where({ decklist_id: deckId }).delete();
+    await db('vote').where({ decklist_id: deckId }).delete();
+    await db('decklistslot').where({ decklist_id: deckId }).delete();
+    await db('sidedecklistslot').where({ decklist_id: deckId }).delete();
+    
+    // Finally, delete the decklist itself
+    await db('decklist').where({ id: deckId }).delete();
+
+    return res.json({ ok: true });
+  } catch (err) {
+    console.error('DELETE /user/:userId/decklists/:deckId error', err);
+    return res.status(500).json({ error: 'Internal error' });
+  }
+});
+
+// 1H. Cloner un deck public (decklist -> deck privé)
+router.post('/user/:userId/decklists/:deckId/clone', async (req, res) => {
+  try {
+    const userId = parseInt(req.params.userId, 10);
+    const deckId = parseInt(req.params.deckId, 10);
+
+    const decklist = await db('decklist').where({ id: deckId }).first();
+    if (!decklist) return res.status(404).json({ error: 'Decklist not found' });
+
+    const [newId] = await db('deck').insert({
+      user_id: userId,
+      character_id: decklist.card_id,
+      last_pack_id: decklist.last_pack_id,
+      uuid: require('crypto').randomUUID(),
+      name: `${decklist.name} (Clone)`,
+      description_md: decklist.description_md,
+      problem: decklist.problem || '',
+      tags: decklist.tags || '',
+      major_version: 0,
+      minor_version: 0,
+      xp: decklist.xp || 0,
+      xp_spent: decklist.xp_spent || 0,
+      xp_adjustment: decklist.xp_adjustment || 0,
+      upgrades: decklist.upgrades || 0,
+      exiles: decklist.exiles || '',
+      meta: decklist.meta,
+      date_creation: db.fn.now(),
+      date_update: db.fn.now(),
+    });
+
+    const slots = await db('decklistslot').where({ decklist_id: deckId });
+    if (slots.length > 0) {
+      await db('deckslot').insert(slots.map(({ id, decklist_id, ...s }) => ({ ...s, deck_id: newId })));
+    }
+
+    const sideSlotsCopy = await db('sidedecklistslot').where({ decklist_id: deckId });
+    if (sideSlotsCopy.length > 0) {
+      await db('sidedeckslot').insert(sideSlotsCopy.map(({ id, decklist_id, ...s }) => ({ ...s, deck_id: newId })));
+    }
+
+    return res.json({ ok: true, data: { id: newId } });
+  } catch (err) {
+    console.error('POST /user/:userId/decklists/:deckId/clone error', err);
     return res.status(500).json({ error: 'Internal error' });
   }
 });

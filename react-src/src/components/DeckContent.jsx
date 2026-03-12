@@ -174,6 +174,11 @@ export default function DeckContent({ slots, mode = 'list', heroSpecialCards = [
 
   return (
     <div className="deck-content-container">
+      {totalCards > 0 && (
+        <h4 className="side-deck-header" style={{ marginBottom: '1rem', marginTop: '0.5rem', color: '#fff', textTransform: 'uppercase' }}>
+          MAIN DECK <span className="slot-group-count">({totalCards})</span>
+        </h4>
+      )}
       <div className="deck-slots-grid">
         {sortedTypes.map(type => (
           <div key={type} className="slot-group">

@@ -145,7 +145,7 @@ export default function ExportOctgnButton({ deckId, deckName, isPrivate, classNa
 
   return (
     <button
-      className={className || `deck-print-btn${busy ? ' deck-print-btn--busy' : ''}`}
+      className={className ? `${className}${busy ? ' ' + className + '--busy' : ''}` : `deck-action-btn${busy ? ' deck-action-btn--busy' : ''}`}
       style={className ? undefined : { marginLeft: '5px' }}
       onClick={handleExport}
       title="Export to OCTGN"

@@ -258,8 +258,8 @@
   gap: 8px;
 }
 
-/* ── Print button ────────────────────────────── */
-.deck-print-btn {
+/* ── Action button (Edit, Clone, etc.) ────────────────────── */
+.deck-action-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -277,14 +277,18 @@
   flex-shrink: 0;
 }
 
-.deck-print-btn:hover:not(:disabled) {
+.deck-action-btn:hover:not(:disabled) {
   background: rgba(140, 140, 140, 0.45);
   border-color: rgba(255, 255, 255, 0.3);
   color: #fff;
 }
 
-.deck-print-btn:disabled,
-.deck-print-btn--busy {
+.deck-action-btn:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.deck-action-btn--busy {
   opacity: 0.55;
   cursor: wait;
 }

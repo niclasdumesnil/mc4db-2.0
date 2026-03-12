@@ -17,7 +17,7 @@ function currentUserId() {
  *   isPrivate – true → uses /api/public/user/:uid/decks/:id
  *               false → uses /api/public/decks/:id
  */
-export default function PrintDeckButton({ deckId, deckName, isPrivate }) {
+export default function PrintDeckButton({ deckId, deckName, isPrivate, className, label }) {
   const [busy, setBusy] = useState(false);
 
   const handlePrint = async (e) => {
@@ -81,13 +81,14 @@ export default function PrintDeckButton({ deckId, deckName, isPrivate }) {
 
   return (
     <button
-      className={`deck-print-btn${busy ? ' deck-print-btn--busy' : ''}`}
+      className={className ? `${className}${busy ? ' ' + className + '--busy' : ''}` : `deck-action-btn${busy ? ' deck-action-btn--busy' : ''}`}
       onClick={handlePrint}
       title="Generate deck image"
       disabled={busy}
       aria-label="Print deck"
     >
       {busy ? '…' : '🖨'}
+      {label && <span>{label}</span>}
     </button>
   );
 }

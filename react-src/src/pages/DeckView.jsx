@@ -3,10 +3,12 @@ import DeckContent from '@components/DeckContent';
 import DeckStatistics from '@components/DeckStatistics';
 import DeckHistory from '@components/DeckHistory';
 import DeckEditor from '@components/DeckEditor';
-import { getFactionColor } from '@utils/dataUtils';
+import { getFactionColor, DECK_TAGS } from '@utils/dataUtils';
 import { getDeckProblems, getSaveProblems, getInvalidCodes, inferDeckAspect } from '@utils/deckValidation';
 import MarkdownEditor from '@components/MarkdownEditor';
 import MarkdownViewer from '@components/MarkdownViewer';
+import PrintDeckButton from '@components/PrintDeckButton';
+import ExportOctgnButton from '@components/ExportOctgnButton';
 import '@css/DeckView.css';
 
 const ASPECT_LIST = ['aggression', 'justice', 'leadership', 'protection', 'determination'];
@@ -26,7 +28,9 @@ export default function DeckView() {
   const [deck, setDeck] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [showEditor, setShowEditor] = useState(false);
+  const [showEditor, setShowEditor] = useState(() => {
+    return new URLSearchParams(window.location.search).get('edit') === 'true';
+  });
   const [showDescriptionPanel, setShowDescriptionPanel] = useState(false);
   const [displayMode, setDisplayMode] = useState('list'); // 'list' | 'grid'
   const [liveSlots, setLiveSlots] = useState(null); // preview en temps réel
@@ -160,13 +164,16 @@ export default function DeckView() {
   };
 
   const handleDelete = async () => {
-    if (!window.confirm(`Delete "${deck?.name}"? This cannot be undone.`)) return;
+    if (!window.confirm(isPrivate ? `Delete "${deck?.name}"? This cannot be undone.` : 'Are you sure you want to unpublish this public deck?')) return;
     setDeleting(true);
     const userId = currentUserId();
     try {
-      const r = await fetch(`/api/public/user/${userId}/decks/${deckId}`, { method: 'DELETE' });
+      const endpoint = isPrivate 
+        ? `/api/public/user/${userId}/decks/${deckId}`
+        : `/api/public/user/${userId}/decklists/${deckId}`;
+      const r = await fetch(endpoint, { method: 'DELETE' });
       const data = await r.json();
-      if (data.ok) window.location.href = '/my-decks';
+      if (data.ok) window.location.href = isPrivate ? '/my-decks' : '/public-decks';
       else alert(data.error || 'Delete failed.');
     } catch { alert('Network error.'); }
     finally { setDeleting(false); }
@@ -177,7 +184,10 @@ export default function DeckView() {
     setCloning(true);
     const userId = currentUserId();
     try {
-      const r = await fetch(`/api/public/user/${userId}/decks/${deckId}/clone`, { method: 'POST' });
+      const endpoint = isPrivate 
+        ? `/api/public/user/${userId}/decks/${deckId}/clone`
+        : `/api/public/user/${userId}/decklists/${deckId}/clone`;
+      const r = await fetch(endpoint, { method: 'POST' });
       const data = await r.json();
       if (data.ok) window.location.href = `/my-decks/${data.data.id}`;
       else alert(data.error || 'Clone failed.');
@@ -230,6 +240,9 @@ export default function DeckView() {
     ? new Date(deck.date_update || deck.date_creation).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
     : null;
 
+  const uid = currentUserId();
+  const isOwner = isPrivate || (uid && String(deck.user_id) === String(uid));
+
   return (
     <div className="deck-view-container">
       <div className="deck-view-actions" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -269,24 +282,43 @@ export default function DeckView() {
             </div>
           </div>
 
-          {/* Boutons à droite (seulement si deck privé) */}
-          {isPrivate && (
-            <div className="deck-view-banner-btns">
-              {!showEditor && (
-                <>
-                  <button className="deck-view-edit" onClick={() => setShowEditor(true)}>Edit</button>
-                  <button className="deck-view-clone-btn" disabled={cloning} onClick={handleClone}>
-                    {cloning ? 'Cloning…' : 'Clone'}
-                  </button>
-                  <button className="deck-view-publish-btn" disabled={publishing} onClick={handlePublish}>
-                    {publishing ? 'Publishing…' : 'Publish'}
-                  </button>
-                  <button className="deck-view-delete-btn" disabled={deleting} onClick={handleDelete}>
-                    {deleting ? 'Deleting…' : 'Delete'}
-                  </button>
-                </>
-              )}
-              {showEditor && (
+          {/* Boutons à droite */}
+          <div className="deck-view-banner-btns">
+            {!showEditor && isPrivate && (
+              <>
+                <button className="deck-view-action-btn" onClick={() => setShowEditor(true)} title="Edit">✏️ Edit</button>
+                <button className="deck-view-action-btn" disabled={cloning} onClick={handleClone} title="Clone">
+                  {cloning ? '…' : '📋'} Clone
+                </button>
+                <button className="deck-view-action-btn" disabled={publishing} onClick={handlePublish} title="Publish">
+                  {publishing ? '…' : '📤'} Publish
+                </button>
+                <button className="deck-view-action-btn" disabled={deleting} onClick={handleDelete} title="Delete">
+                  {deleting ? '…' : '🗑️'} Delete
+                </button>
+                <PrintDeckButton className="deck-view-action-btn" deckId={deckId} deckName={liveTitle ?? deck.name} isPrivate={isPrivate} label="Print" />
+                <ExportOctgnButton className="deck-view-action-btn" deckId={deckId} deckName={liveTitle ?? deck.name} isPrivate={isPrivate}>
+                  📁 Export
+                </ExportOctgnButton>
+              </>
+            )}
+            {!showEditor && !isPrivate && (
+              <>
+                <button className="deck-view-action-btn" disabled={true} title="You cannot edit a public deck">✏️ Edit</button>
+                <button className="deck-view-action-btn" disabled={cloning} onClick={handleClone} title="Clone">
+                  {cloning ? '…' : '📋'} Clone
+                </button>
+                <button className="deck-view-action-btn" disabled={true} title="Already published">📤 Publish</button>
+                <button className="deck-view-action-btn" disabled={!isOwner || deleting} onClick={isOwner ? handleDelete : undefined} title={isOwner ? "Unpublish" : "You can only unpublish your own decks"}>
+                  {deleting ? '…' : '📥'} Unpublish
+                </button>
+                <PrintDeckButton className="deck-view-action-btn" deckId={deckId} deckName={deck.name} isPrivate={false} label="Print" />
+                <ExportOctgnButton className="deck-view-action-btn" deckId={deckId} deckName={deck.name} isPrivate={false}>
+                  📁 Export
+                </ExportOctgnButton>
+              </>
+            )}
+              {showEditor && isPrivate && (
                 <>
                   {saveError && <span className="deck-view-save-error">{saveError}</span>}
                   <button
@@ -322,7 +354,6 @@ export default function DeckView() {
                 </>
               )}
             </div>
-          )}
 
         </div>
 
@@ -436,12 +467,37 @@ export default function DeckView() {
             onChangeSideQty={showEditor ? (code, qty, limit) => editorRef.current?.setSideQty(code, qty, limit) : null}
           />
         {showEditor && (
-          <div className="deck-view-description-editor" style={{ marginTop: '20px' }}>
-            <MarkdownEditor 
-              value={liveDescription ?? deck?.description_md ?? ''} 
-              onChange={setLiveDescription} 
-            />
-          </div>
+          <>
+            <div className="deck-view-tags-editor flex-row" style={{ marginTop: '20px', display: 'flex', alignItems: 'center', gap: '1rem', backgroundColor: '#0f1423', padding: '10px 16px', borderRadius: '6px' }}>
+              <span className="deck-view-tags-label" style={{ color: '#8a99af', fontWeight: 'bold', letterSpacing: '0.05em' }}>TAGS <span style={{ color: '#444', marginLeft: '0.5rem' }}>|</span></span>
+              <div className="deck-filters__tags" style={{ display: 'flex', gap: '0.5rem' }}>
+                {Object.entries(DECK_TAGS).map(([key, t]) => {
+                  const currentTags = deckTags ? deckTags.split(',').map(tag => tag.trim()).filter(Boolean) : [];
+                  const active = currentTags.includes(key);
+                  return (
+                    <button
+                      key={key}
+                      className={`deck-tag-icon deck-tag-icon--${key}${active ? ' deck-tag-icon--active' : ''}`}
+                      title={t.title}
+                      onClick={() => {
+                        const newTags = active ? currentTags.filter(tg => tg !== key) : [...currentTags, key];
+                        setDeckTags(newTags.join(', '));
+                      }}
+                      style={{ opacity: active ? 1 : 0.45, transform: active ? 'scale(1.15)' : 'none' }}
+                    >
+                      {t.icon}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+            <div className="deck-view-description-editor" style={{ marginTop: '20px' }}>
+              <MarkdownEditor 
+                value={liveDescription ?? deck?.description_md ?? ''} 
+                onChange={setLiveDescription} 
+              />
+            </div>
+          </>
         )}
         </div>
         {!showEditor && !showDescriptionPanel && (

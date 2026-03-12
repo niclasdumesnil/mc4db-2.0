@@ -209,6 +209,42 @@
   align-self: center;
 }
 
+/* ── New Vertical Action Buttons ────────────────────── */
+.deck-view-action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px;
+  width: 100%;
+  height: 32px;
+  padding: 0 12px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(120, 120, 120, 0.25);
+  color: #b0bec5;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+  box-sizing: border-box;
+}
+
+.deck-view-action-btn:hover:not(:disabled) {
+  background: rgba(140, 140, 140, 0.45);
+  border-color: rgba(255, 255, 255, 0.3);
+  color: #fff;
+}
+
+.deck-view-action-btn:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.deck-view-action-btn--busy {
+  opacity: 0.55;
+  cursor: wait;
+}
+
 /* ── Banner ───────────────────────────────────────── */
 .deck-view-banner {
   position: relative;
