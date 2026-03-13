@@ -455,6 +455,82 @@ app.get(['/my-decks', '/my-decks/'], (req, res) => {
   res.type('html').send(html);
 });
 
+// Decklists page (client-side rendered)
+app.get(['/decklists', '/decklists/'], (req, res) => {
+  const baseUrl = req.protocol + '://' + req.get('host');
+  const url = baseUrl + '/decklists';
+  const title = 'Decklists — MarvelCDB';
+  const description = 'Browse public Marvel Champions decklists.';
+  const image = baseUrl + '/react/images/og-default.svg';
+  const localeRaw = (req.acceptsLanguages && req.acceptsLanguages()[0]) || 'en';
+  const locale = localeRaw.split('-')[0].toLowerCase() || 'en';
+
+  const html = `<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>${title}</title>
+    <meta name="description" content="${description}">
+    <link rel="canonical" href="${url}">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="${title}">
+    <meta property="og:description" content="${description}">
+    <meta property="og:url" content="${url}">
+    <meta property="og:image" content="${image}">
+    <link rel="stylesheet" href="/react/css/card.css?v=${assetVersion}">
+    <script>window.__MC_LOCALE__ = ${JSON.stringify(locale)};</script>
+  </head>
+  <body>
+    ${renderSharedHeader()}
+    <div id="mc-app"></div>
+    <noscript>
+      <div style="max-width:980px;margin:24px auto;padding:16px;background:#fee;color:#333;border-radius:8px;">JavaScript is disabled — the interactive UI requires JavaScript to function.</div>
+    </noscript>
+    <script src="/react/js/card.js?v=${assetVersion}"></script>
+  </body>
+</html>`;
+  res.type('html').send(html);
+});
+
+// My Decks page (client-side rendered)
+app.get(['/my-decks', '/my-decks/'], (req, res) => {
+  const baseUrl = req.protocol + '://' + req.get('host');
+  const url = baseUrl + '/my-decks';
+  const title = 'My Decks — MarvelCDB';
+  const description = 'Manage your Marvel Champions decks.';
+  const image = baseUrl + '/react/images/og-default.svg';
+  const localeRaw = (req.acceptsLanguages && req.acceptsLanguages()[0]) || 'en';
+  const locale = localeRaw.split('-')[0].toLowerCase() || 'en';
+
+  const html = `<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>${title}</title>
+    <meta name="description" content="${description}">
+    <link rel="canonical" href="${url}">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="${title}">
+    <meta property="og:description" content="${description}">
+    <meta property="og:url" content="${url}">
+    <meta property="og:image" content="${image}">
+    <link rel="stylesheet" href="/react/css/card.css?v=${assetVersion}">
+    <script>window.__MC_LOCALE__ = ${JSON.stringify(locale)};</script>
+  </head>
+  <body>
+    ${renderSharedHeader()}
+    <div id="mc-app"></div>
+    <noscript>
+      <div style="max-width:980px;margin:24px auto;padding:16px;background:#fee;color:#333;border-radius:8px;">JavaScript is disabled — the interactive UI requires JavaScript to function.</div>
+    </noscript>
+    <script src="/react/js/card.js?v=${assetVersion}"></script>
+  </body>
+</html>`;
+  res.type('html').send(html);
+});
+
 // Rules Reference page (client-side rendered – static JSON content)
 app.get(['/rules', '/rules/'], (req, res) => {
   const baseUrl = req.protocol + '://' + req.get('host');

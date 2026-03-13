@@ -176,7 +176,7 @@ export default function DeckView() {
         : `/api/public/user/${userId}/decklists/${deckId}`;
       const r = await fetch(endpoint, { method: 'DELETE' });
       const data = await r.json();
-      if (data.ok) window.location.href = isPrivate ? '/my-decks' : '/public-decks';
+      if (data.ok) window.location.href = isPrivate ? '/my-decks' : '/decklists';
       else alert(data.error || 'Delete failed.');
     } catch { alert('Network error.'); }
     finally { setDeleting(false); }
