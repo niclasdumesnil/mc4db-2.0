@@ -136,6 +136,40 @@ export default function ExportOctgnButton({ deckId, deckName, isPrivate, classNa
         setTimeout(() => download(sideBlob, `${safeName}_sidedeck.o8d`), 200);
       }
 
+      // Generate Aspect Deck XML if any aspect cards exist
+      const aspectSlots = [];
+      const aspectSideSlots = [];
+
+      const isValidAspectOrBasic = (factionCode) => {
+        if (!factionCode) return false;
+        const code = factionCode.toLowerCase();
+        return ['justice', 'aggression', 'leadership', 'protection', 'pool', 'determination', 'basic'].includes(code);
+      };
+
+      if (deckData.slots && deckData.slots.length > 0) {
+        deckData.slots.forEach(slot => {
+          if (isValidAspectOrBasic(slot.faction_code)) {
+            aspectSlots.push(slot);
+          }
+        });
+      }
+
+      if (deckData.side_slots && deckData.side_slots.length > 0) {
+        deckData.side_slots.forEach(slot => {
+          if (isValidAspectOrBasic(slot.faction_code)) {
+            aspectSideSlots.push(slot);
+          }
+        });
+      }
+
+      if (aspectSlots.length > 0 || aspectSideSlots.length > 0) {
+        // Embed the side deck cards in the "Special" section
+        const aspectXml = generateOctgnXml(deckData.name + " Aspect", null, null, aspectSlots, "Cards", aspectSideSlots);
+        const aspectBlob = new Blob([aspectXml], { type: 'application/octgn' });
+
+        setTimeout(() => download(aspectBlob, `${safeName}_aspect.o8d`), 400);
+      }
+
     } catch (err) {
       console.error('Export error:', err);
     } finally {

@@ -1179,4 +1179,31 @@ router.post('/user/:userId/decks/import', async (req, res) => {
   }
 });
 
+// ==========================================
+// 6. ARCHETYPES (Load .o8d files)
+// ==========================================
+router.get('/archetypes', async (req, res) => {
+  try {
+    const fs = require('fs');
+    const path = require('path');
+    const PROJECT_ROOT = path.resolve(__dirname, '../../../');
+    const bundlesStaticDir = fs.existsSync(path.join(PROJECT_ROOT, 'web', 'bundles'))
+      ? path.join(PROJECT_ROOT, 'web', 'bundles')
+      : path.join(PROJECT_ROOT, 'bundles');
+    const archetypesDir = path.join(bundlesStaticDir, 'archetypes');
+
+    if (!fs.existsSync(archetypesDir)) {
+      return res.json({ ok: true, data: [] });
+    }
+
+    const files = fs.readdirSync(archetypesDir);
+    const archetypes = files.filter(f => f.endsWith('.o8d'));
+    
+    return res.json({ ok: true, data: archetypes });
+  } catch (err) {
+    console.error('GET /archetypes error', err);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 module.exports = router;

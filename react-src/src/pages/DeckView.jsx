@@ -76,17 +76,20 @@ export default function DeckView() {
     setLiveDescription(null);
   }, [deck?.id]);
 
-  // Auto-infer aspect from live slots when editing
+  // Auto-infer aspect from live slots when editing, ONLY if no aspect is currently selected
   useEffect(() => {
     if (!liveSlots || validationCards.length === 0) return;
-    const slotsMap = Object.fromEntries(liveSlots.filter(s => s.quantity > 0).map(s => [s.code, s.quantity]));
-    const inferred = inferDeckAspect(slotsMap, validationCards, heroCard);
-    if (inferred && inferred !== deckAspect) {
-      setDeckAspect(inferred);
-    }
-    // Clear save-time problems when the deck content changes
-    setSaveProblems([]);
-  }, [liveSlots, validationCards]);
+    setSaveProblems([]); // Clear save-time problems when the deck content changes
+    
+    setDeckAspect(prevAspect => {
+      if (!prevAspect) {
+        const slotsMap = Object.fromEntries(liveSlots.filter(s => s.quantity > 0).map(s => [s.code, s.quantity]));
+        const inferred = inferDeckAspect(slotsMap, validationCards, heroCard);
+        if (inferred) return inferred;
+      }
+      return prevAspect;
+    });
+  }, [liveSlots, validationCards, heroCard]);
 
   // Compute invalid card codes for DeckContent highlighting
   const invalidCodes = useMemo(() => {

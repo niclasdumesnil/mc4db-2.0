@@ -108,6 +108,23 @@ export default forwardRef(function DeckEditor(
   const toggleRes = (type, val) =>
     setResFilter(prev => ({ ...prev, [type]: prev[type] === val ? 0 : val }));
 
+  // Archetypes
+  const [archetypes, setArchetypes] = useState([]);
+  const [selectedArchetype, setSelectedArchetype] = useState('');
+
+  // Fetch Archetypes on mount
+  useEffect(() => {
+    fetch('/api/public/archetypes')
+      .then(r => r.json())
+      .then(data => {
+        if (data.ok && data.data) {
+          setArchetypes(data.data);
+          if (data.data.length > 0) setSelectedArchetype(data.data[0]);
+        }
+      })
+      .catch(e => console.error("Archetypes load failed", e));
+  }, []);
+
   // Sync with global locale switcher (header badge)
   useEffect(() => {
     function onLocaleChange() {
@@ -560,6 +577,121 @@ export default forwardRef(function DeckEditor(
     <div className="editor-container">
       {/* ── Main area: filter bar + card list ── */}
       <main className="editor-main">
+
+        {/* ── Panneau Archetypes ── */}
+        <div className="editor-collection-panel" style={{ marginBottom: '16px' }}>
+          <div className="editor-collection-panel__searchbar" style={{ borderBottom: 'none' }}>
+            <span className="editor-collection-panel__label">ARCHETYPES</span>
+            <div className="editor-collection-search-wrap" style={{ display: 'flex', gap: '8px', flex: 1, alignItems: 'center' }}>
+              <select 
+                className="editor-filter-text-input" 
+                style={{ flex: 1, backgroundColor: '#1b263b', color: '#e2e8f0', borderColor: '#415a77' }}
+                value={selectedArchetype}
+                onChange={e => setSelectedArchetype(e.target.value)}
+              >
+                {archetypes.map(f => (
+                  <option key={f} value={f} style={{ background: '#1b263b', color: '#e2e8f0' }}>{f.replace(/\.o8d$/i, '')}</option>
+                ))}
+              </select>
+              <button 
+                className="deck-action-btn"
+                title="Load Archetype"
+                style={{ width: 'auto', padding: '0 10px', gap: '6px' }}
+                disabled={!selectedArchetype}
+                onClick={async () => {
+                  try {
+                    const confirmLoad = window.confirm("Loading this archetype will replace all your current aspect and basic cards. Do you want to continue?");
+                    if (!confirmLoad) return;
+
+                    const res = await fetch(`/bundles/archetypes/${selectedArchetype}`);
+                    if (!res.ok) throw new Error('File not found');
+                    const text = await res.text();
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(text, 'text/xml');
+                    
+                    const cardsToAddMain = {};
+                    const cardsToAddSide = {};
+                    
+                    const sections = doc.querySelectorAll('section');
+                    // If no sections are found, fallback to parsing all cards into main
+                    if (sections.length === 0) {
+                      const cards = doc.querySelectorAll('card');
+                      cards.forEach(cardNode => {
+                        const octgnId = cardNode.getAttribute('id');
+                        const qty = parseInt(cardNode.getAttribute('qty'), 10) || 0;
+                        if (!octgnId || qty <= 0) return;
+                        const mappedCard = allCards.find(c => c.octgn_id === octgnId);
+                        if (mappedCard && mappedCard.code) {
+                          cardsToAddMain[mappedCard.code] = (cardsToAddMain[mappedCard.code] || 0) + qty;
+                        }
+                      });
+                    } else {
+                      sections.forEach(section => {
+                        const sectionName = section.getAttribute('name');
+                        const cards = section.querySelectorAll('card');
+                        cards.forEach(cardNode => {
+                          const octgnId = cardNode.getAttribute('id');
+                          const qty = parseInt(cardNode.getAttribute('qty'), 10) || 0;
+                          if (!octgnId || qty <= 0) return;
+                          
+                          const mappedCard = allCards.find(c => c.octgn_id === octgnId);
+                          if (mappedCard && mappedCard.code) {
+                            if (sectionName === "Special") {
+                              cardsToAddSide[mappedCard.code] = (cardsToAddSide[mappedCard.code] || 0) + qty;
+                            } else {
+                              cardsToAddMain[mappedCard.code] = (cardsToAddMain[mappedCard.code] || 0) + qty;
+                            }
+                          }
+                        });
+                      });
+                    }
+
+                    // Batch update deck state 
+                    // Wipe current basic and aspect cards first (both main and side)
+                    setDeckState(prev => {
+                      const newMain = {};
+                      const newSide = {};
+                      const wipeFactions = ['justice', 'aggression', 'leadership', 'protection', 'pool', 'determination', 'basic'];
+                      const isWipeable = (factionCode) => factionCode && wipeFactions.includes(factionCode.toLowerCase());
+
+                      // Main deck handling
+                      for (const [code, qty] of Object.entries(prev.main)) {
+                        const card = allCards.find(c => c.code === code);
+                        if (card && !isWipeable(card.faction_code)) {
+                           newMain[code] = qty;
+                        }
+                      }
+                      for (const [code, addQty] of Object.entries(cardsToAddMain)) {
+                        const card = allCards.find(c => c.code === code);
+                        if (card && !isWipeable(card.faction_code) && newMain[code]) continue;
+                        newMain[code] = (newMain[code] || 0) + addQty;
+                      }
+
+                      // Side deck handling
+                      for (const [code, qty] of Object.entries(prev.side)) {
+                        const card = allCards.find(c => c.code === code);
+                        if (card && !isWipeable(card.faction_code)) {
+                           newSide[code] = qty;
+                        }
+                      }
+                      for (const [code, addQty] of Object.entries(cardsToAddSide)) {
+                        const card = allCards.find(c => c.code === code);
+                        if (card && !isWipeable(card.faction_code) && newSide[code]) continue;
+                        newSide[code] = (newSide[code] || 0) + addQty;
+                      }
+                      
+                      return { ...prev, main: newMain, side: newSide };
+                    });
+                  } catch (e) {
+                    console.error("Failed to load archetype", e);
+                  }
+                }}
+              >
+                ✨ Load Archetype
+              </button>
+            </div>
+          </div>
+        </div>
 
         {/* ── Panneau Search all collection ── */}
         <div className="editor-collection-panel">
