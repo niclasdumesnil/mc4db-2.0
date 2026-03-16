@@ -127,7 +127,8 @@ export default function Collection({ user, packsData, onSaved }) {
                     >
                       {owned && <span className="pack-check">✓</span>}
                       {p.name}
-                      {p.visibility === 'false' && <span className="mc-badge mc-badge-private" title="Donor exclusive">🔒 Private</span>}
+                      {p.visibility === 'false' && <span className="mc-badge mc-badge-private" title="Pack privé">🔒</span>}
+                      {p.creator && p.creator !== 'FFG' && <span className="mc-badge mc-badge-creator">{p.creator}</span>}
                     </button>
                   );
                 })}

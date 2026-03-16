@@ -422,7 +422,7 @@ export default function Sets() {
   const [boostFilter, setBoostFilter] = useState(null);
 
   // Load sets index
-  useEffect(() => {
+  const loadSets = useCallback(() => {
     setSetsLoading(true);
     const userId = currentUserId();
     const params = userId ? `?user_id=${userId}` : '';
@@ -437,6 +437,16 @@ export default function Sets() {
       })
       .catch(() => setSetsLoading(false));
   }, []);
+
+  useEffect(() => {
+    loadSets();
+  }, [loadSets]);
+
+  // Re-fetch when user logs in/out
+  useEffect(() => {
+    window.addEventListener('mc_user_changed', loadSets);
+    return () => window.removeEventListener('mc_user_changed', loadSets);
+  }, [loadSets]);
 
   // Load cards when set changes
   useEffect(() => {
