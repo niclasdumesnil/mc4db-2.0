@@ -39,6 +39,7 @@ function renderSharedHeader() {
     <a href="/stories" style="color:#cfe6ff;text-decoration:none;margin-right:4px;">Stories</a>
     <a href="/rules" style="color:#cfe6ff;text-decoration:none;margin-right:4px;">Rules</a>
     <span id="mc-username" style="margin-right:4px;display:none;color:#fff;font-weight:600;font-size:14px;"></span>
+    <span id="mc-user-badges" style="display:none;align-items:center;gap:6px;margin-right:12px;"></span>
     <span id="mc-locale-badge"
           title="Switch language"
           style="cursor:pointer;padding:3px 9px;border-radius:999px;font-size:11px;font-weight:700;letter-spacing:0.06em;user-select:none;transition:background .15s;"
@@ -80,17 +81,38 @@ function renderSharedHeader() {
           }
 
           var displayName = u.name || u.login || u.username || u.user || ('#' + u.id);
+          var badgesSpan = document.getElementById('mc-user-badges');
+
           if (userSpan)  { userSpan.style.display  = 'inline-block'; userSpan.textContent = displayName; }
           if (dash)      { dash.style.display       = 'inline-block'; }
           if (myDecks)   { myDecks.style.display    = 'inline-block'; }
           if (loginBtn)  { loginBtn.style.display   = 'none'; }
           if (logoutBtn) { logoutBtn.style.display  = 'inline-flex'; }
+          
+          if (badgesSpan) {
+            badgesSpan.style.display = 'inline-flex';
+            var bh = '';
+            if (u.is_admin) bh += '<span title="Admin" style="width:24px;height:24px;border-radius:50%;background:rgba(255,80,80,0.12);color:#ff6b6b;display:inline-flex;align-items:center;justify-content:center;font-size:13px;border:1px solid #ff6b6b;flex-shrink:0;">🛡️</span>';
+            if (u.donation > 0) bh += '<span title="Supporter" style="width:24px;height:24px;border-radius:50%;background:rgba(0,210,255,0.1);color:#00d2ff;display:inline-flex;align-items:center;justify-content:center;font-size:13px;border:1px solid #00d2ff;flex-shrink:0;">💎</span>';
+            var rep = u.reputation || 0;
+            if (rep >= 10) {
+              var bg = rep >= 1000 ? 'rgba(255,215,0,0.08)' : rep >= 100 ? 'rgba(192,192,192,0.08)' : 'rgba(205,127,50,0.08)';
+              var bc = rep >= 1000 ? 'rgba(255,215,0,0.6)' : rep >= 100 ? 'rgba(192,192,192,0.6)' : 'rgba(205,127,50,0.6)';
+              var fill= rep >= 1000 ? '#ffd700' : rep >= 100 ? '#c0c0c0' : '#cd7f32';
+              var strk= rep >= 1000 ? '#b8860b' : rep >= 100 ? '#808080' : '#8b4513';
+              var title= rep >= 1000 ? 'Gold' : rep >= 100 ? 'Silver' : 'Bronze';
+              bh += '<span title="' + title + ' — ' + rep + ' reputation" style="width:24px;height:24px;border-radius:50%;background:' + bg + ';border:1px solid ' + bc + ';display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="14" height="14" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><polygon points="8,2 16,2 19,9 12,7 5,9" fill="' + strk + '" opacity="0.85"></polygon><circle cx="12" cy="15" r="7" fill="' + fill + '" stroke="' + strk + '" stroke-width="1.5"></circle><polygon points="12,10 13.2,13.4 17,13.4 14.1,15.6 15.3,19 12,16.8 8.7,19 9.9,15.6 7,13.4 10.8,13.4" fill="' + strk + '" opacity="0.9"></polygon></svg></span>';
+            }
+            badgesSpan.innerHTML = bh;
+          }
         } else {
+          var badgesSpan = document.getElementById('mc-user-badges');
           if (userSpan)  { userSpan.style.display  = 'none'; }
           if (dash)      { dash.style.display      = 'none'; }
           if (myDecks)   { myDecks.style.display   = 'none'; }
           if (loginBtn)  { loginBtn.style.display  = 'inline-flex'; }
           if (logoutBtn) { logoutBtn.style.display = 'none'; }
+          if (badgesSpan) { badgesSpan.style.display = 'none'; }
         }
       }
 

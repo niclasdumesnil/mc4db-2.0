@@ -97,6 +97,19 @@ export default function LoginMenu() {
           ) : (
             <div className="tw-flex tw-items-center tw-gap-2">
               <span className="tw-text-sm tw-text-slate-300">{currentUser.name || currentUser.login || currentUser.username}</span>
+              <div className="tw-flex tw-items-center" style={{ gap: '6px' }}>
+                {currentUser.is_admin && <span title="Admin" style={{width:24,height:24,borderRadius:'50%',background:'rgba(255,80,80,0.12)',color:'#ff6b6b',display:'inline-flex',alignItems:'center',justifyContent:'center',fontSize:13,border:'1px solid #ff6b6b',flexShrink:0}}>🛡️</span>}
+                {currentUser.donation > 0 && <span title="Supporter" style={{width:24,height:24,borderRadius:'50%',background:'rgba(0,210,255,0.1)',color:'#00d2ff',display:'inline-flex',alignItems:'center',justifyContent:'center',fontSize:13,border:'1px solid #00d2ff',flexShrink:0}}>💎</span>}
+                {currentUser.reputation >= 10 && (
+                  <span title={`${currentUser.reputation >= 1000 ? 'Gold' : currentUser.reputation >= 100 ? 'Silver' : 'Bronze'} — ${currentUser.reputation} reputation`} style={{width:24,height:24,borderRadius:'50%',background:currentUser.reputation >= 1000 ? 'rgba(255,215,0,0.08)' : currentUser.reputation >= 100 ? 'rgba(192,192,192,0.08)' : 'rgba(205,127,50,0.08)',border:`1px solid ${currentUser.reputation >= 1000 ? 'rgba(255,215,0,0.6)' : currentUser.reputation >= 100 ? 'rgba(192,192,192,0.6)' : 'rgba(205,127,50,0.6)'}`,display:'inline-flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <polygon points="8,2 16,2 19,9 12,7 5,9" fill={currentUser.reputation >= 1000 ? '#b8860b' : currentUser.reputation >= 100 ? '#808080' : '#8b4513'} opacity="0.85"></polygon>
+                      <circle cx="12" cy="15" r="7" fill={currentUser.reputation >= 1000 ? '#ffd700' : currentUser.reputation >= 100 ? '#c0c0c0' : '#cd7f32'} stroke={currentUser.reputation >= 1000 ? '#b8860b' : currentUser.reputation >= 100 ? '#808080' : '#8b4513'} strokeWidth="1.5"></circle>
+                      <polygon points="12,10 13.2,13.4 17,13.4 14.1,15.6 15.3,19 12,16.8 8.7,19 9.9,15.6 7,13.4 10.8,13.4" fill={currentUser.reputation >= 1000 ? '#b8860b' : currentUser.reputation >= 100 ? '#808080' : '#8b4513'} opacity="0.9"></polygon>
+                    </svg>
+                  </span>
+                )}
+              </div>
               <button className="tw-bg-slate-700 tw-text-white tw-px-2 tw-py-1 tw-rounded" onClick={logout}>Logout</button>
             </div>
           )}
