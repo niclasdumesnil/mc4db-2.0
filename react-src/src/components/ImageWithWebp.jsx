@@ -12,19 +12,26 @@ export default function ImageWithWebp({ src, id, alt, className, locale, langDir
     effectiveSrc = src;
   }
 
+  // Handle paths like:
+  // /bundles/cards/EN/core/01016.webp
+  // /bundles/cards/EN/01016.webp
+  // base is everything before the filename
   const parts = effectiveSrc.split('/');
-  const filename = parts[parts.length - 1];
-  const base = parts.slice(0, -1).join('/');
+  const filename = parts.pop() || '';
+  const base = parts.join('/');
 
-  const langMatch = base.match(/(.*)\/(EN|FR)$/i);
+  // Regex matches: (root path)/(EN|FR)(/pack_code)?
+  const langMatch = base.match(/(.*)\/(EN|FR)(?:\/(.*))?$/i);
   const baseRoot = langMatch ? langMatch[1] : base;
+  const packCodePart = (langMatch && langMatch[3]) ? `/${langMatch[3]}` : '';
   const hasLangFolder = Boolean(langMatch);
 
-  const origWebp = (baseRoot + '/' + filename).replace(/\.(jpe?g|png)$/i, '.webp');
-  const frBase = `${baseRoot}/FR/${filename}`;
+  const origWebp = (baseRoot + packCodePart + '/' + filename).replace(/\.(jpe?g|png)$/i, '.webp');
+  const frBase = `${baseRoot}/FR${packCodePart}/${filename}`;
   const frWebp = frBase.replace(/\.(jpe?g|png)$/i, '.webp');
-  const enBase = `${baseRoot}/EN/${filename}`;
+  const enBase = `${baseRoot}/EN${packCodePart}/${filename}`;
   const enWebp = enBase.replace(/\.(jpe?g|png)$/i, '.webp');
+  
   const lc = (locale || '').toString().toLowerCase();
   const isFrench = lc === 'qc' || lc.startsWith('fr') || (langDir && langDir.toUpperCase() === 'FR');
 

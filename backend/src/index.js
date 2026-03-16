@@ -127,7 +127,7 @@ app.get(['/card/:code.html', '/card/:code'], async (req, res, next) => {
 
     // Precompute available promo image URLs so the client doesn't need to probe.
     try {
-      const promoDirs = ['promo-FR', 'promo-EN', 'alt-FFG'];
+      const promoDirs = ['promo-FR', 'promo-EN', 'errata-FR', 'errata-EN', 'alt-FFG-FR', 'alt-FFG-EN'];
       const promoUrls = {};
       const imgParts = (card.imagesrc || '').split('/');
       const filename = imgParts[imgParts.length - 1] || '';
@@ -136,12 +136,23 @@ app.get(['/card/:code.html', '/card/:code'], async (req, res, next) => {
 
       for (const dir of promoDirs) {
         // skip alt-FFG if not official pack
-        if (dir === 'alt-FFG' && (card.creator || '').toString().toUpperCase() !== 'FFG') continue;
+        if (dir.startsWith('alt-FFG') && (card.creator || '').toString().toUpperCase() !== 'FFG') continue;
 
         const tryPaths = [];
         // Try common extensions for promo images (webp, jpg, png)
         const baseName = filename.replace(/\.(webp|jpe?g|png)$/i, '');
         const exts = ['.webp', '.jpg', '.png'];
+        const packCode = card.pack_code || '';
+        
+        if (packCode) {
+          // Prefer top-level promo dir (e.g. promo-FR/core/15002.jpg)
+          for (const ext of exts) tryPaths.push(path.join(cardsBase, dir, packCode, `${baseName}${ext}`));
+          // Then lang-specific subfolder (e.g. EN/promo-FR/core/15002.jpg)
+          for (const ext of exts) tryPaths.push(path.join(cardsBase, langDir, dir, packCode, `${baseName}${ext}`));
+          // Finally EN fallback subfolder
+          for (const ext of exts) tryPaths.push(path.join(cardsBase, 'EN', dir, packCode, `${baseName}${ext}`));
+        }
+
         // Prefer top-level promo dir (e.g. promo-FR/15002.jpg)
         for (const ext of exts) tryPaths.push(path.join(cardsBase, dir, `${baseName}${ext}`));
         // Then lang-specific subfolder (e.g. EN/promo-FR/15002.jpg)
@@ -171,24 +182,35 @@ app.get(['/card/:code.html', '/card/:code'], async (req, res, next) => {
     // If prefer_webp_only is requested, try to point to webp bundles but
     // fall back to EN or the previously resolved image when missing.
     if (preferWebpOnly) {
-      const tryWebpFor = (code, suffix = '') => {
+      const tryWebpFor = (code, packCode = '', suffix = '') => {
+        if (packCode) {
+          const candidateLangWithPack = path.join(bundlesStaticDir, 'cards', langDir, packCode, `${code}${suffix}.webp`);
+          if (fs.existsSync(candidateLangWithPack)) return `/bundles/cards/${langDir}/${packCode}/${code}${suffix}.webp`;
+          const candidateEnWithPack = path.join(bundlesStaticDir, 'cards', 'EN', packCode, `${code}${suffix}.webp`);
+          if (fs.existsSync(candidateEnWithPack)) return `/bundles/cards/EN/${packCode}/${code}${suffix}.webp`;
+        }
+
         const candidateLang = path.join(bundlesStaticDir, 'cards', langDir, `${code}${suffix}.webp`);
         if (fs.existsSync(candidateLang)) return `/bundles/cards/${langDir}/${code}${suffix}.webp`;
         const candidateEn = path.join(bundlesStaticDir, 'cards', 'EN', `${code}${suffix}.webp`);
         if (fs.existsSync(candidateEn)) return `/bundles/cards/EN/${code}${suffix}.webp`;
+        
+        // Root fallback without packCode
+        const candidateRoot = path.join(bundlesStaticDir, 'cards', `${code}${suffix}.webp`);
+        if (fs.existsSync(candidateRoot)) return `/bundles/cards/${code}${suffix}.webp`;
         return null;
       };
 
-      const webp = tryWebpFor(card.code, '');
+      const webp = tryWebpFor(card.code, card.pack_code, '');
       if (webp) card.imagesrc = webp;
 
       if (card.backimagesrc !== undefined && card.backimagesrc) {
-        const webpBack = tryWebpFor(card.code, 'b');
+        const webpBack = tryWebpFor(card.code, card.pack_code, 'b');
         if (webpBack) card.backimagesrc = webpBack;
       }
 
       if (card.linked_card) {
-        const linkedWebp = tryWebpFor(card.linked_card.code, '');
+        const linkedWebp = tryWebpFor(card.linked_card.code, card.linked_card.pack_code, '');
         if (linkedWebp) card.linked_card.imagesrc = linkedWebp;
       }
     }

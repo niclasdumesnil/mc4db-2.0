@@ -2,9 +2,12 @@ import React, { useState, useEffect, useRef } from 'react';
 
 export default function CardPromo({ card, locale, isBack = false }) {
   const promoButtons = [
-    { label: 'PROMO-FR', dir: 'promo-FR' },
-    { label: 'PROMO-EN', dir: 'promo-EN' },
-    { label: 'FFG-Rework', dir: 'alt-FFG' },
+    { label: 'PROMO', dir: 'promo-FR', lang: 'fr' },
+    { label: 'PROMO', dir: 'promo-EN', lang: 'en' },
+    { label: 'ERRATA', dir: 'errata-FR', lang: 'fr' },
+    { label: 'ERRATA', dir: 'errata-EN', lang: 'en' },
+    { label: 'FFG-Rework', dir: 'alt-FFG-FR', lang: 'fr' },
+    { label: 'FFG-Rework', dir: 'alt-FFG-EN', lang: 'en' },
   ];
 
   const [chosenSrcMap, setChosenSrcMap] = useState({});
@@ -20,8 +23,9 @@ export default function CardPromo({ card, locale, isBack = false }) {
 
   const pathParts = imagesrc.split('/');
   const filename = pathParts[pathParts.length - 1];
-  const basePath = pathParts.slice(0, -1).join('/');
-  const parentBase = pathParts.slice(0, -2).join('/');
+  const rootMatch = imagesrc.match(/^(.*\/cards)\/(EN|FR)?/i);
+  const cardsBase = rootMatch ? rootMatch[1] : (imagesrc.includes('bundles/cards') ? '/bundles/cards' : pathParts.slice(0, -2).join('/'));
+  const srcLangDir = (rootMatch && rootMatch[2]) ? rootMatch[2].toUpperCase() : 'EN';
 
   const probeWithFetch = async (url) => {
     try {
@@ -40,7 +44,7 @@ export default function CardPromo({ card, locale, isBack = false }) {
       im.src = url;
     });
 
-  const cacheKey = 'mc_promo_cache_v1';
+  const cacheKey = 'mc_promo_cache_v2';
   const readCache = () => {
     try { return JSON.parse(localStorage.getItem(cacheKey) || '{}'); } catch (e) { return {}; }
   };
@@ -69,8 +73,10 @@ export default function CardPromo({ card, locale, isBack = false }) {
     }
 
     // Determine buttons to probe (those not already cached)
+    const effectiveLocale = locale === 'fr' ? 'fr' : 'en';
     const toProbe = promoButtons.filter((btn) => {
-      if (btn.dir === 'alt-FFG' && (card.creator || '').toString().toUpperCase() !== 'FFG') return false;
+      if (btn.dir.startsWith('alt-FFG') && (card.creator || '').toString().toUpperCase() !== 'FFG') return false;
+      if (btn.lang !== effectiveLocale) return false;
       if (knownMap[btn.dir]) return false; // already confirmed from cache
       return true;
     });
@@ -89,11 +95,16 @@ export default function CardPromo({ card, locale, isBack = false }) {
 
       for (const btn of toProbe) {
         if (cancelled) break;
-        const candidateBases = [
-          `${parentBase}/${btn.dir}`,
-          `${basePath}/${btn.dir}`,
-          `${parentBase}/EN/${btn.dir}`,
-        ];
+        const packCode = card.pack_code;
+        const candidateBases = [];
+        if (packCode) {
+          candidateBases.push(`${cardsBase}/${btn.dir}/${packCode}`);
+          candidateBases.push(`${cardsBase}/${srcLangDir}/${btn.dir}/${packCode}`);
+          candidateBases.push(`${cardsBase}/EN/${btn.dir}/${packCode}`);
+        }
+        candidateBases.push(`${cardsBase}/${btn.dir}`);
+        candidateBases.push(`${cardsBase}/${srcLangDir}/${btn.dir}`);
+        candidateBases.push(`${cardsBase}/EN/${btn.dir}`);
         let found = false;
         outer: for (const base of candidateBases) {
           for (const ext of exts) {
@@ -136,7 +147,7 @@ export default function CardPromo({ card, locale, isBack = false }) {
     })();
 
     return () => { cancelled = true; };
-  }, [card.code]);
+  }, [card.code, locale]);
 
   const setImgSrcAndClearSources = (imgEl, src) => {
     const pic = imgEl && imgEl.closest && imgEl.closest('picture');
@@ -196,11 +207,16 @@ export default function CardPromo({ card, locale, isBack = false }) {
 
     const baseName = filename.replace(/\.(webp|jpe?g|png)$/i, '');
     const exts = ['.webp', '.jpg', '.png'];
-    const candidateBases = [
-      `${parentBase}/${dir}`,
-      `${basePath}/${dir}`,
-      `${parentBase}/EN/${dir}`,
-    ];
+    const packCode = card.pack_code;
+    const candidateBases = [];
+    if (packCode) {
+      candidateBases.push(`${cardsBase}/${dir}/${packCode}`);
+      candidateBases.push(`${cardsBase}/${srcLangDir}/${dir}/${packCode}`);
+      candidateBases.push(`${cardsBase}/EN/${dir}/${packCode}`);
+    }
+    candidateBases.push(`${cardsBase}/${dir}`);
+    candidateBases.push(`${cardsBase}/${srcLangDir}/${dir}`);
+    candidateBases.push(`${cardsBase}/EN/${dir}`);
 
     for (const base of candidateBases) {
       for (const ext of exts) {
@@ -225,8 +241,10 @@ export default function CardPromo({ card, locale, isBack = false }) {
     setHiddenDirs((p) => ({ ...p, [dir]: true }));
   };
 
+  const effectiveLocale = locale === 'fr' ? 'fr' : 'en';
   const filteredPromoButtons = promoButtons.filter((btn) => {
-    if (btn.dir === 'alt-FFG') {
+    if (btn.lang !== effectiveLocale) return false;
+    if (btn.dir.startsWith('alt-FFG')) {
       return (card.creator || '').toString().toUpperCase() === 'FFG';
     }
     return true;

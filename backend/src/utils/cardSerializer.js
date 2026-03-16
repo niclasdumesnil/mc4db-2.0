@@ -27,7 +27,7 @@ const DEFAULT_LOCALE = (process.env.DEFAULT_LOCALE || 'EN').toUpperCase() === 'F
  * When preferLang is 'FR', checks FR dir first then EN dir as fallback.
  * When preferLang is 'EN' (or absent), checks EN dir only (plus root-level).
  */
-function resolveImage(code, suffix = '', preferLang = undefined) {
+function resolveImage(code, packCode = '', suffix = '', preferLang = undefined) {
   const pref = (preferLang && String(preferLang).toUpperCase() === 'FR') ? 'FR' : 'EN';
   const fileName = `${code}${suffix}`;
 
@@ -36,16 +36,36 @@ function resolveImage(code, suffix = '', preferLang = undefined) {
 
   const candidates = [];
   for (const l of langs) {
+    if (packCode) {
+      candidates.push(
+        `${l}/${packCode}/${fileName}.webp`,
+        `${l}/${packCode}/${fileName}.jpg`,
+        `${l}/${packCode}/${fileName}.png`,
+        `${l}/${packCode}/${fileName}a.webp`,
+        `${l}/${packCode}/${fileName}a.jpg`,
+        `${l}/${packCode}/${fileName}a.png`
+      );
+    }
     candidates.push(
       `${l}/${fileName}.webp`,
       `${l}/${fileName}.jpg`,
       `${l}/${fileName}.png`,
       `${l}/${fileName}a.webp`,
       `${l}/${fileName}a.jpg`,
-      `${l}/${fileName}a.png`,
+      `${l}/${fileName}a.png`
     );
   }
   // Root-level fallback (no lang dir)
+  if (packCode) {
+    candidates.push(
+      `${packCode}/${fileName}.webp`,
+      `${packCode}/${fileName}.jpg`,
+      `${packCode}/${fileName}.png`,
+      `${packCode}/${fileName}a.webp`,
+      `${packCode}/${fileName}a.jpg`,
+      `${packCode}/${fileName}a.png`
+    );
+  }
   candidates.push(
     `${fileName}.webp`,
     `${fileName}.jpg`,
@@ -181,8 +201,8 @@ function serializeCard(row, opts = {}) {
 
     // Computed fields
     url: `${BASE_URL}/card/${row.code}`,
-    imagesrc: resolveImage(row.code, '', imageLang),
-    backimagesrc: row.double_sided ? resolveImage(row.code, 'b', imageLang) : '',
+    imagesrc: resolveImage(row.code, row.pack_code, '', imageLang),
+    backimagesrc: row.double_sided ? resolveImage(row.code, row.pack_code, 'b', imageLang) : '',
     spoiler:
       row.card_set_code &&
         (row.faction_code === 'encounter' || row.card_set_type_name_code === 'encounter')

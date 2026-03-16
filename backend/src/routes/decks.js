@@ -85,7 +85,7 @@ async function fetchDeckSlots(tableName, foreignKey, parentId, locale = 'en') {
     .orderBy('c.name', 'asc');
 
   if (!locale || locale === 'en' || rows.length === 0) {
-    return rows.map(r => ({ ...r, imagesrc: resolveImage(r.code, '', locale) }));
+    return rows.map(r => ({ ...r, imagesrc: resolveImage(r.code, r.pack_code, '', locale) }));
   }
 
   // Overlay card_translation for name
@@ -97,7 +97,7 @@ async function fetchDeckSlots(tableName, foreignKey, parentId, locale = 'en') {
   const transMap = Object.fromEntries(transRows.map(t => [t.code, t]));
 
   return rows.map(r => {
-    const base = { ...r, imagesrc: resolveImage(r.code, '', locale) };
+    const base = { ...r, imagesrc: resolveImage(r.code, r.pack_code, '', locale) };
     const t = transMap[r.code];
     if (!t || !t.name) return base;
     return { ...base, name: t.name };
@@ -142,6 +142,7 @@ async function fetchHeroSpecialCards(heroCode, locale = 'en') {
       'f.name as faction_name',
       'cs.code as card_set_code',
       'cs.name as card_set_name',
+      'p.code as pack_code',
       'p.language as pack_language',
       'p.environment as pack_environment'
     );
@@ -161,12 +162,12 @@ async function fetchHeroSpecialCards(heroCode, locale = 'en') {
       return {
         ...r,
         name: (t && t.name) ? t.name : r.name,
-        imagesrc: resolveImage(r.code, '', locale),
+        imagesrc: resolveImage(r.code, r.pack_code, '', locale),
       };
     });
   }
 
-  return rows.map(r => ({ ...r, imagesrc: resolveImage(r.code) }));
+  return rows.map(r => ({ ...r, imagesrc: resolveImage(r.code, r.pack_code) }));
 }
 
 
@@ -197,7 +198,7 @@ router.get('/decks', async (req, res) => {
         'u.username as author_name', 'u.reputation as author_reputation',
         'c.code as hero_code', 'c.name as hero_name',
         'f.code as faction_code',
-        'p.creator as pack_creator', 'p.environment as pack_environment', 'p.status as pack_status'
+        'p.code as pack_code', 'p.creator as pack_creator', 'p.environment as pack_environment', 'p.status as pack_status'
       )
       .orderBy('d.date_creation', 'desc')
       .limit(limit)
@@ -205,7 +206,7 @@ router.get('/decks', async (req, res) => {
 
     const decks = (await query).map(row => ({
       ...row,
-      hero_imagesrc: resolveImage(row.hero_code)
+      hero_imagesrc: resolveImage(row.hero_code, row.pack_code)
     }));
 
     const [{ total }] = await baseQuery().count('* as total');
@@ -231,7 +232,8 @@ router.get('/decks/:id', async (req, res) => {
     const deck = await db('decklist as d')
       .join('user as u', 'd.user_id', 'u.id')
       .join('card as c', 'd.card_id', 'c.id')
-      .select('d.*', 'u.username as author_name', 'c.name as hero_name', 'c.code as hero_code', 'c.meta as hero_meta', 'c.octgn_id as hero_octgn_id')
+      .leftJoin('pack as p', 'c.pack_id', 'p.id')
+      .select('d.*', 'u.username as author_name', 'c.name as hero_name', 'c.code as hero_code', 'c.meta as hero_meta', 'c.octgn_id as hero_octgn_id', 'p.code as pack_code')
       .where('d.id', id)
       .first();
 
@@ -251,8 +253,8 @@ router.get('/decks/:id', async (req, res) => {
         side_slots,
         packs_required,
         hero_special_cards,
-        hero_imagesrc: resolveImage(heroCode),
-        alter_ego_imagesrc: resolveImage(alterEgoCode),
+        hero_imagesrc: resolveImage(heroCode, deck.pack_code),
+        alter_ego_imagesrc: resolveImage(alterEgoCode, deck.pack_code),
       }
     });
   } catch (err) {
@@ -579,7 +581,7 @@ router.get('/user/:id/decks', async (req, res) => {
         'd.tags', 'd.meta', 'd.problem',
         'c.code as hero_code', 'c.name as hero_name',
         'f.code as faction_code',
-        'p.creator as pack_creator', 'p.environment as pack_environment', 'p.status as pack_status'
+        'p.code as pack_code', 'p.creator as pack_creator', 'p.environment as pack_environment', 'p.status as pack_status'
       )
       .orderBy('d.date_update', 'desc')
       .limit(limit)
@@ -588,7 +590,7 @@ router.get('/user/:id/decks', async (req, res) => {
     const decks = (await query).map(row => ({
       ...row,
       version: `${row.major_version}.${row.minor_version}`,
-      hero_imagesrc: resolveImage(row.hero_code)
+      hero_imagesrc: resolveImage(row.hero_code, row.pack_code)
     }));
 
     const [{ total }] = await baseQuery().count('* as total');
@@ -614,7 +616,8 @@ router.get('/user/:userId/decks/:deckId', async (req, res) => {
 
     const deck = await db('deck as d')
       .join('card as c', 'd.character_id', 'c.id')
-      .select('d.*', 'c.name as hero_name', 'c.code as hero_code', 'c.meta as hero_meta', 'c.octgn_id as hero_octgn_id')
+      .leftJoin('pack as p', 'c.pack_id', 'p.id')
+      .select('d.*', 'c.name as hero_name', 'c.code as hero_code', 'c.meta as hero_meta', 'c.octgn_id as hero_octgn_id', 'p.code as pack_code')
       .where('d.id', deckId)
       .andWhere('d.user_id', userId)
       .first();
@@ -637,8 +640,8 @@ router.get('/user/:userId/decks/:deckId', async (req, res) => {
         side_slots,
         packs_required,
         hero_special_cards,
-        hero_imagesrc: resolveImage(heroCode),
-        alter_ego_imagesrc: resolveImage(alterEgoCode),
+        hero_imagesrc: resolveImage(heroCode, deck.pack_code),
+        alter_ego_imagesrc: resolveImage(alterEgoCode, deck.pack_code),
       }
     });
   } catch (err) {

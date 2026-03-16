@@ -155,10 +155,10 @@ router.get('/heroes', async (req, res, next) => {
             ? row.pack_date_release.toISOString().slice(0, 10)
             : String(row.pack_date_release).slice(0, 10))
         : null,
-      imagesrc: resolveImage(row.code),
+      imagesrc: resolveImage(row.code, row.pack_code),
       alt_images: [
-        row.code_b ? resolveImage(row.code_b) : null,
-        row.code_c ? resolveImage(row.code_c) : null,
+        row.code_b ? resolveImage(row.code_b, row.pack_code) : null,
+        row.code_c ? resolveImage(row.code_c, row.pack_code) : null,
       ].filter(Boolean),
     }));
 
@@ -422,7 +422,7 @@ router.get('/cards/search', async (req, res, next) => {
     const { resolveImage } = require('../utils/cardSerializer');
     const finalCards = cards.map(c => ({
       ...c,
-      imagesrc: resolveImage(c.code, '', localeClean)
+      imagesrc: resolveImage(c.code, c.pack_code, '', localeClean)
     }));
 
     res.json({
