@@ -194,6 +194,11 @@ function HorizontalSetsBar({ setsData, setsLoading, selectedSet, onSelect }) {
   const [source, setSource]       = useState('all'); // 'all' | 'official' | 'fanmade'
   const [openCat, setOpenCat]     = useState(null);
   const [dropdownSearch, setDropdownSearch] = useState('');
+  
+  // Sort states
+  const [sortBy, setSortBy] = useState('alpha'); // 'alpha' | 'date'
+  const [sortDesc, setSortDesc] = useState(false); // false = Ascending, true = Descending
+
   const barRef = useRef(null);
   const dropdownSearchRef = useRef(null);
 
@@ -201,6 +206,7 @@ function HorizontalSetsBar({ setsData, setsLoading, selectedSet, onSelect }) {
   useEffect(() => {
     if (!openCat) return;
     const handler = (e) => {
+      // Exclude clicks on sorting buttons from closing dropdown immediately if inside barRef
       if (barRef.current && !barRef.current.contains(e.target)) {
         setOpenCat(null);
         setDropdownSearch('');
@@ -222,10 +228,27 @@ function HorizontalSetsBar({ setsData, setsLoading, selectedSet, onSelect }) {
     if (!setsData) return [];
     const off = (setsData.official[key] || []).map(s => ({ ...s, _src: 'official' }));
     const fm  = (setsData.fanmade[key]  || []).map(s => ({ ...s, _src: 'fanmade' }));
-    if (source === 'official') return off;
-    if (source === 'fanmade')  return fm;
-    return [...off, ...fm];
-  }, [setsData, source]);
+    let list = [];
+    if (source === 'official') list = off;
+    else if (source === 'fanmade') list = fm;
+    else list = [...off, ...fm];
+
+    list.sort((a, b) => {
+      let cmp = 0;
+      if (sortBy === 'date') {
+        const da = a.pack_date_release || '2000-01-01';
+        const db = b.pack_date_release || '2000-01-01';
+        if (da < db) cmp = -1;
+        else if (da > db) cmp = 1;
+        else cmp = (a.name || '').localeCompare(b.name || '');
+      } else {
+        cmp = (a.name || '').localeCompare(b.name || '');
+      }
+      return sortDesc ? -cmp : cmp;
+    });
+
+    return list;
+  }, [setsData, source, sortBy, sortDesc]);
 
   const handleCatClick = (key) => {
     setOpenCat(prev => prev === key ? null : key);
@@ -237,15 +260,17 @@ function HorizontalSetsBar({ setsData, setsLoading, selectedSet, onSelect }) {
     setDropdownSearch('');
   };
 
+  const handleSortToggle = (type) => {
+    if (sortBy === type) {
+      setSortDesc(prev => !prev);
+    } else {
+      setSortBy(type);
+      setSortDesc(false);
+    }
+  };
+
   if (setsLoading) return <div className="sets-topbar sets-topbar--loading">Loading sets…</div>;
   if (!setsData)   return null;
-
-  const dropdownSets = openCat
-    ? getSets(openCat).filter(s =>
-        !dropdownSearch.trim() ||
-        (s.name || '').toLowerCase().includes(dropdownSearch.toLowerCase())
-      )
-    : [];
 
   return (
     <div className="sets-topbar" ref={barRef}>
@@ -274,61 +299,90 @@ function HorizontalSetsBar({ setsData, setsLoading, selectedSet, onSelect }) {
           if (sets.length === 0) return null;
           const isOpen = openCat === key;
           const hasSel = selectedSet && sets.some(s => s.code === selectedSet.code);
+          
+          const dropdownCategorySets = getSets(key).filter(s =>
+            !dropdownSearch.trim() ||
+            (s.name || '').toLowerCase().includes(dropdownSearch.toLowerCase())
+          );
+
           return (
-            <button
-              key={key}
-              className={['sets-topbar-tab', isOpen ? 'sets-topbar-tab--open' : '', hasSel ? 'sets-topbar-tab--has-selected' : ''].filter(Boolean).join(' ')}
-              onClick={() => handleCatClick(key)}
-            >
-              <span>{label}</span>
-              <span className="sets-topbar-tab-count">{sets.length}</span>
-              <span className="sets-topbar-tab-chevron" aria-hidden="true">›</span>
-            </button>
+            <div key={key} className="sets-topbar-tab-container">
+              <button
+                className={['sets-topbar-tab', isOpen ? 'sets-topbar-tab--open' : '', hasSel ? 'sets-topbar-tab--has-selected' : ''].filter(Boolean).join(' ')}
+                onClick={() => handleCatClick(key)}
+              >
+                <span>{label}</span>
+                <span className="sets-topbar-tab-count">{sets.length}</span>
+                <span className="sets-topbar-tab-chevron" aria-hidden="true">›</span>
+              </button>
+
+              {/* Specific Modals per Category */}
+              {isOpen && (
+                <div className="sets-topbar-dropdown">
+                  {/* Set search */}
+                  <div className="sets-topbar-dropdown-search-wrap">
+                    <svg className="sets-topbar-dropdown-search-icon" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                      <circle cx="8.5" cy="8.5" r="5.25" stroke="currentColor" strokeWidth="1.5"/>
+                      <path d="m12.5 12.5 3.5 3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                    </svg>
+                    <input
+                      ref={dropdownSearchRef}
+                      className="sets-topbar-dropdown-search"
+                      type="text"
+                      placeholder="Search sets…"
+                      value={dropdownSearch}
+                      onChange={e => setDropdownSearch(e.target.value)}
+                      onClick={e => e.stopPropagation()}
+                    />
+                    {dropdownSearch && (
+                      <button className="sets-topbar-dropdown-search-clear" onClick={(e) => { e.stopPropagation(); setDropdownSearch(''); }}>✕</button>
+                    )}
+                  </div>
+
+                  {dropdownCategorySets.length === 0 ? (
+                    <div className="sets-topbar-dropdown-empty">No sets match</div>
+                  ) : (
+                    <div className="sets-topbar-dropdown-items">
+                      {dropdownCategorySets.map(set => (
+                        <button
+                          key={set.code}
+                          className={`sets-topbar-dropdown-item${selectedSet?.code === set.code ? ' sets-topbar-dropdown-item--active' : ''}`}
+                          onClick={(e) => { e.stopPropagation(); handleSelect(set); }}
+                        >
+                          <span>{set.name}</span>
+                          {set.private && <span className="mc-badge mc-badge-private sets-topbar-badge" title="Pack privé">🔒</span>}
+                          {set.creator && set.creator !== 'FFG' && <span className="mc-badge mc-badge-creator sets-topbar-badge">{set.creator}</span>}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
           );
         })}
-      </div>
 
-      {/* Dropdown */}
-      {openCat && (
-        <div className="sets-topbar-dropdown">
-          {/* Set search */}
-          <div className="sets-topbar-dropdown-search-wrap">
-            <svg className="sets-topbar-dropdown-search-icon" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-              <circle cx="8.5" cy="8.5" r="5.25" stroke="currentColor" strokeWidth="1.5"/>
-              <path d="m12.5 12.5 3.5 3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-            </svg>
-            <input
-              ref={dropdownSearchRef}
-              className="sets-topbar-dropdown-search"
-              type="text"
-              placeholder="Search sets…"
-              value={dropdownSearch}
-              onChange={e => setDropdownSearch(e.target.value)}
-            />
-            {dropdownSearch && (
-              <button className="sets-topbar-dropdown-search-clear" onClick={() => setDropdownSearch('')}>✕</button>
-            )}
-          </div>
+        {/* Spacer */}
+        <div style={{ flex: 1 }} />
 
-          {dropdownSets.length === 0 ? (
-            <div className="sets-topbar-dropdown-empty">No sets match</div>
-          ) : (
-            <div className="sets-topbar-dropdown-items">
-              {dropdownSets.map(set => (
-                <button
-                  key={set.code}
-                  className={`sets-topbar-dropdown-item${selectedSet?.code === set.code ? ' sets-topbar-dropdown-item--active' : ''}`}
-                  onClick={() => handleSelect(set)}
-                >
-                  <span>{set.name}</span>
-                  {set.private && <span className="mc-badge mc-badge-private sets-topbar-badge" title="Pack privé">🔒</span>}
-                  {set.creator && set.creator !== 'FFG' && <span className="mc-badge mc-badge-creator sets-topbar-badge">{set.creator}</span>}
-                </button>
-              ))}
-            </div>
-          )}
+        {/* Sort Controls */}
+        <div className="sets-sort-controls">
+          <span className="sets-sort-label">Sort by:</span>
+          <button 
+            className={`sets-sort-btn ${sortBy === 'alpha' ? 'active' : ''}`}
+            onClick={() => handleSortToggle('alpha')}
+          >
+            A-Z {sortBy === 'alpha' ? (sortDesc ? '↓' : '↑') : ''}
+          </button>
+          <button 
+            className={`sets-sort-btn ${sortBy === 'date' ? 'active' : ''}`}
+            onClick={() => handleSortToggle('date')}
+          >
+            Date {sortBy === 'date' ? (sortDesc ? '↓' : '↑') : ''}
+          </button>
         </div>
-      )}
+
+      </div>
     </div>
   );
 }

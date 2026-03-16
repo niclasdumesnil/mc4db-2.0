@@ -193,6 +193,7 @@ router.get('/sets', async (req, res, next) => {
         db.raw('MAX(p.visibility) as visibility'),
         db.raw('MIN(p.environment) as pack_environment'),
         db.raw('MIN(p.status) as pack_status'),
+        db.raw('MIN(p.date_release) as pack_date_release'),
         db.raw('COUNT(DISTINCT c.id) as card_count')
       )
       .orderBy('cs.name', 'asc');
@@ -245,6 +246,7 @@ router.get('/sets', async (req, res, next) => {
         card_count: Number(row.card_count) || 0,
         pack_environment: row.pack_environment || null,
         pack_status: row.pack_status || null,
+        pack_date_release: row.pack_date_release || null,
         private: row.visibility === 'false' || row.visibility === false,
       });
     }
