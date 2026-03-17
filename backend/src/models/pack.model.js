@@ -1,5 +1,5 @@
 /**
- * Pack model — thin query helpers over the `pack` table.
+ * Pack model — Data Access Layer over the `pack` table.
  */
 const db = require('../config/database');
 

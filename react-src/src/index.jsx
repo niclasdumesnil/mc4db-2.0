@@ -3,7 +3,7 @@ import { createRoot } from 'react-dom/client';
 import CardFront from './CardFront';
 import CardBack from './CardBack';
 import PackNav from './components/PackNav';
-import '@css/mc4db.css';
+import '@css/style.css';
 import LoginMenu from './components/LoginMenu';
 import Menu from './components/Menu';
 import CardTooltip from './components/CardTooltip';

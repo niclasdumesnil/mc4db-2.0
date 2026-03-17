@@ -8,7 +8,7 @@
  *              (visibility = "false") are included in the response.
  */
 const { Router } = require('express');
-const Pack = require('../models/Pack');
+const Pack = require('../models/pack.model');
 const { isUserDonator } = require('../utils/donatorUtils');
 
 const router = Router();

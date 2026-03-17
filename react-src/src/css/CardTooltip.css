@@ -120,7 +120,7 @@
   color: #e5e7eb;
 }
 
-/* Remove inherited card text border from global mc4db.css */
+/* Remove inherited card text border from global style.css */
 .card-tooltip .mc-card-text {
   border-left: none !important;
   padding-left: 0 !important;

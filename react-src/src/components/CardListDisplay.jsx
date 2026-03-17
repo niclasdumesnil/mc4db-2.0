@@ -38,7 +38,7 @@ function FactionDot({ card }) {
 
 /**
  * Renders a small block of resource icons for a card row.
- * Uses the marvel-icons font (icon-* classes from mc4db.css).
+ * Uses the marvel-icons font (icon-* classes from style.css).
  */
 function ResourceIcons({ card }) {
   const icons = [];

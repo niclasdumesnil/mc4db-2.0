@@ -4,7 +4,7 @@
  *   GET /api/public/factions/  → all factions
  */
 const { Router } = require('express');
-const Faction = require('../models/Faction');
+const Faction = require('../models/faction.model');
 
 const router = Router();
 

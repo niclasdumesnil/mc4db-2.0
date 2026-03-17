@@ -536,7 +536,7 @@ button.pack-nav-btn:hover {
   color: #94a3b8;
 }
 
-/* Pack badges → voir mc4db.css */
+/* Pack badges → voir style.css */
 
 /* ==========================================
    CARD FOOTER
@@ -893,7 +893,7 @@ button.pack-nav-btn:hover {
   text-overflow: ellipsis;
 }
 
-/* current/creator badges → voir mc4db.css */
+/* current/creator badges → voir style.css */
 
 /* Inline loading spinner */
 @keyframes ps-spin { to { transform: rotate(360deg); } }

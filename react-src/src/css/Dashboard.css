@@ -90,7 +90,7 @@
 .donation-badge { background: rgba(0, 210, 255, 0.1); color: var(--accent-cyan); padding: 4px 10px; border-radius: 20px; font-size: 0.8rem; border: 1px solid var(--accent-cyan); }
 .admin-badge { background: rgba(255, 80, 80, 0.12); color: #ff6b6b; padding: 4px 10px; border-radius: 20px; font-size: 0.8rem; border: 1px solid #ff6b6b; }
 
-/* Reputation medal → mc4db.css */
+/* Reputation medal → style.css */
 .rep-medal { width: 22px; height: 22px; flex-shrink: 0; }
 .rep-score { line-height: 1; }
 

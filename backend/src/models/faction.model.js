@@ -1,5 +1,5 @@
 /**
- * Faction model — thin query helpers over the `faction` table.
+ * Faction model — Data Access Layer for the `faction` table.
  */
 const db = require('../config/database');
 

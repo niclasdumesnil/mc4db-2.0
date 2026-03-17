@@ -15,7 +15,7 @@ const fs = require('fs');
 const publicRoutes = require('./routes');
 const errorHandler = require('./middleware/errorHandler');
 const db = require('./config/database');
-const Card = require('./models/Card');
+const Card = require('./models/card.model');
 const { serializeCard } = require('./utils/cardSerializer');
 const { renderSharedHeader } = require('./utils/pageTemplate');
 
@@ -250,7 +250,7 @@ app.get(['/card/:code.html', '/card/:code'], async (req, res, next) => {
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>${card.name ? card.name + ' — MarvelCDB' : 'Card ' + card.code}</title>
-    <link rel="stylesheet" href="/react/css/card.css?v=${assetVersion}">
+    <link rel="stylesheet" href="/react/css/mc4db.css?v=">
   </head>
   <body>
     ${renderSharedHeader()}
@@ -265,7 +265,7 @@ app.get(['/card/:code.html', '/card/:code'], async (req, res, next) => {
         preferWebpOnly: ${preferWebpOnly}
       };
     </script>
-    <script src="/react/js/card.js?v=${assetVersion}"></script>
+    <script src="/react/js/mc4db.js?v="></script>
   </body>
 </html>`;
 
@@ -305,7 +305,7 @@ app.get(['/', '/index.html'], async (req, res) => {
     <meta name="twitter:description" content="${description}">
     <meta name="twitter:image" content="${image}">
 
-    <link rel="stylesheet" href="/react/css/card.css?v=${assetVersion}">
+    <link rel="stylesheet" href="/react/css/mc4db.css?v=">
   </head>
   <body>
     ${renderSharedHeader()}
@@ -313,7 +313,7 @@ app.get(['/', '/index.html'], async (req, res) => {
     <noscript>
       <div style="max-width:980px;margin:24px auto;padding:16px;background:#fee; color:#333;border-radius:8px;">JavaScript is disabled — the interactive UI requires JavaScript to function.</div>
     </noscript>
-    <script src="/react/js/card.js?v=${assetVersion}"></script>
+    <script src="/react/js/mc4db.js?v="></script>
   </body>
 </html>`;
   res.type('html').send(html);
@@ -349,7 +349,7 @@ app.get(['/dashboard', '/dashboard/'], async (req, res) => {
     <meta name="twitter:description" content="${description}">
     <meta name="twitter:image" content="${image}">
 
-    <link rel="stylesheet" href="/react/css/card.css?v=${assetVersion}">
+    <link rel="stylesheet" href="/react/css/mc4db.css?v=">
   </head>
   <body>
     ${renderSharedHeader()}
@@ -357,7 +357,7 @@ app.get(['/dashboard', '/dashboard/'], async (req, res) => {
     <noscript>
       <div style="max-width:980px;margin:24px auto;padding:16px;background:#fee; color:#333;border-radius:8px;">JavaScript is disabled — the interactive UI requires JavaScript to function.</div>
     </noscript>
-    <script src="/react/js/card.js?v=${assetVersion}"></script>
+    <script src="/react/js/mc4db.js?v="></script>
   </body>
 </html>`;
   res.type('html').send(html);
@@ -388,7 +388,7 @@ app.get(['/decklists', '/decklists/'], async (req, res) => {
     <meta name="twitter:title" content="${title}">
     <meta name="twitter:description" content="${description}">
     <meta name="twitter:image" content="${image}">
-    <link rel="stylesheet" href="/react/css/card.css?v=${assetVersion}">
+    <link rel="stylesheet" href="/react/css/mc4db.css?v=">
   </head>
   <body>
     ${renderSharedHeader()}
@@ -396,7 +396,7 @@ app.get(['/decklists', '/decklists/'], async (req, res) => {
     <noscript>
       <div style="max-width:980px;margin:24px auto;padding:16px;background:#fee;color:#333;border-radius:8px;">JavaScript is disabled — the interactive UI requires JavaScript to function.</div>
     </noscript>
-    <script src="/react/js/card.js?v=${assetVersion}"></script>
+    <script src="/react/js/mc4db.js?v="></script>
   </body>
 </html>`;
   res.type('html').send(html);
@@ -427,7 +427,7 @@ app.get(['/card-list', '/card-list/'], (req, res) => {
     <meta property="og:description" content="${description}">
     <meta property="og:url" content="${url}">
     <meta property="og:image" content="${image}">
-    <link rel="stylesheet" href="/react/css/card.css?v=${assetVersion}">
+    <link rel="stylesheet" href="/react/css/mc4db.css?v=">
     <script>window.__MC_LOCALE__ = ${JSON.stringify(locale)};</script>
   </head>
   <body>
@@ -436,7 +436,7 @@ app.get(['/card-list', '/card-list/'], (req, res) => {
     <noscript>
       <div style="max-width:980px;margin:24px auto;padding:16px;background:#fee;color:#333;border-radius:8px;">JavaScript is disabled — the interactive UI requires JavaScript to function.</div>
     </noscript>
-    <script src="/react/js/card.js?v=${assetVersion}"></script>
+    <script src="/react/js/mc4db.js?v="></script>
   </body>
 </html>`;
   res.type('html').send(html);
@@ -463,7 +463,7 @@ app.get(['/my-decks', '/my-decks/'], (req, res) => {
     <meta property="og:description" content="${description}">
     <meta property="og:url" content="${url}">
     <meta property="og:image" content="${image}">
-    <link rel="stylesheet" href="/react/css/card.css?v=${assetVersion}">
+    <link rel="stylesheet" href="/react/css/mc4db.css?v=">
   </head>
   <body>
     ${renderSharedHeader()}
@@ -471,7 +471,7 @@ app.get(['/my-decks', '/my-decks/'], (req, res) => {
     <noscript>
       <div style="max-width:980px;margin:24px auto;padding:16px;background:#fee;color:#333;border-radius:8px;">JavaScript is disabled — the interactive UI requires JavaScript to function.</div>
     </noscript>
-    <script src="/react/js/card.js?v=${assetVersion}"></script>
+    <script src="/react/js/mc4db.js?v="></script>
   </body>
 </html>`;
   res.type('html').send(html);
@@ -500,7 +500,7 @@ app.get(['/decklists', '/decklists/'], (req, res) => {
     <meta property="og:description" content="${description}">
     <meta property="og:url" content="${url}">
     <meta property="og:image" content="${image}">
-    <link rel="stylesheet" href="/react/css/card.css?v=${assetVersion}">
+    <link rel="stylesheet" href="/react/css/mc4db.css?v=">
     <script>window.__MC_LOCALE__ = ${JSON.stringify(locale)};</script>
   </head>
   <body>
@@ -509,7 +509,7 @@ app.get(['/decklists', '/decklists/'], (req, res) => {
     <noscript>
       <div style="max-width:980px;margin:24px auto;padding:16px;background:#fee;color:#333;border-radius:8px;">JavaScript is disabled — the interactive UI requires JavaScript to function.</div>
     </noscript>
-    <script src="/react/js/card.js?v=${assetVersion}"></script>
+    <script src="/react/js/mc4db.js?v="></script>
   </body>
 </html>`;
   res.type('html').send(html);
@@ -538,7 +538,7 @@ app.get(['/my-decks', '/my-decks/'], (req, res) => {
     <meta property="og:description" content="${description}">
     <meta property="og:url" content="${url}">
     <meta property="og:image" content="${image}">
-    <link rel="stylesheet" href="/react/css/card.css?v=${assetVersion}">
+    <link rel="stylesheet" href="/react/css/mc4db.css?v=">
     <script>window.__MC_LOCALE__ = ${JSON.stringify(locale)};</script>
   </head>
   <body>
@@ -547,7 +547,7 @@ app.get(['/my-decks', '/my-decks/'], (req, res) => {
     <noscript>
       <div style="max-width:980px;margin:24px auto;padding:16px;background:#fee;color:#333;border-radius:8px;">JavaScript is disabled — the interactive UI requires JavaScript to function.</div>
     </noscript>
-    <script src="/react/js/card.js?v=${assetVersion}"></script>
+    <script src="/react/js/mc4db.js?v="></script>
   </body>
 </html>`;
   res.type('html').send(html);
@@ -574,7 +574,7 @@ app.get(['/rules', '/rules/'], (req, res) => {
     <meta property="og:description" content="${description}">
     <meta property="og:url" content="${url}">
     <meta property="og:image" content="${image}">
-    <link rel="stylesheet" href="/react/css/card.css?v=${assetVersion}">
+    <link rel="stylesheet" href="/react/css/mc4db.css?v=">
   </head>
   <body>
     ${renderSharedHeader()}
@@ -582,7 +582,7 @@ app.get(['/rules', '/rules/'], (req, res) => {
     <noscript>
       <div style="max-width:980px;margin:24px auto;padding:16px;background:#fee;color:#333;border-radius:8px;">JavaScript is disabled — the interactive UI requires JavaScript to function.</div>
     </noscript>
-    <script src="/react/js/card.js?v=${assetVersion}"></script>
+    <script src="/react/js/mc4db.js?v="></script>
   </body>
 </html>`;
   res.type('html').send(html);
@@ -609,7 +609,7 @@ app.get(['/stories', '/stories/'], (req, res) => {
     <meta property="og:description" content="${description}">
     <meta property="og:url" content="${url}">
     <meta property="og:image" content="${image}">
-    <link rel="stylesheet" href="/react/css/card.css?v=${assetVersion}">
+    <link rel="stylesheet" href="/react/css/mc4db.css?v=">
   </head>
   <body>
     ${renderSharedHeader()}
@@ -617,7 +617,7 @@ app.get(['/stories', '/stories/'], (req, res) => {
     <noscript>
       <div style="max-width:980px;margin:24px auto;padding:16px;background:#fee;color:#333;border-radius:8px;">JavaScript is disabled — the interactive UI requires JavaScript to function.</div>
     </noscript>
-    <script src="/react/js/card.js?v=${assetVersion}"></script>
+    <script src="/react/js/mc4db.js?v="></script>
   </body>
 </html>`;
   res.type('html').send(html);
@@ -646,7 +646,7 @@ app.get(['/sets', '/sets/'], (req, res) => {
     <meta property="og:description" content="${description}">
     <meta property="og:url" content="${url}">
     <meta property="og:image" content="${image}">
-    <link rel="stylesheet" href="/react/css/card.css?v=${assetVersion}">
+    <link rel="stylesheet" href="/react/css/mc4db.css?v=">
     <script>window.__MC_LOCALE__ = ${JSON.stringify(locale)};</script>
   </head>
   <body>
@@ -655,7 +655,7 @@ app.get(['/sets', '/sets/'], (req, res) => {
     <noscript>
       <div style="max-width:980px;margin:24px auto;padding:16px;background:#fee;color:#333;border-radius:8px;">JavaScript is disabled — the interactive UI requires JavaScript to function.</div>
     </noscript>
-    <script src="/react/js/card.js?v=${assetVersion}"></script>
+    <script src="/react/js/mc4db.js?v="></script>
   </body>
 </html>`;
   res.type('html').send(html);
@@ -678,13 +678,13 @@ app.get(['/decklist/:id', '/decklist/view/:id'], (req, res) => {
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Deck View — MarvelCDB</title>
     <meta name="description" content="View a Marvel Champions deck on MarvelCDB.">
-    <link rel="stylesheet" href="/react/css/card.css?v=${assetVersion}">
+    <link rel="stylesheet" href="/react/css/mc4db.css?v=">
     <script>window.__MC_LOCALE__ = ${JSON.stringify(locale)};</script>
   </head>
   <body>
     ${renderSharedHeader()}
     <div id="mc-app"></div>
-    <script src="/react/js/card.js?v=${assetVersion}"></script>
+    <script src="/react/js/mc4db.js?v="></script>
   </body>
 </html>`;
   res.type('html').send(html);
@@ -711,7 +711,7 @@ app.get('/deck/new', (req, res) => {
     <meta property="og:description" content="${description}">
     <meta property="og:url" content="${url}">
     <meta property="og:image" content="${image}">
-    <link rel="stylesheet" href="/react/css/card.css?v=${assetVersion}">
+    <link rel="stylesheet" href="/react/css/mc4db.css?v=">
   </head>
   <body>
     ${renderSharedHeader()}
@@ -719,7 +719,7 @@ app.get('/deck/new', (req, res) => {
     <noscript>
       <div style="max-width:980px;margin:24px auto;padding:16px;background:#fee;color:#333;border-radius:8px;">JavaScript is disabled — the interactive UI requires JavaScript to function.</div>
     </noscript>
-    <script src="/react/js/card.js?v=${assetVersion}"></script>
+    <script src="/react/js/mc4db.js?v="></script>
   </body>
 </html>`;
   res.type('html').send(html);
@@ -736,13 +736,13 @@ app.get(['/my-decks/:id', '/deck/view/:id'], (req, res) => {
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>My Deck — MarvelCDB</title>
     <meta name="description" content="View your private deck on MarvelCDB.">
-    <link rel="stylesheet" href="/react/css/card.css?v=${assetVersion}">
+    <link rel="stylesheet" href="/react/css/mc4db.css?v=">
     <script>window.__MC_LOCALE__ = ${JSON.stringify(locale)};</script>
   </head>
   <body>
     ${renderSharedHeader()}
     <div id="mc-app"></div>
-    <script src="/react/js/card.js?v=${assetVersion}"></script>
+    <script src="/react/js/mc4db.js?v="></script>
   </body>
 </html>`;
   res.type('html').send(html);

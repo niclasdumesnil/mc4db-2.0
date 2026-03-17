@@ -3,9 +3,9 @@
  * under the /api/public prefix.
  */
 const { Router } = require('express');
-const cardsRoutes = require('./cards');
-const packsRoutes = require('./packs');
-const factionsRoutes = require('./factions');
+const cardsRoutes = require('./card.routes');
+const packsRoutes = require('./pack.routes');
+const factionsRoutes = require('./faction.routes');
 const authRoutes = require('./auth');
 const usersRoutes = require('./users');
 const decksRoutes = require('./decks');

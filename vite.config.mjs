@@ -20,7 +20,7 @@ export default defineConfig({
     emptyOutDir: true,
     rollupOptions: {
       input: {
-        card: path.resolve(__dirname, 'react-src', 'src', 'index.jsx')
+        mc4db: path.resolve(__dirname, 'react-src', 'src', 'index.jsx')
       },
       output: {
         entryFileNames: 'js/[name].js',

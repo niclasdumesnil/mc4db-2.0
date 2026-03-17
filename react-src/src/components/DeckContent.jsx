@@ -144,7 +144,7 @@ export default function DeckContent({ slots, mode = 'list', heroSpecialCards = [
     return Object.values(setMap);
   }, [heroSpecialCards]);
 
-  // 3. Fonction pour générer les icônes de ressources (basée sur mc4db.css)
+  // 3. Fonction pour générer les icônes de ressources (basée sur style.css)
   const renderResources = (card) => {
     const resources = [];
 

@@ -471,63 +471,7 @@
   font-size: 0.75rem;
 }
 
-/* ── Save area ────────────────────────────────────── */
-.editor-save-area {
-  margin-top: auto;
-  padding-top: 20px;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
 
-.editor-save-btn {
-  width: 100%;
-  padding: 10px 0;
-  background: #3b82f6;
-  border: none;
-  border-radius: 8px;
-  color: #fff;
-  font-size: 0.95rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-
-.editor-save-btn:hover:not(:disabled) {
-  background: #2563eb;
-}
-
-.editor-save-btn:disabled {
-  opacity: 0.5;
-  cursor: default;
-}
-
-.editor-cancel-btn {
-  width: 100%;
-  padding: 8px 0;
-  background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: 8px;
-  color: #8a99af;
-  font-size: 0.88rem;
-  cursor: pointer;
-  transition: background 0.2s, color 0.2s;
-}
-
-.editor-cancel-btn:hover {
-  background: rgba(255, 255, 255, 0.06);
-  color: #dbeafa;
-}
-
-.editor-save-error {
-  color: #e06c75;
-  font-size: 0.82rem;
-  padding: 6px 8px;
-  background: rgba(224, 108, 117, 0.1);
-  border-radius: 6px;
-  border: 1px solid rgba(224, 108, 117, 0.25);
-}
 
 /* ── Resource filter group ────────────────────────────────────────────── */
 .editor-res-group {
