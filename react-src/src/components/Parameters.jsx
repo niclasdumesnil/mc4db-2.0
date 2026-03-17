@@ -1,5 +1,12 @@
 import React, { useState, useEffect } from 'react';
 
+function getAuthHeaders(extraHeaders = {}) {
+  try {
+    const token = localStorage.getItem('mc_token');
+    return token ? { 'Authorization': `Bearer ${token}`, ...extraHeaders } : extraHeaders;
+  } catch { return extraHeaders; }
+}
+
 export default function Parameters({ user }) {
   // 1. Initialisation du state local avec toutes les options possibles
   const [settings, setSettings] = useState({
@@ -93,9 +100,9 @@ export default function Parameters({ user }) {
     try {
       const response = await fetch(`/api/public/user/${userId}/settings`, {
         method: 'PUT',
-        headers: {
+        headers: getAuthHeaders({
           'Content-Type': 'application/json',
-        },
+        }),
         body: JSON.stringify({ [key]: newValue })
       });
 
@@ -151,11 +158,6 @@ export default function Parameters({ user }) {
             </p>
           </div>
           <ToggleButton settingKey="share_decks" />
-        </div>
-
-        <div className="setting-item">
-          <span className="setting-label">Use New UI</span>
-          <ToggleButton settingKey="new_ui" />
         </div>
       </div>
 

@@ -1,5 +1,6 @@
 const { Router } = require('express');
 const db = require('../config/database');
+const { requireAuth } = require('../middleware/auth.middleware');
 
 const router = Router();
 
@@ -54,6 +55,8 @@ router.get('/user/:id', async (req, res) => {
 
     let collectionOfficial = 0;
     let collectionFanmade  = 0;
+    let collectionSumOfficial = 0;
+    let collectionSumFanmade = 0;
 
     if (ownedPackIds.length > 0) {
       const collStats = await db('card as c')
@@ -72,6 +75,10 @@ router.get('/user/:id', async (req, res) => {
       collectionSumFanmade  = Number(collStats?.sum_fanmade  ?? 0);
     }
 
+    // Calcul dynamique de la réputation
+    const { getFullReputation } = require('../utils/reputation');
+    const { total: totalRep } = await getFullReputation(id);
+
     // Mapping exhaustif basé sur l'entité PHP et le fichier ORM YML
     const completeUser = {
       id: row.id,
@@ -83,7 +90,7 @@ router.get('/user/:id', async (req, res) => {
       date_update: row.date_update,
       
       // Profile & Social
-      reputation: row.reputation,
+      reputation: totalRep,
       resume: row.resume,
       color: row.color,
       donation: row.donation,
@@ -134,10 +141,15 @@ router.get('/user/:id', async (req, res) => {
 // ==========================================
 // PUT : Mettre à jour les paramètres de l'utilisateur
 // ==========================================
-router.put('/user/:id/settings', async (req, res) => {
+router.put('/user/:id/settings', requireAuth, async (req, res) => {
   try {
     const id = parseInt(req.params.id, 10);
     if (!id) return res.status(400).json({ error: 'Invalid id' });
+    
+    // Security: Stop IDOR vulnerability
+    if (req.user.id !== id && !req.user.is_admin) {
+      return res.status(403).json({ error: 'Forbidden: You can only edit your own settings' });
+    }
 
     const data = req.body;
     const updateData = {};
@@ -169,10 +181,15 @@ router.put('/user/:id/settings', async (req, res) => {
 // ==========================================
 // PUT : Mettre à jour les packs possédés
 // ==========================================
-router.put('/user/:id/packs', async (req, res) => {
+router.put('/user/:id/packs', requireAuth, async (req, res) => {
   try {
     const id = parseInt(req.params.id, 10);
     if (!id) return res.status(400).json({ error: 'Invalid id' });
+
+    // Security: Stop IDOR vulnerability
+    if (req.user.id !== id && !req.user.is_admin) {
+      return res.status(403).json({ error: 'Forbidden: You can only edit your own packs' });
+    }
 
     const { owned_packs } = req.body; // array of integers
     if (!Array.isArray(owned_packs)) return res.status(400).json({ error: 'owned_packs must be an array' });

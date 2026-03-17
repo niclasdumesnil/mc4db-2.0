@@ -1,11 +1,15 @@
 const { Router } = require('express');
 const db = require('../config/database');
 const crypto = require('crypto');
+const { requireAuth, requireAdmin } = require('../middleware/auth.middleware');
 
 let bcrypt = null;
 try { bcrypt = require('bcryptjs'); } catch (e) { /* optional */ }
 
 const router = Router();
+
+// Apply requireAdmin middleware to all routes in this router since they start with /admin
+router.use('/admin', requireAuth, requireAdmin);
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 
@@ -119,6 +123,18 @@ router.get('/admin/users', async (req, res) => {
     const publicMap = {};
     publicStats.forEach(r => { publicMap[r.user_id] = Number(r.cnt); });
 
+    const { getFullReputation } = require('../utils/reputation');
+    
+    // We can do this in parallel for all users
+    const repPromises = users.map(u => getFullReputation(u.id));
+    const reps = await Promise.all(repPromises);
+    const totalRepMap = {};
+    const boostMap = {};
+    users.forEach((u, i) => { 
+      totalRepMap[u.id] = reps[i].total; 
+      boostMap[u.id] = reps[i].boost;
+    });
+
     return res.json({
       ok: true,
       users: users.map(u => ({
@@ -130,7 +146,9 @@ router.get('/admin/users', async (req, res) => {
         is_supporter:  u.donation > 0,
         donation:      u.donation,
         date_creation: u.date_creation,
-        reputation:    Number(u.reputation) || 0,
+        // UI uses reputation for total, and boost for editing
+        reputation:    totalRepMap[u.id] || 0,
+        boost:         boostMap[u.id] || 0,
         private_decks: privateMap[u.id] || 0,
         public_decks:  publicMap[u.id]  || 0,
       })),
@@ -197,24 +215,35 @@ router.post('/admin/users', async (req, res) => {
 });
 
 // ==========================================
-// PUT /admin/users/:id/role — Modifier admin/donator
+// PUT /admin/users/:id/role — Modifier admin/donator/reputation
 // ==========================================
 router.put('/admin/users/:id/role', async (req, res) => {
   try {
     const id = parseInt(req.params.id, 10);
     if (!id) return res.status(400).json({ error: 'Invalid id' });
 
-    const { is_admin, is_supporter } = req.body || {};
+    const { is_admin, is_supporter, reputation } = req.body || {};
     const updateData = { date_update: new Date() };
     if (is_admin     !== undefined) updateData.is_admin = is_admin ? 1 : 0;
     if (is_supporter !== undefined) updateData.donation = is_supporter ? 1 : 0;
+    if (reputation   !== undefined) {
+      if (reputation === 0 || reputation === '0') updateData.reputation = 0;
+      else updateData.reputation = parseInt(reputation, 10) || 0;
+    }
 
     await db('user').where('id', id).update(updateData);
-    return res.json({ ok: true });
+    return res.json({ ok: true, reputation: updateData.reputation });
   } catch (err) {
     console.error('PUT /admin/users/:id/role error', err.message);
     return res.status(500).json({ error: 'Internal error' });
   }
+});
+
+// ==========================================
+// POST /admin/users/:id/recalculate-reputation — Obsolète (dynamique maintenant)
+// ==========================================
+router.post('/admin/users/:id/recalculate-reputation', async (req, res) => {
+  return res.json({ ok: true, obsolete: true });
 });
 
 // ==========================================

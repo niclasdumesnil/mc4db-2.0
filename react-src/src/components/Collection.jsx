@@ -1,5 +1,12 @@
 import React, { useMemo, useState, useEffect } from 'react';
 
+function getAuthHeaders(extraHeaders = {}) {
+  try {
+    const token = localStorage.getItem('mc_token');
+    return token ? { 'Authorization': `Bearer ${token}`, ...extraHeaders } : extraHeaders;
+  } catch { return extraHeaders; }
+}
+
 export default function Collection({ user, packsData, onSaved }) {
   // Set of owned pack IDs — editable by the user
   const [ownedIds, setOwnedIds] = useState(() => {
@@ -64,7 +71,7 @@ export default function Collection({ user, packsData, onSaved }) {
     try {
       await fetch(`/api/public/user/${user.id}/packs`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders({ 'Content-Type': 'application/json' }),
         body: JSON.stringify({ owned_packs: [...ownedIds] }),
       });
       setDirty(false);

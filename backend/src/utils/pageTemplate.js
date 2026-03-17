@@ -66,8 +66,8 @@ function renderSharedHeader() {
         var hasUser  = u && (u.id || u.userId);
 
         if (hasUser) {
-          // If we only have an id, fetch richer profile data once
-          if (u.id && !(u.name || u.login || u.username || u.user)) {
+          // If we lack rich profile data, fetch it once
+          if (u.id && typeof u.reputation === 'undefined') {
             fetch('/api/public/user/' + encodeURIComponent(u.id))
               .then(function(r){ return r.json(); })
               .then(function(payload){

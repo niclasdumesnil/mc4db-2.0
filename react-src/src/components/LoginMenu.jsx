@@ -26,8 +26,8 @@ export default function LoginMenu() {
       // store minimal user info in localStorage for UI
       if (payload && payload.user) {
         let u = payload.user;
-        // if only id is present, attempt to fetch richer info
-        if (u && u.id && !(u.name || u.login || u.username || u.user)) {
+        // if rich properties like reputation are missing, attempt to fetch rich info
+        if (u && u.id && typeof u.reputation === 'undefined') {
           try {
             const r = await fetch('/api/public/user/' + encodeURIComponent(u.id));
             if (r.ok) {
@@ -38,7 +38,12 @@ export default function LoginMenu() {
             }
           } catch (e) { /* ignore */ }
         }
-        try { localStorage.setItem('mc_user', JSON.stringify(u)); } catch (e) {}
+        try { 
+          localStorage.setItem('mc_user', JSON.stringify(u)); 
+          if (payload.token) {
+            localStorage.setItem('mc_token', payload.token);
+          }
+        } catch (e) {}
         setCurrentUser(u);
       }
       setStatus('Connected');
@@ -52,6 +57,7 @@ export default function LoginMenu() {
 
   function logout() {
     localStorage.removeItem('mc_user');
+    localStorage.removeItem('mc_token');
     setStatus(null);
     setCurrentUser(null);
     window.dispatchEvent(new Event('mc_user_changed'));
@@ -75,7 +81,7 @@ export default function LoginMenu() {
   useEffect(() => {
     try {
       const u = currentUser;
-      if (u && u.id && !(u.name || u.login || u.username || u.user)) {
+      if (u && u.id && typeof u.reputation === 'undefined') {
         fetch('/api/public/user/' + encodeURIComponent(u.id)).then(r=>r.json()).then(payload=>{
           if (payload && payload.ok && payload.user) {
             const merged = Object.assign({}, u, payload.user);
@@ -117,23 +123,68 @@ export default function LoginMenu() {
       )}
 
       {open && (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 9998, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.6)' }} onClick={() => setOpen(false)} />
-          <form onSubmit={submit} style={{ zIndex: 9999, width: 360, background: '#0b1220', padding: 20, borderRadius: 8, boxShadow: '0 6px 30px rgba(0,0,0,0.6)' }}>
-            <h3 style={{ color: '#fff', marginBottom: 8 }}>Sign in</h3>
-            <div style={{ marginBottom: 8 }}>
-              <label style={{ display: 'block', color: '#9ca3af', fontSize: 12 }}>Login</label>
-              <input value={login} onChange={(e) => setLogin(e.target.value)} className="tw-w-full tw-px-3 tw-py-2 tw-rounded" />
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 9998, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 16px' }}>
+          {/* Backdrop */}
+          <div 
+            style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(15, 23, 42, 0.8)', backdropFilter: 'blur(4px)' }} 
+            onClick={() => setOpen(false)} 
+          />
+          {/* Modal Content */}
+          <form 
+            onSubmit={submit} 
+            style={{ position: 'relative', zIndex: 9999, width: '100%', maxWidth: '400px', backgroundColor: '#1e293b', borderRadius: '12px', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)', border: '1px solid #334155', overflow: 'hidden' }}
+          >
+            {/* Header */}
+            <div style={{ padding: '20px 24px', borderBottom: '1px solid #334155', backgroundColor: 'rgba(30, 41, 59, 0.5)' }}>
+              <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 600, color: '#fff' }}>Sign in</h3>
             </div>
-            <div style={{ marginBottom: 8 }}>
-              <label style={{ display: 'block', color: '#9ca3af', fontSize: 12 }}>Password</label>
-              <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} className="tw-w-full tw-px-3 tw-py-2 tw-rounded" />
+            {/* Body */}
+            <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: '#cbd5e1', marginBottom: '6px' }}>Login</label>
+                <input 
+                  name="username"
+                  autoComplete="username"
+                  value={login} 
+                  onChange={(e) => setLogin(e.target.value)} 
+                  style={{ width: '100%', padding: '10px 16px', backgroundColor: '#0f172a', border: '1px solid #475569', borderRadius: '8px', color: '#fff', fontSize: '1rem', outline: 'none' }}
+                  placeholder="Enter your username"
+                />
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: '#cbd5e1', marginBottom: '6px' }}>Password</label>
+                <input 
+                  type="password" 
+                  name="password"
+                  autoComplete="current-password"
+                  value={password} 
+                  onChange={(e) => setPassword(e.target.value)} 
+                  style={{ width: '100%', padding: '10px 16px', backgroundColor: '#0f172a', border: '1px solid #475569', borderRadius: '8px', color: '#fff', fontSize: '1rem', outline: 'none' }}
+                  placeholder="••••••••"
+                />
+              </div>
+              {status && (
+                <div style={{ padding: '12px', borderRadius: '8px', backgroundColor: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.2)' }}>
+                  <p style={{ margin: 0, fontSize: '0.875rem', color: '#f87171', textAlign: 'center', fontWeight: 500 }}>{status}</p>
+                </div>
+              )}
             </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <button type="submit" className="tw-bg-blue-600 tw-text-white tw-px-3 tw-py-1 tw-rounded">Connect</button>
-              <button type="button" className="tw-text-slate-300" onClick={() => setOpen(false)}>Cancel</button>
+            {/* Footer */}
+            <div style={{ padding: '16px 24px', backgroundColor: 'rgba(30, 41, 59, 0.8)', borderTop: '1px solid #334155', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <button 
+                type="submit" 
+                style={{ backgroundColor: '#2563eb', color: '#fff', padding: '8px 24px', borderRadius: '8px', fontWeight: 500, border: 'none', cursor: 'pointer', boxShadow: '0 10px 15px -3px rgba(37, 99, 235, 0.2)' }}
+              >
+                Connect
+              </button>
+              <button 
+                type="button" 
+                style={{ backgroundColor: 'transparent', color: '#94a3b8', fontSize: '0.875rem', fontWeight: 500, border: 'none', cursor: 'pointer' }}
+                onClick={() => setOpen(false)}
+              >
+                Cancel
+              </button>
             </div>
-            {status && <div style={{ marginTop: 10, color: '#fca5a5' }}>{status}</div>}
           </form>
         </div>
       )}

@@ -27,3 +27,12 @@
 [2026-03-16T14:03:34.537Z] BODY {"login":"merlin","password":"zF_ve)ssW]bE"}
 [2026-03-16T14:21:31.411Z] BODY {"login":"merlin","password":"zF_ve)ssW]bE"}
 [2026-03-16T14:22:59.431Z] BODY {"login":"merlin","password":"zF_ve)ssW]bE"}
+[2026-03-17T16:54:58.475Z] LOGIN ATTEMPT user: merlin
+[2026-03-17T16:55:26.472Z] LOGIN ATTEMPT user: merlin
+[2026-03-17T16:59:07.076Z] LOGIN ATTEMPT user: merlin
+[2026-03-17T17:02:37.319Z] LOGIN ATTEMPT user: merlin
+[2026-03-17T17:05:58.477Z] LOGIN ATTEMPT user: merlin
+[2026-03-17T17:08:05.917Z] LOGIN ATTEMPT user: merlin
+[2026-03-17T17:08:14.978Z] LOGIN ATTEMPT user: merlin
+[2026-03-17T17:28:53.598Z] LOGIN ATTEMPT user: merlin
+[2026-03-17T17:35:23.043Z] LOGIN ATTEMPT user: merlin

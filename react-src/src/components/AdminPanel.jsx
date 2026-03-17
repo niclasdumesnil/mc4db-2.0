@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 
@@ -71,6 +71,13 @@ function HeroBadge({ hero, rank }) {
   );
 }
 
+function getAuthHeaders(extraHeaders = {}) {
+  try {
+    const token = localStorage.getItem('mc_token');
+    return token ? { 'Authorization': `Bearer ${token}`, ...extraHeaders } : extraHeaders;
+  } catch { return extraHeaders; }
+}
+
 // ── Create User Modal ──────────────────────────────────────────────────────
 
 function CreateUserModal({ onClose, onCreated }) {
@@ -86,7 +93,7 @@ function CreateUserModal({ onClose, onCreated }) {
     try {
       const res = await fetch('/api/public/admin/users', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders({ 'Content-Type': 'application/json' }),
         body: JSON.stringify(form),
       });
       const data = await res.json();
@@ -179,7 +186,10 @@ function ResetPasswordModal({ targetUser, onClose }) {
   async function handleReset() {
     setLoading(true);
     try {
-      const res = await fetch(`/api/public/admin/users/${targetUser.id}/reset-password`, { method: 'POST' });
+      const res = await fetch(`/api/public/admin/users/${targetUser.id}/reset-password`, { 
+        method: 'POST',
+        headers: getAuthHeaders()
+      });
       const data = await res.json();
       setResult(data);
     } catch {
@@ -230,6 +240,71 @@ function ResetPasswordModal({ targetUser, onClose }) {
   );
 }
 
+// ── Reputation Edit Cell ─────────────────────────────────────────────────────
+
+function ReputationCell({ user, onUpdateRep }) {
+  const [editing, setEditing] = useState(false);
+  // Default legacy users might have their total in db, but going forward it's a boost.
+  const [val, setVal] = useState(user.boost !== undefined ? user.boost : 0);
+  const [loading, setLoading] = useState(false);
+
+  async function handleSave() {
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/public/admin/users/${user.id}/role`, {
+        method: 'PUT',
+        headers: getAuthHeaders({ 'Content-Type': 'application/json' }),
+        body: JSON.stringify({ reputation: val })
+      });
+      const data = await res.json();
+      if (data.ok) {
+        // Here data.reputation is the new boost from DB.
+        // We need to locally calculate the new total.
+        const returnedBoost = data.reputation || val; // fallback if backend not restarted
+        const base = (user.reputation || 0) - (user.boost || 0);
+        const newTotal = base + returnedBoost;
+        onUpdateRep(newTotal, returnedBoost);
+        setEditing(false);
+      }
+    } catch {}
+    setLoading(false);
+  }
+
+  if (editing) {
+    return (
+      <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
+        <span style={{ fontSize: 11, color: '#94a3b8' }}>Boost:</span>
+        <input 
+          type="number" 
+          className="admin-form-input" 
+          style={{ width: 60, padding: '2px 4px', margin: 0 }} 
+          value={val} 
+          onChange={e => setVal(parseInt(e.target.value, 10) || 0)} 
+          disabled={loading}
+        />
+        <button className="admin-btn admin-btn--xs admin-btn--primary" onClick={handleSave} disabled={loading} style={{ padding: '2px 6px' }}>✔</button>
+        <button className="admin-btn admin-btn--xs admin-btn--ghost" onClick={() => { setEditing(false); setVal(user.boost || 0); }} disabled={loading} style={{ padding: '2px 6px' }}>✕</button>
+      </div>
+    );
+  }
+
+  const hasBoost = user.boost !== undefined && user.boost !== 0;
+
+  return (
+    <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+      <span style={{ minWidth: 24 }} title={hasBoost ? `Base: ${user.reputation - user.boost} + Boost: ${user.boost}` : 'Calculated automatically'}>
+        {user.reputation}
+      </span>
+      {hasBoost && (
+        <span style={{ fontSize: 10, color: user.boost > 0 ? '#10b981' : '#f43f5e', fontWeight: 'bold' }}>
+          ({user.boost > 0 ? '+' : ''}{user.boost})
+        </span>
+      )}
+      <button className="admin-btn admin-btn--xs admin-btn--ghost" onClick={() => setEditing(true)} title="Edit manual boost" disabled={loading} style={{ padding: '2px 6px' }}>✎</button>
+    </div>
+  );
+}
+
 // ── Main component ─────────────────────────────────────────────────────────
 
 export default function AdminPanel({ onUserUpdate }) {
@@ -240,18 +315,25 @@ export default function AdminPanel({ onUserUpdate }) {
   const [resetTarget, setResetTarget] = useState(null);
   const [roleLoading, setRoleLoading] = useState({});
   const [page, setPage]               = useState(1);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const PAGE_SIZE = 10;
 
   // ID of the currently logged-in admin — blocks self-revocation
   const selfId = currentUserId();
 
+  const filteredUsers = users.filter(u => 
+    u.username.toLowerCase().includes(searchQuery.toLowerCase()) || 
+    (u.email && u.email.toLowerCase().includes(searchQuery.toLowerCase()))
+  );
+
   const loadData = useCallback(async () => {
     setLoading(true);
     try {
+      const options = { headers: getAuthHeaders() };
       const [statsRes, usersRes] = await Promise.all([
-        fetch('/api/public/admin/stats').then(r => r.json()),
-        fetch('/api/public/admin/users').then(r => r.json()),
+        fetch('/api/public/admin/stats', options).then(r => r.json()),
+        fetch('/api/public/admin/users', options).then(r => r.json()),
       ]);
       if (statsRes.ok) setStats(statsRes.stats);
       if (usersRes.ok) { setUsers(usersRes.users); setPage(1); }
@@ -266,7 +348,7 @@ export default function AdminPanel({ onUserUpdate }) {
     try {
       await fetch(`/api/public/admin/users/${userId}/role`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders({ 'Content-Type': 'application/json' }),
         body: JSON.stringify({ [field]: value }),
       });
       setUsers(prev => prev.map(u =>
@@ -277,13 +359,21 @@ export default function AdminPanel({ onUserUpdate }) {
               donation:     field === 'is_supporter' ? (value ? 1 : 0) : u.donation }
           : u
       ));
-      // If the supporter status of the currently logged-in user changed,
-      // notify other components (PackSearch, etc.) so they re-fetch packs.
-      if (field === 'is_supporter') {
-        const loggedInId = currentUserId();
-        if (loggedInId && Number(loggedInId) === userId) {
-          window.dispatchEvent(new Event('mc_user_changed'));
-        }
+      // If the role of the currently logged-in user changed,
+      // refresh the local user data so the top nav updates immediately.
+      const loggedInId = currentUserId();
+      if (loggedInId && Number(loggedInId) === userId) {
+        try {
+          const ures = await fetch('/api/public/user/' + encodeURIComponent(userId));
+          if (ures.ok) {
+            const up = await ures.json();
+            if (up.ok && up.user) {
+              const oldU = JSON.parse(localStorage.getItem('mc_user') || '{}');
+              localStorage.setItem('mc_user', JSON.stringify({ ...oldU, ...up.user }));
+              window.dispatchEvent(new Event('mc_user_changed'));
+            }
+          }
+        } catch { /* ignore */ }
       }
       if (typeof onUserUpdate === 'function') onUserUpdate();
     } catch { /* ignore */ }
@@ -338,8 +428,16 @@ export default function AdminPanel({ onUserUpdate }) {
           )}
 
           {/* ── Users table ── */}
-          <div className="admin-section-title" style={{ marginTop: 24 }}>
-            👥 Users ({users.length})
+          <div className="admin-section-title" style={{ marginTop: 24, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span>👥 Users ({filteredUsers.length})</span>
+            <input 
+              type="text" 
+              placeholder="Filter users..." 
+              className="admin-form-input" 
+              style={{ width: '250px', margin: 0 }}
+              value={searchQuery}
+              onChange={e => { setSearchQuery(e.target.value); setPage(1); }}
+            />
           </div>
           <div className="admin-table-wrap">
             <table className="admin-table">
@@ -348,6 +446,7 @@ export default function AdminPanel({ onUserUpdate }) {
                   <th>ID</th>
                   <th>Username</th>
                   <th>Email</th>
+                  <th>Reputation</th>
                   <th>Badges</th>
                   <th style={{ textAlign: 'center' }}>Private</th>
                   <th style={{ textAlign: 'center' }}>Published</th>
@@ -357,13 +456,21 @@ export default function AdminPanel({ onUserUpdate }) {
                 </tr>
               </thead>
               <tbody>
-                {users.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE).map(u => {
+                {filteredUsers.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE).map(u => {
                   const isSelf = selfId && u.id === Number(selfId);
                   return (
                     <tr key={u.id} className={!u.enabled ? 'admin-row--disabled' : ''}>
                       <td className="admin-td-id">{u.id}</td>
                       <td className="admin-td-name">{u.username}</td>
                       <td className="admin-td-email">{u.email}</td>
+                      <td>
+                        <ReputationCell 
+                          user={u} 
+                          onUpdateRep={(newRep, newBoost) => {
+                            setUsers(prev => prev.map(usr => usr.id === u.id ? { ...usr, reputation: newRep, boost: newBoost } : usr));
+                          }} 
+                        />
+                      </td>
                       <td>
                         <div className="admin-user-badges">
                           <RepBadge reputation={u.reputation} />
@@ -415,8 +522,8 @@ export default function AdminPanel({ onUserUpdate }) {
           </div>
 
           {/* ── Pagination ── */}
-          {users.length > PAGE_SIZE && (() => {
-            const totalPages = Math.ceil(users.length / PAGE_SIZE);
+          {filteredUsers.length > PAGE_SIZE && (() => {
+            const totalPages = Math.ceil(filteredUsers.length / PAGE_SIZE);
             return (
               <div className="admin-pagination">
                 <button

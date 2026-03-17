@@ -13,18 +13,17 @@ try { fs.writeFileSync(DEBUG_FILE, `auth debug startup ${new Date().toISOString(
 
 const router = Router();
 
-// Simple login endpoint. Expects JSON { login, password }
-// Verifies against the `users` table using a plain equality check.
-// NOTE: this is intentionally minimal — hashed passwords are not
-// handled here. If your users table stores bcrypt/argon2 hashes,
-// extend this route to verify using the appropriate library.
+// Security: Import generateToken helper
+const { generateToken } = require('../middleware/auth.middleware');
+
 router.post('/login', async (req, res) => {
   try {
-    // Log body to console and persistent log files for debugging
-    console.log('[auth] /login body:', req.body);
-    try { fs.appendFileSync(LOG_FILE, `[${new Date().toISOString()}] BODY ${JSON.stringify(req.body)}\n`); } catch (e) { console.error('Failed writing LOG_FILE', e && e.message); }
-    try { fs.appendFileSync(DEBUG_FILE, `[${new Date().toISOString()}] BODY ${JSON.stringify(req.body)}\n`); } catch (e) { console.error('Failed writing DEBUG_FILE', e && e.message); }
     const { login, password } = req.body || {};
+    // Security: Stop logging passwords. Only log the username attempt.
+    console.log(`[auth] /login attempt for user: ${login}`);
+    try { fs.appendFileSync(LOG_FILE, `[${new Date().toISOString()}] LOGIN ATTEMPT user: ${login}\n`); } catch (e) { /* ignore */ }
+    try { fs.appendFileSync(DEBUG_FILE, `[${new Date().toISOString()}] LOGIN ATTEMPT user: ${login}\n`); } catch (e) { /* ignore */ }
+    
     if (!login || !password) return res.status(400).json({ error: 'Missing login or password' });
 
     // Attempt to locate the user across a set of plausible table and column names
@@ -45,8 +44,6 @@ router.post('/login', async (req, res) => {
     }
 
     const found = await findUserByLogin(login);
-    console.log('[auth] user lookup result:', !!found, found && found.table, found && found.column);
-    try { fs.appendFileSync(DEBUG_FILE, `[${new Date().toISOString()}] lookup ${JSON.stringify(found && { table: found.table, column: found.column })}\n`); } catch (e) { /* ignore */ }
     if (!found) return res.status(401).json({ error: 'Invalid credentials or user table not found' });
     const user = found.row;
     if (!user) return res.status(401).json({ error: 'Invalid credentials' });
@@ -82,20 +79,27 @@ router.post('/login', async (req, res) => {
         }
       }
 
-      // fallback to direct equality (cleartext)
-      return String(stored) === String(plain);
+      // Security: REMOVED cleartext fallback for production
+      return false;
     }
 
     const ok = await verifyPassword(password, user);
     if (!ok) return res.status(401).json({ error: 'Invalid credentials' });
 
-    // Success — return basic user info (do not return password)
-    const safeUser = { id: user.id, login: user.login, name: user.name || null };
-    return res.json({ ok: true, user: safeUser });
+    // Security: Generate a secure JWT token for the user
+    const token = generateToken({
+      id: user.id,
+      login: user.login || user.username,
+      is_admin: user.is_admin,
+      donation: user.donation
+    });
+
+    // Success — return basic user info and token
+    const safeUser = { id: user.id, login: user.login || user.username, name: user.name || null, is_admin: !!user.is_admin };
+    return res.json({ ok: true, token, user: safeUser });
   } catch (err) {
     console.error('Login error', err && err.message ? err.message : err);
-    // Return the error message to the client for debugging (temporary)
-    return res.status(500).json({ error: err && err.message ? String(err.message) : 'Internal error' });
+    return res.status(500).json({ error: 'Internal error' });
   }
 });
 
