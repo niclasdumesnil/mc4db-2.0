@@ -115,7 +115,7 @@ async function fetchHeroSpecialCards(heroCode, locale = 'en') {
 
   // Get the hero's card_set_code via the cardset join
   const heroCard = await db('card as c')
-    .leftJoin('cardset as cs', 'c.set_id', 'cs.id')
+    .leftJoin('Cardset as cs', 'c.set_id', 'cs.id')
     .where('c.code', heroCode)
     .select('cs.code as card_set_code')
     .first();
@@ -126,8 +126,8 @@ async function fetchHeroSpecialCards(heroCode, locale = 'en') {
   // Fetch all cards belonging to hero_special sets parented to this hero set
   const rows = await db('card as c')
     .leftJoin('pack as p', 'c.pack_id', 'p.id')
-    .leftJoin('cardset as cs', 'c.set_id', 'cs.id')
-    .leftJoin('cardsettype as cst', 'cs.cardset_type', 'cst.id')
+    .leftJoin('Cardset as cs', 'c.set_id', 'cs.id')
+    .leftJoin('Cardsettype as cst', 'cs.cardset_type', 'cst.id')
     .leftJoin('faction as f', 'c.faction_id', 'f.id')
     .where('cs.parent_code', heroSetCode)
     .where('cst.code', 'hero_special')

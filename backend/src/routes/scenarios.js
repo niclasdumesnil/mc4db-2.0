@@ -79,7 +79,7 @@ router.get('/scenarios', async (req, res, next) => {
         packNameMap[r.code] = r.name;
       }
       // Also look up in cardset table — villain/modular set codes live here
-      const csRows = await db('cardset')
+      const csRows = await db('Cardset')
         .whereIn('code', [...packCodes])
         .select('code', 'name');
       for (const r of csRows) {
@@ -176,8 +176,8 @@ router.get('/sets', async (req, res, next) => {
 
     // Query all cardsets that have at least one card, with pack creator info.
     // Use MIN() instead of ANY_VALUE() for compatibility with older MySQL versions.
-    const rows = await db('cardset as cs')
-      .leftJoin('cardsettype as ct', 'cs.cardset_type', 'ct.id')
+    const rows = await db('Cardset as cs')
+      .leftJoin('Cardsettype as ct', 'cs.cardset_type', 'ct.id')
       .leftJoin('card as c', 'c.set_id', 'cs.id')
       .leftJoin('pack as p', 'c.pack_id', 'p.id')
       .groupBy('cs.id', 'cs.code', 'cs.name', 'cs.parent_code', 'ct.code', 'ct.name')

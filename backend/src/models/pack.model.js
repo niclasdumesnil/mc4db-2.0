@@ -25,7 +25,7 @@ const PACK_COLUMNS = [
 
 function baseQuery() {
   return db('pack as p')
-    .leftJoin('packtype as pt', 'p.pack_type', 'pt.id')
+    .leftJoin('Packtype as pt', 'p.pack_type', 'pt.id')
     .select(PACK_COLUMNS);
 }
 

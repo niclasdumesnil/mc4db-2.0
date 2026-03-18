@@ -40,11 +40,11 @@ function baseQuery() {
   return db('card as c')
     .leftJoin('pack as p', 'c.pack_id', 'p.id')
     .leftJoin('type as t', 'c.type_id', 't.id')
-    .leftJoin('subtype as st', 'c.subtype_id', 'st.id')
+    .leftJoin('Subtype as st', 'c.subtype_id', 'st.id')
     .leftJoin('faction as f', 'c.faction_id', 'f.id')
     .leftJoin('faction as f2', 'c.faction2_id', 'f2.id')
-    .leftJoin('cardset as cs', 'c.set_id', 'cs.id')
-    .leftJoin('cardsettype as cst', 'cs.cardset_type', 'cst.id')
+    .leftJoin('Cardset as cs', 'c.set_id', 'cs.id')
+    .leftJoin('Cardsettype as cst', 'cs.cardset_type', 'cst.id')
     .leftJoin('card as lt', 'c.linked_id', 'lt.id')
     .leftJoin('card as dup', 'c.duplicate_id', 'dup.id')
     .select(BASE_CARD_COLUMNS);
@@ -77,7 +77,7 @@ async function findTranslation(code, locale) {
 async function getAttributes() {
   const [types, subtypes, rawIllustrators] = await Promise.all([
     db('type').select('code', 'name').orderBy('name'),
-    db('subtype').select('code', 'name').orderBy('name'),
+    db('Subtype').select('code', 'name').orderBy('name'),
     db('card').distinct('illustrator').whereNotNull('illustrator').whereNot('illustrator', '').pluck('illustrator'),
   ]);
 
@@ -148,10 +148,10 @@ async function searchCards(filters, pagination, donator) {
   let q = db('card as c')
       .leftJoin('pack as p', 'c.pack_id', 'p.id')
       .leftJoin('type as t', 'c.type_id', 't.id')
-      .leftJoin('subtype as st', 'c.subtype_id', 'st.id')
+      .leftJoin('Subtype as st', 'c.subtype_id', 'st.id')
       .leftJoin('faction as f', 'c.faction_id', 'f.id')
       .leftJoin('faction as f2', 'c.faction2_id', 'f2.id')
-      .leftJoin('cardset as cs', 'c.set_id', 'cs.id')
+      .leftJoin('Cardset as cs', 'c.set_id', 'cs.id')
       .select([
         'c.code', 'c.name', 'c.cost', 'c.position', 'c.hidden', 'c.is_unique',
         'c.traits', 'c.quantity', 'c.deck_limit', 'c.alt_art', 'c.octgn_id', db.raw('IF(c.duplicate_id IS NOT NULL, 1, 0) as is_duplicate'),
