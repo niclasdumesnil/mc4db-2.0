@@ -1,4 +1,4 @@
 /bundles
 /node_modules
-backend/backend_auth_debug.log
-backend/.env
+/backend/backend_auth_debug.log
+/backend/.env
