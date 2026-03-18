@@ -25,6 +25,17 @@ const PORT = parseInt(process.env.PORT || '4000', 10);
 // Asset version for cache-busting (set once at server start)
 const assetVersion = Date.now();
 
+// ── Blocage de l'Indexation et des IA ───────────
+app.use((req, res, next) => {
+  res.setHeader('X-Robots-Tag', 'noindex, nofollow, noai, noimageai');
+  next();
+});
+
+app.get('/robots.txt', (req, res) => {
+  res.type('text/plain');
+  res.send('User-agent: *\nDisallow: /');
+});
+
 // ── Middleware ───────────────────────────────────
 
 // CORS — allow the React frontend (served by Symfony on :8000) to call this API
