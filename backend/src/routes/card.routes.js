@@ -80,10 +80,10 @@ router.get('/cards/attributes', async (req, res, next) => {
  */
 router.get('/heroes', async (req, res, next) => {
   try {
-    const { user_id } = req.query;
+    const { user_id, locale = 'en' } = req.query;
     const donator = await isUserDonator(user_id);
 
-    const rows = await Card.getHeroes(donator, user_id);
+    const rows = await Card.getHeroes(donator, user_id, locale.toLowerCase());
 
     const heroes = rows.map(row => ({
       code: row.code,

@@ -192,19 +192,20 @@ export default function CardList() {
   // 350 ms after mount (see module-level _INIT_FILTERS comment above).
   const [debouncedFilters, setDebouncedFilters] = useState(_INIT_FILTERS);
 
-  // Fetch type/subtype/illustrator lists + packs (for themes) once on mount
   useEffect(() => {
     fetch('/api/public/cards/attributes')
       .then(r => r.json())
       .then(data => setAttributes(data))
       .catch(() => { });
+  }, []);
 
+  useEffect(() => {
     const userId = currentUserId();
-    fetch(`/api/public/packs${userId ? '?user_id=' + userId : ''}`)
+    const qs = userId ? `?user_id=${userId}&locale=${locale}` : `?locale=${locale}`;
+    fetch(`/api/public/packs${qs}`)
       .then(r => r.json())
       .then(data => {
         if (!Array.isArray(data)) return;
-        // Normalize: capitalize first letter, then dedup case-insensitively
         const normalizeTheme = t => t ? t.charAt(0).toUpperCase() + t.slice(1) : 'Marvel';
 
         let showTheme = {};
@@ -224,7 +225,7 @@ export default function CardList() {
         setThemes([...map.values()].sort());
       })
       .catch(() => { });
-  }, []);
+  }, [locale]);
 
   // Debounce text field changes
   useEffect(() => {

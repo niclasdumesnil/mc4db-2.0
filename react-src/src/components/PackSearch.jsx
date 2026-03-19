@@ -253,8 +253,9 @@ export default function PackSearch({ currentPackCode, currentCreatorName, onNavi
 
   function fetchPacks() {
     const userId = currentUserId();
-    const userParam = userId ? `?user_id=${userId}` : '';
-    fetch(`/api/public/packs${userParam}`)
+    const loc = localStorage.getItem('mc_locale') || 'en';
+    const qs = userId ? `?user_id=${userId}&locale=${loc}` : `?locale=${loc}`;
+    fetch(`/api/public/packs${qs}`)
       .then(r => r.json())
       .then(data => {
         if (!Array.isArray(data)) return;
@@ -280,7 +281,11 @@ export default function PackSearch({ currentPackCode, currentCreatorName, onNavi
   useEffect(() => {
     fetchPacks();
     window.addEventListener('mc_user_changed', fetchPacks);
-    return () => window.removeEventListener('mc_user_changed', fetchPacks);
+    window.addEventListener('mc_locale_changed', fetchPacks);
+    return () => {
+      window.removeEventListener('mc_user_changed', fetchPacks);
+      window.removeEventListener('mc_locale_changed', fetchPacks);
+    };
   }, []);
 
   useEffect(() => {

@@ -275,3 +275,20 @@
 .cl-res-icon.icon-wild     { color: #28a745; border-color: #28a745; }
 .cl-res-icon--boost        { color: #e2e8f0; border-color: #64748b; }
 .cl-res-empty { color: var(--st-text-muted, #64748b); font-size: 0.85rem; }
+
+/* ── Faction Sprite (Icons) ── */
+.cl-faction-sprite {
+  display: inline-block;
+  box-sizing: border-box;
+  width: 18px;
+  height: 18px;
+  min-width: 18px;
+  min-height: 18px;
+  flex-shrink: 0;
+  border-radius: 3px;
+  border: 1.5px solid transparent;
+  background-image: url('../images/faction.png');
+  background-size: auto 24px;
+  vertical-align: middle;
+  margin-right: 4px;
+}

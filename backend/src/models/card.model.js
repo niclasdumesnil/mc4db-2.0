@@ -106,7 +106,7 @@ async function getAttributes() {
   return { types, subtypes, illustrators };
 }
 
-async function getHeroes(donator, userId) {
+async function getHeroes(donator, userId, locale = 'en') {
   let q = db('card as c')
     .join('type as t', 'c.type_id', 't.id')
     .join('pack as p', 'c.pack_id', 'p.id')
@@ -138,6 +138,15 @@ async function getHeroes(donator, userId) {
   if (!donator) {
     q = q.where(function () {
       this.where('p.visibility', '!=', 'false').orWhereNull('p.visibility');
+    });
+  }
+
+  if (locale) {
+    const locClean = locale.toLowerCase();
+    q = q.where(function() {
+      this.whereNull('p.language')
+          .orWhere('p.language', '')
+          .orWhere('p.language', locClean);
     });
   }
 
@@ -195,6 +204,15 @@ async function searchCards(filters, pagination, donator) {
   if (locale && locale !== 'en') {
       q = q.leftJoin('card_translation as ct', function() {
         this.on('c.code', '=', 'ct.code').andOn('ct.locale', '=', db.raw('?', [locale]));
+      });
+  }
+
+  if (locale) {
+      const locClean = locale.toLowerCase();
+      q = q.where(function() {
+        this.whereNull('p.language')
+            .orWhere('p.language', '')
+            .orWhere('p.language', locClean);
       });
   }
 

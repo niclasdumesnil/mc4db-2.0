@@ -36,6 +36,39 @@ function QtyBadge({ displayQty = 0, mainQty = 0, sideQty = 0, deckLimit = 3, onC
 function FactionDot({ card }) {
   const code = card.faction_code;
   const name = card.faction_name || code;
+
+  let showIconAspect = false;
+  try {
+    const u = JSON.parse(localStorage.getItem('mc_user'));
+    if (u && u.show_icon_aspect) showIconAspect = true;
+  } catch(e) {}
+
+  if (showIconAspect) {
+    const offsets = {
+      leadership: '-3.6px',
+      justice: '-20.3px',
+      protection: '-37.1px',
+      aggression: '-53.9px',
+      basic: '-70.8px',
+      encounter: '-87.7px',
+      hero: '-104.1px',
+      pool: '-120.7px',
+      determination: '-137.5px'
+    };
+    const off = offsets[code] || '-70.8px';
+    const borderColor = getFactionColor(code) || '#64748b';
+    return (
+      <span
+        className="cl-faction-sprite"
+        title={name}
+        style={{ 
+          backgroundPosition: `${off} center`,
+          borderColor: borderColor
+        }}
+      />
+    );
+  }
+
   if (code === 'hero') {
     return (
       <span className="cl-faction-dot cl-faction-dot--hero" title={name}>

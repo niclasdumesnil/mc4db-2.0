@@ -18,16 +18,18 @@ const router = Router();
  */
 router.get('/packs/', async (req, res, next) => {
   try {
-    const { user_id } = req.query;
+    const { user_id, locale = 'en' } = req.query;
+    const locClean = locale.toLowerCase();
     const donator = await isUserDonator(user_id);
 
     const rows = await Pack.findAll();
     const cardCounts = await Pack.countCardsByPack();
 
-    // Non-donators cannot see packs whose visibility is explicitly set to "false"
-    const visibleRows = donator
-      ? rows
-      : rows.filter(row => (row.visibility || 'true') !== 'false');
+    const visibleRows = rows.filter(row => {
+      const visOK = donator ? true : (row.visibility || 'true') !== 'false';
+      const langOK = !row.language || row.language === '' || row.language.toLowerCase() === locClean;
+      return visOK && langOK;
+    });
 
     const packs = visibleRows.map((row) => ({
       name: row.name,
