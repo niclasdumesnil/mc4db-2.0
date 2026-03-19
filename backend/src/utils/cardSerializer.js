@@ -39,40 +39,24 @@ function resolveImage(code, packCode = '', suffix = '', preferLang = undefined) 
     if (packCode) {
       candidates.push(
         `${l}/${packCode}/${fileName}.webp`,
-        `${l}/${packCode}/${fileName}.jpg`,
-        `${l}/${packCode}/${fileName}.png`,
-        `${l}/${packCode}/${fileName}a.webp`,
-        `${l}/${packCode}/${fileName}a.jpg`,
-        `${l}/${packCode}/${fileName}a.png`
+        `${l}/${packCode}/${fileName}a.webp`
       );
     }
     candidates.push(
       `${l}/${fileName}.webp`,
-      `${l}/${fileName}.jpg`,
-      `${l}/${fileName}.png`,
-      `${l}/${fileName}a.webp`,
-      `${l}/${fileName}a.jpg`,
-      `${l}/${fileName}a.png`
+      `${l}/${fileName}a.webp`
     );
   }
   // Root-level fallback (no lang dir)
   if (packCode) {
     candidates.push(
       `${packCode}/${fileName}.webp`,
-      `${packCode}/${fileName}.jpg`,
-      `${packCode}/${fileName}.png`,
-      `${packCode}/${fileName}a.webp`,
-      `${packCode}/${fileName}a.jpg`,
-      `${packCode}/${fileName}a.png`
+      `${packCode}/${fileName}a.webp`
     );
   }
   candidates.push(
     `${fileName}.webp`,
-    `${fileName}.jpg`,
-    `${fileName}.png`,
-    `${fileName}a.webp`,
-    `${fileName}a.jpg`,
-    `${fileName}a.png`,
+    `${fileName}a.webp`
   );
 
   for (const c of candidates) {

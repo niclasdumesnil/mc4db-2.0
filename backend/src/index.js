@@ -152,7 +152,7 @@ app.get(['/card/:code.html', '/card/:code'], async (req, res, next) => {
         const tryPaths = [];
         // Try common extensions for promo images (webp, jpg, png)
         const baseName = filename.replace(/\.(webp|jpe?g|png)$/i, '');
-        const exts = ['.webp', '.jpg', '.png'];
+        const exts = ['.webp'];
         const packCode = card.pack_code || '';
         
         if (packCode) {

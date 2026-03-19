@@ -39,31 +39,24 @@ export default function ImageWithWebp({ src, id, alt, className, locale, langDir
     const list = [];
     if (hasLangFolder) {
       if (langDir && langDir.toUpperCase() === 'FR' && !base.match(/\/FR$/i)) {
-        list.push(frWebp, frBase);
+        list.push(frWebp);
       }
-      list.push(src);
       if (isFrench) {
         if (!list.includes(frWebp)) list.push(frWebp);
-        list.push(frBase, origWebp);
+        if (!list.includes(origWebp)) list.push(origWebp);
       } else {
         list.push(origWebp);
       }
-    } else if (preferWebpOnly) {
-      if (isFrench) {
-        list.push(frWebp, origWebp, src);
-      } else {
-        list.push(origWebp, src);
-      }
     } else {
       if (isFrench) {
-        list.push(frWebp, frBase, origWebp, src);
+        list.push(frWebp, origWebp);
       } else {
-        list.push(origWebp, src);
+        list.push(origWebp);
       }
     }
-    return list.filter(Boolean);
-  }, [src, locale, frWebp, frBase, origWebp, preferWebpOnly, langDir]);
-
+    // Only keeping unique WebP candidates.
+    return [...new Set(list)].filter(Boolean);
+  }, [src, locale, frWebp, origWebp, langDir]);
   useEffect(() => {
     // noop - keep console debug in original when running in browser
   }, [src, locale, langDir, candidates]);
@@ -121,7 +114,6 @@ export default function ImageWithWebp({ src, id, alt, className, locale, langDir
         <>
           <source srcSet={frWebp} type="image/webp" />
           <source srcSet={enWebp} type="image/webp" />
-          {!preferWebpOnly && <source srcSet={frBase} />}
         </>
       ) : (
         <>

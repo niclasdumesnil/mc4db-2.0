@@ -84,7 +84,7 @@ export default function CardPromo({ card, locale, isBack = false }) {
     if (toProbe.length === 0) return;
 
     const baseName = filename.replace(/\.(webp|jpe?g|png)$/i, '');
-    const exts = ['.webp', '.jpg', '.png'];
+    const exts = ['.webp'];
     let cancelled = false;
 
     (async () => {
@@ -123,6 +123,7 @@ export default function CardPromo({ card, locale, isBack = false }) {
               }
               break outer;
             }
+            if (ok === false) continue;
             const probeImg = await probeWithImage(cand);
             if (probeImg) {
               if (!cancelled) {
@@ -206,7 +207,7 @@ export default function CardPromo({ card, locale, isBack = false }) {
     setLoadingDirs((p) => ({ ...p, [dir]: true }));
 
     const baseName = filename.replace(/\.(webp|jpe?g|png)$/i, '');
-    const exts = ['.webp', '.jpg', '.png'];
+    const exts = ['.webp'];
     const packCode = card.pack_code;
     const candidateBases = [];
     if (packCode) {
@@ -228,6 +229,7 @@ export default function CardPromo({ card, locale, isBack = false }) {
           setChosenSrcMap(map); writeCache(card.code, map); setLoadingDirs((p) => { const np = { ...p }; delete np[dir]; return np; });
           activatePromo(dir, cand); return;
         }
+        if (ok === false) continue;
         const probeImg = await probeWithImage(cand);
         if (probeImg) {
           const map = { ...chosenSrcMap, [dir]: cand };
