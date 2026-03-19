@@ -9,7 +9,7 @@ const MEDAL_STYLES = {
 };
 function MedalIcon({ fill, stroke, title }) {
   return (
-    <svg className="rep-medal" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-label={title} title={title}>
+    <svg className="rep-medal" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-label={title} title={title} style={{ width: '16px', height: '16px' }}>
       <polygon points="8,2 16,2 19,9 12,7 5,9" fill={stroke} opacity="0.85" />
       <circle cx="12" cy="15" r="7" fill={fill} stroke={stroke} strokeWidth="1.5" />
       <polygon points="12,10 13.2,13.4 17,13.4 14.1,15.6 15.3,19 12,16.8 8.7,19 9.9,15.6 7,13.4 10.8,13.4" fill={stroke} opacity="0.9" />
@@ -19,12 +19,35 @@ function MedalIcon({ fill, stroke, title }) {
 export function RepBadge({ reputation }) {
   const rep = reputation ?? 0;
   const tier = rep >= 1000 ? 'gold' : rep >= 100 ? 'silver' : rep >= 10 ? 'bronze' : null;
-  if (!tier) return <span style={{ fontSize: '0.8rem', color: '#8a99af' }}>{rep}</span>;
+  if (!tier) return null;
   const { fill, stroke, label } = MEDAL_STYLES[tier];
+  
+  const tierStyles = {
+    gold: { bg: 'rgba(255,215,0,0.08)', border: 'rgba(255,215,0,0.6)' },
+    silver: { bg: 'rgba(192,192,192,0.08)', border: 'rgba(192,192,192,0.6)' },
+    bronze: { bg: 'rgba(205,127,50,0.08)', border: 'rgba(205,127,50,0.6)' },
+  };
+  const ts = tierStyles[tier];
+
   return (
-    <span className={`rep-badge rep-badge--${tier}`}>
+    <span 
+      className={`rep-badge rep-badge--${tier}`} 
+      title={`${label} — ${rep}`}
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        width: '26px',
+        height: '26px',
+        borderRadius: '50%',
+        background: ts.bg,
+        border: `1px solid ${ts.border}`,
+        padding: 0,
+        flexShrink: 0,
+        marginLeft: '6px'
+      }}
+    >
       <MedalIcon fill={fill} stroke={stroke} title={`${label} — ${rep}`} />
-      <span className="rep-score">{rep}</span>
     </span>
   );
 }

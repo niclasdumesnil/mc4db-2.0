@@ -3,13 +3,13 @@
    ========================================== */
 
 :root {
-  --bg-dark: #0b1220;
-  --panel-bg: rgba(255, 255, 255, 0.03);
-  --panel-border: rgba(255, 255, 255, 0.1);
-  --primary-blue: #4a90e2;
+  --bg-dark: #f8f9fa;
+  --panel-bg: #111d35;
+  --panel-border: rgba(255, 255, 255, 0.08);
+  --primary-blue: #3b82f6;
   --accent-cyan: #00d2ff;
-  --text-main: #dbeafa;
-  --text-muted: #8a99af;
+  --text-main: #e2e8f0;
+  --text-muted: #94a3b8;
   --white: #ffffff;
   --success: #2ecc71;
   --danger: #e74c3c;
@@ -35,8 +35,8 @@
 }
 
 .db-header { margin-bottom: 10px; }
-.db-title { font-size: 2.2rem; font-weight: 800; color: var(--white); margin: 0; }
-.db-subtitle { color: var(--text-muted); font-size: 1.1rem; margin-top: 8px; }
+.db-title { font-size: 2.5rem; font-weight: 400; color: #111; margin: 0 0 4px; }
+.db-subtitle { color: #555; font-size: 1rem; margin-top: 8px; margin-bottom: 24px; }
 
 /* ==========================================
    GRID SYSTEM (3 COLUMNS)
@@ -175,7 +175,7 @@
 
 
 /* Status */
-.db-status { text-align: center; padding: 40px; color: var(--text-muted); font-size: 1.2rem; }
+.db-status { text-align: center; padding: 40px; color: #475569; font-size: 1.2rem; }
 
 /* Collection interactive */
 .collection-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; border-bottom: 2px solid rgba(255,255,255,0.05); padding-bottom: 15px; }

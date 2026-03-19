@@ -3,13 +3,13 @@
    ══════════════════════════════════════════════ */
 
 :root {
-  --st-bg: #0b1220;
+  --st-bg: #f8f9fa;
   --st-surface: #111d35;
   --st-surface-2: #162140;
   --st-border: rgba(255, 255, 255, 0.08);
   --st-border-hover: rgba(255, 255, 255, 0.18);
   --st-text: #e2e8f0;
-  --st-text-muted: #8a99af;
+  --st-text-muted: #94a3b8;
   --st-accent: #3b82f6;
   --st-accent-hover: #60a5fa;
   --st-danger: #ef4444;
@@ -40,17 +40,16 @@
 }
 
 .stories-title {
-  font-size: 2rem;
-  font-weight: 800;
-  color: #fff;
-  margin: 0 0 6px;
-  letter-spacing: -0.02em;
+  font-size: 2.5rem;
+  font-weight: 400;
+  color: #111;
+  margin: 0 0 4px;
 }
 
 .stories-subtitle {
-  color: var(--st-text-muted);
+  color: #555;
   font-size: 1rem;
-  margin: 0;
+  margin: 0 0 24px;
 }
 
 /* ── Tab bar ─────────────────────────────────── */
@@ -58,7 +57,7 @@
 .stories-tabs {
   display: flex;
   gap: 4px;
-  border-bottom: 2px solid var(--st-border);
+  border-bottom: 2px solid rgba(0, 0, 0, 0.1);
   margin-bottom: 28px;
   flex-wrap: wrap;
 }
@@ -67,7 +66,7 @@
   padding: 10px 22px;
   font-size: 0.9rem;
   font-weight: 600;
-  color: var(--st-text-muted);
+  color: #64748b;
   background: transparent;
   border: none;
   border-bottom: 3px solid transparent;
@@ -78,11 +77,11 @@
 }
 
 .stories-tab:hover {
-  color: var(--st-text);
+  color: #0f172a;
 }
 
 .stories-tab--active {
-  color: var(--st-accent-hover);
+  color: var(--st-accent);
   border-bottom-color: var(--st-accent);
 }
 
@@ -94,7 +93,7 @@
   align-items: center;
   justify-content: center;
   min-height: 200px;
-  color: var(--st-text-muted);
+  color: #475569;
   font-size: 0.95rem;
   gap: 10px;
 }
@@ -102,7 +101,7 @@
 .stories-spinner {
   width: 20px;
   height: 20px;
-  border: 2px solid var(--st-border);
+  border: 2px solid rgba(0, 0, 0, 0.1);
   border-top-color: var(--st-accent);
   border-radius: 50%;
   animation: stories-spin 0.6s linear infinite;
@@ -121,7 +120,7 @@
   justify-content: center;
   min-height: 300px;
   gap: 16px;
-  color: var(--st-text-muted);
+  color: #475569;
 }
 
 .stories-coming-soon-icon {
@@ -132,7 +131,7 @@
 .stories-coming-soon h3 {
   font-size: 1.3rem;
   font-weight: 700;
-  color: var(--st-text);
+  color: #0f172a;
   margin: 0;
 }
 

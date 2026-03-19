@@ -5,7 +5,7 @@
    ══════════════════════════════════════════════════════════════ */
 
 :root {
-  --sets-bg:         #0d1629;
+  --sets-bg:         #f8f9fa;
   --sets-surface:    #111d35;
   --sets-border:     rgba(255, 255, 255, 0.08);
   --sets-text:       #e2e8f0;
@@ -748,9 +748,9 @@
 .sets-source-btn {
   all: unset;
   cursor: pointer;
-  font-size: 0.88rem;
+  font-size: 0.82rem;
   font-weight: 500;
-  padding: 6px 12px;
+  padding: 4px 10px;
   border-radius: 6px;
   color: var(--sets-muted);
   transition: background 0.15s, color 0.15s;
