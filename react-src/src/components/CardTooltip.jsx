@@ -144,7 +144,7 @@ export function TooltipContent({ card, isLink = false }) {
                             <span className="mc-badge mc-badge-current tw-ml-1">Current</span>
                         ) : null}
                         {(card.pack_creator || (card.creator && card.creator !== 'FFG')) ? (
-                            <span className="mc-badge mc-badge-creator tw-ml-1">{card.pack_creator || card.creator}</span>
+                            String(card.pack_creator || card.creator).split(/[,&]/).map(c => c.trim()).filter(Boolean).map((c, i) => <span key={i} className="mc-badge mc-badge-creator tw-ml-1">{c}</span>)
                         ) : null}
                         {card.alt_art ? (
                             <span className="mc-badge mc-badge-altart tw-ml-1">Alt Art</span>

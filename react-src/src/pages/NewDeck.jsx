@@ -61,7 +61,7 @@ function HeroCard({ hero, isOwned, onCreateDeck, creating }) {
             {isOfficial && <span className="mc-badge mc-badge-official">Official</span>}
             {isCurrent && <span className="mc-badge mc-badge-current">Current</span>}
             {isPrivate && <span className="mc-badge mc-badge-private" title="Donor exclusive">🔒 Private</span>}
-            {!isOfficial && hero.pack_creator && <span className="mc-badge mc-badge-creator">{hero.pack_creator}</span>}
+            {!isOfficial && hero.pack_creator && String(hero.pack_creator).split(/[,&]/).map(c => c.trim()).filter(Boolean).map((c, i) => <span key={i} className="mc-badge mc-badge-creator">{c}</span>)}
             {!isOfficial && status && <span className={`mc-badge mc-badge-${status}`}>{hero.pack_status}</span>}
           </div>
 
@@ -137,7 +137,8 @@ export default function NewDeck() {
         if (heroData.ok) {
           setHeroes(heroData.data);
         } else {
-          setError(heroData.error || 'Failed to load heroes.');
+          const errMSG = typeof heroData.error === 'string' ? heroData.error : (heroData.error?.message || heroData.message || 'Failed to load heroes.');
+          setError(errMSG);
         }
         if (userData?.ok && userData.user?.owned_packs) {
           const ids = new Set(

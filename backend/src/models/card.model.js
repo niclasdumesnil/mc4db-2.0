@@ -21,7 +21,7 @@ const BASE_CARD_COLUMNS = [
   'c.expansions_needed', 'c.alt_art', 'c.date_creation', 'c.date_update',
   // Joined fields
   'p.code as pack_code', 'p.name as pack_name', 'p.date_release as pack_date_release',
-  'p.status as pack_status', 'p.creator as pack_creator', 'p.theme as pack_theme',
+  db.raw('COALESCE(cs.status, p.status) as pack_status'), db.raw('COALESCE(c.creator, cs.creator, p.creator) as pack_creator'), 'p.theme as pack_theme',
   'p.visibility as pack_visibility', 'p.language as pack_language', 'p.environment as pack_environment',
   't.code as type_code', 't.name as type_name',
   'st.code as subtype_code', 'st.name as subtype_name',
@@ -49,6 +49,19 @@ function baseQuery() {
     .leftJoin('card as dup', 'c.duplicate_id', 'dup.id')
     .select(BASE_CARD_COLUMNS);
 }
+
+async function getHiddenThemesForUser(userId) {
+  if (!userId) return [];
+  const user = await db('user').where('id', userId).first();
+  if (!user || !user.show_theme) return [];
+  try {
+    const st = typeof user.show_theme === 'string' ? JSON.parse(user.show_theme) : user.show_theme;
+    return Object.keys(st).filter(k => st[k] === false).map(k => k.toLowerCase());
+  } catch (e) {
+    return [];
+  }
+}
+
 
 async function findAll() {
   return baseQuery().orderBy('c.code', 'asc');
@@ -93,10 +106,11 @@ async function getAttributes() {
   return { types, subtypes, illustrators };
 }
 
-async function getHeroes(donator) {
+async function getHeroes(donator, userId) {
   let q = db('card as c')
     .join('type as t', 'c.type_id', 't.id')
     .join('pack as p', 'c.pack_id', 'p.id')
+    .leftJoin('Cardset as cs', 'c.set_id', 'cs.id')
     .leftJoin(db.raw("card as cb ON cb.code = CONCAT(LEFT(c.code, LENGTH(c.code)-1), 'b')"))
     .leftJoin(db.raw("card as cc ON cc.code = CONCAT(LEFT(c.code, LENGTH(c.code)-1), 'c')"))
     .where('t.code', 'hero')
@@ -106,14 +120,20 @@ async function getHeroes(donator) {
     .select([
       'c.id', 'c.code', 'c.name',
       'p.id as pack_id', 'p.code as pack_code', 'p.name as pack_name',
-      'p.creator as pack_creator', 'p.environment as pack_environment',
-      'p.status as pack_status', 'p.theme as pack_theme',
+      db.raw('COALESCE(c.creator, cs.creator, p.creator) as pack_creator'), 'p.environment as pack_environment',
+      db.raw('COALESCE(cs.status, p.status) as pack_status'), 'p.theme as pack_theme',
       'p.visibility as pack_visibility',
       'p.date_release as pack_date_release',
       'cb.code as code_b',
       'cc.code as code_c',
     ])
     .orderBy('c.name', 'asc');
+
+  const hiddenThemes = await getHiddenThemesForUser(userId);
+  if (hiddenThemes.length > 0) {
+    const placeholders = hiddenThemes.map(() => '?').join(',');
+    q = q.whereRaw(`LOWER(COALESCE(p.theme, 'Marvel')) NOT IN (${placeholders})`, hiddenThemes);
+  }
 
   if (!donator) {
     q = q.where(function () {
@@ -138,7 +158,7 @@ async function searchCards(filters, pagination, donator) {
       scheme_op = '=', scheme, scheme_op2 = '=', scheme2,
       res_physical, res_mental, res_energy, res_wild,
       factions, locale,
-      hide_duplicates, show_alt_art, creator_filter, current_only,
+      hide_duplicates, show_alt_art, creator_filter, creator_name, current_only,
       theme, include_hidden,
   } = filters;
 
@@ -164,7 +184,7 @@ async function searchCards(filters, pagination, donator) {
         'c.escalation_threat', 'c.escalation_threat_fixed', 'c.escalation_threat_star',
         'c.threat', 'c.threat_fixed', 'c.threat_per_group', 'c.threat_star',
         'p.code as pack_code', 'p.name as pack_name',
-        'p.creator as pack_creator', 'p.status as pack_status', 'p.environment as pack_environment',
+        db.raw('COALESCE(c.creator, cs.creator, p.creator) as pack_creator'), db.raw('COALESCE(cs.status, p.status) as pack_status'), 'p.environment as pack_environment',
         't.code as type_code', 't.name as type_name',
         'st.code as subtype_code', 'st.name as subtype_name',
         'f.code as faction_code', 'f.name as faction_name',
@@ -176,6 +196,12 @@ async function searchCards(filters, pagination, donator) {
       q = q.leftJoin('card_translation as ct', function() {
         this.on('c.code', '=', 'ct.code').andOn('ct.locale', '=', db.raw('?', [locale]));
       });
+  }
+
+  const hiddenThemes = await getHiddenThemesForUser(filters.user_id);
+  if (hiddenThemes.length > 0) {
+    const placeholders = hiddenThemes.map(() => '?').join(',');
+    q = q.whereRaw(`LOWER(COALESCE(p.theme, 'Marvel')) NOT IN (${placeholders})`, hiddenThemes);
   }
 
   if (include_hidden !== '1') q = q.where('c.hidden', 0);
@@ -253,17 +279,21 @@ async function searchCards(filters, pagination, donator) {
   if (creator_filter === 'official') {
       if (current_only === '1') {
         q = q.where(function() {
-          this.whereNull('p.creator').andWhere('p.environment', 'current');
+          this.whereRaw('COALESCE(c.creator, cs.creator, p.creator) IS NULL').andWhere('p.environment', 'current');
         });
       } else {
-        q = q.whereNull('p.creator');
+        q = q.whereRaw('COALESCE(c.creator, cs.creator, p.creator) IS NULL');
       }
   } else if (current_only === '1') {
        q = q.where(function() {
-          this.where('p.environment', 'current').orWhereNotNull('p.creator');
+          this.where('p.environment', 'current').orWhereRaw('COALESCE(c.creator, cs.creator, p.creator) IS NOT NULL');
        });
   }
-  if (creator_filter === 'fanmade') q = q.whereNotNull('p.creator');
+  if (creator_filter === 'fanmade') q = q.whereRaw('COALESCE(c.creator, cs.creator, p.creator) IS NOT NULL');
+  
+  if (creator_name) {
+      q = q.whereRaw('COALESCE(c.creator, cs.creator, p.creator) LIKE ?', [`%${creator_name}%`]);
+  }
   
   if (theme && theme !== 'all') {
       const themeLower = theme.toLowerCase();
@@ -291,14 +321,14 @@ async function searchCards(filters, pagination, donator) {
   const statsRow = await q.clone().clearSelect().clearOrder().select(
       db.raw('COUNT(*) as total'),
       db.raw('SUM(c.quantity) as sum_total'),
-      db.raw('SUM(p.creator IS NULL) as official'),
-      db.raw('SUM(IF(p.creator IS NULL, c.quantity, 0)) as sum_official'),
-      db.raw('SUM(p.creator IS NOT NULL) as fanmade'),
-      db.raw('SUM(IF(p.creator IS NOT NULL, c.quantity, 0)) as sum_fanmade'),
+      db.raw('SUM(COALESCE(c.creator, cs.creator, p.creator) IS NULL) as official'),
+      db.raw('SUM(IF(COALESCE(c.creator, cs.creator, p.creator) IS NULL, c.quantity, 0)) as sum_official'),
+      db.raw('SUM(COALESCE(c.creator, cs.creator, p.creator) IS NOT NULL) as fanmade'),
+      db.raw('SUM(IF(COALESCE(c.creator, cs.creator, p.creator) IS NOT NULL, c.quantity, 0)) as sum_fanmade'),
       db.raw('SUM(c.duplicate_id IS NOT NULL) as duplicates'),
       db.raw('SUM(IF(c.duplicate_id IS NOT NULL, c.quantity, 0)) as sum_duplicates'),
-      db.raw('SUM(IF(p.creator IS NULL AND p.environment = "current", 1, 0)) as current_official'),
-      db.raw('SUM(IF(p.creator IS NULL AND p.environment = "current", c.quantity, 0)) as sum_current_official'),
+      db.raw('SUM(IF(COALESCE(c.creator, cs.creator, p.creator) IS NULL AND p.environment = "current", 1, 0)) as current_official'),
+      db.raw('SUM(IF(COALESCE(c.creator, cs.creator, p.creator) IS NULL AND p.environment = "current", c.quantity, 0)) as sum_current_official'),
       db.raw('SUM(c.alt_art = 1) as alt_arts'),
   ).first();
 

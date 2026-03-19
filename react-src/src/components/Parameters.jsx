@@ -119,6 +119,14 @@ export default function Parameters({ user }) {
         // revert optimistic update
         setSettings(prev => ({ ...prev, [key]: !newValue }));
         setErrors(prev => ({ ...prev, [key]: data.error || 'Save failed' }));
+      } else {
+        try {
+          const u = JSON.parse(localStorage.getItem('mc_user'));
+          if (u) {
+            u[key] = newValue ? 1 : 0;
+            localStorage.setItem('mc_user', JSON.stringify(u));
+          }
+        } catch(e) {}
       }
     } catch (err) {
       console.error('Network error:', err);
@@ -178,6 +186,14 @@ export default function Parameters({ user }) {
         // revert optimistic update
         setSettings(prev => ({ ...prev, show_theme: currentThemes }));
         setErrors(prev => ({ ...prev, [key]: data.error || 'Save failed' }));
+      } else {
+        try {
+          const u = JSON.parse(localStorage.getItem('mc_user'));
+          if (u) {
+            u.show_theme = newThemes;
+            localStorage.setItem('mc_user', JSON.stringify(u));
+          }
+        } catch(e) {}
       }
     } catch (err) {
       console.error('Network error:', err);

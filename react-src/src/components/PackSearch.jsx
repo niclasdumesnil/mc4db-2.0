@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 
 function currentUserId() {
   try { const u = JSON.parse(localStorage.getItem('mc_user')); return u && (u.id || u.userId); } catch (e) { return null; }
@@ -63,7 +63,7 @@ function CustomPackSelect({ packs, value, onChange, disabled, showCreator = fals
             )}
             {selected.visibility === 'false' && <span className="mc-badge mc-badge-private" title="Donor exclusive">🔒 Private</span>}
             {showCreator && selected.creator && selected.creator.toUpperCase() !== 'FFG' && (
-              <span className="mc-badge mc-badge-creator">{selected.creator}</span>
+              String(selected.creator).split(/[,&]/).map(c => c.trim()).filter(Boolean).map((c, i) => <span key={i} className="mc-badge mc-badge-creator">{c}</span>)
             )}
           </span>
         ) : (
@@ -120,8 +120,109 @@ function CustomPackSelect({ packs, value, onChange, disabled, showCreator = fals
                 )}
                 {p.visibility === 'false' && <span className="mc-badge mc-badge-private" title="Donor exclusive">🔒 Private</span>}
                 {showCreator && p.creator && p.creator.toUpperCase() !== 'FFG' && (
-                  <span className="mc-badge mc-badge-creator">{p.creator}</span>
+                  String(p.creator).split(/[,&]/).map(c => c.trim()).filter(Boolean).map((c, i) => <span key={i} className="mc-badge mc-badge-creator">{c}</span>)
                 )}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function CustomCreatorSelect({ creators, value, onChange, disabled }) {
+  const [open, setOpen] = useState(false);
+  const [filter, setFilter] = useState('');
+  const containerRef = useRef(null);
+  const listRef = useRef(null);
+  const inputRef = useRef(null);
+
+  useEffect(() => {
+    if (!open) return;
+    function onClickOut(e) {
+      if (containerRef.current && !containerRef.current.contains(e.target)) setOpen(false);
+    }
+    document.addEventListener('mousedown', onClickOut);
+    return () => document.removeEventListener('mousedown', onClickOut);
+  }, [open]);
+
+  useEffect(() => {
+    if (!open) { setFilter(''); return; }
+    setTimeout(() => inputRef.current && inputRef.current.focus(), 30);
+    if (!listRef.current || !value) return;
+    const sel = listRef.current.querySelector('.pack-search-option--selected');
+    if (sel) sel.scrollIntoView({ block: 'nearest' });
+  }, [open, value]);
+
+  const filtered = useMemo(() => {
+    const q = filter.trim().toLowerCase();
+    if (!q) return creators;
+    return creators.filter(c => c.toLowerCase().includes(q));
+  }, [creators, filter]);
+
+  return (
+    <div className="pack-search-custom" ref={containerRef}>
+      <button
+        type="button"
+        className={`pack-search-trigger${open ? ' pack-search-trigger--open' : ''}`}
+        onClick={() => !disabled && setOpen(o => !o)}
+        disabled={disabled}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+      >
+        {value ? (
+          <span className="pack-search-trigger-content">
+            <span className="pack-search-trigger-name">{value}</span>
+          </span>
+        ) : (
+          <span className="pack-search-trigger-placeholder">{'\u2014'} Select a creator {'\u2014'}</span>
+        )}
+        <span className="pack-search-chevron" aria-hidden="true" />
+      </button>
+
+      {open && (
+        <div className="pack-search-dropdown-wrap">
+          <div className="pack-search-filter-row">
+            <input
+              ref={inputRef}
+              className="pack-search-filter-input"
+              type="text"
+              placeholder="Filter..."
+              value={filter}
+              onChange={e => setFilter(e.target.value)}
+              onClick={e => e.stopPropagation()}
+            />
+            {filter && (
+              <button
+                className="pack-search-filter-clear"
+                type="button"
+                onClick={() => { setFilter(''); inputRef.current && inputRef.current.focus(); }}
+                aria-label="Clear filter"
+              >{'\u00d7'}</button>
+            )}
+          </div>
+          <ul className="pack-search-dropdown" role="listbox" ref={listRef}>
+            <li
+              role="option"
+              aria-selected={!value}
+              className={`pack-search-option pack-search-option--placeholder${!value ? ' pack-search-option--selected' : ''}`}
+              onClick={() => { onChange(''); setOpen(false); }}
+            >
+              {'\u2014'} Select a creator {'\u2014'}
+            </li>
+            {filtered.length === 0 && (
+              <li className="pack-search-option pack-search-option--empty">No results</li>
+            )}
+            {filtered.map(c => (
+              <li
+                key={c}
+                role="option"
+                aria-selected={c === value}
+                className={`pack-search-option${c === value ? ' pack-search-option--selected' : ''}`}
+                onClick={() => { onChange(c); setOpen(false); }}
+              >
+                <span className="pack-search-option-name">{c}</span>
               </li>
             ))}
           </ul>
@@ -141,10 +242,11 @@ function CustomPackSelect({ packs, value, onChange, disabled, showCreator = fals
  *   onPackSelect    - callback(packCode) fires with the pack code directly (filter mode,
  *                     no card fetch). Provide this instead of onNavigate for filter UIs.
  */
-export default function PackSearch({ currentPackCode, onNavigate, onPackSelect }) {
+export default function PackSearch({ currentPackCode, currentCreatorName, onNavigate, onPackSelect, onCreatorSelect }) {
   const [officialPacks, setOfficialPacks] = useState([]);
   const [fanPacks, setFanPacks] = useState([]);
   const [selectedPack, setSelectedPack] = useState(currentPackCode || '');
+  const [selectedCreator, setSelectedCreator] = useState(currentCreatorName || '');
   const [navigating, setNavigating] = useState(false);
   const [sortBy, setSortBy] = useState('date');   // 'date' | 'alpha'
   const [sortDir, setSortDir] = useState('asc');  // 'asc' | 'desc'
@@ -156,8 +258,21 @@ export default function PackSearch({ currentPackCode, onNavigate, onPackSelect }
       .then(r => r.json())
       .then(data => {
         if (!Array.isArray(data)) return;
-        setOfficialPacks(data.filter(p => !p.creator || p.creator.toUpperCase() === 'FFG'));
-        setFanPacks(data.filter(p => p.creator && p.creator.toUpperCase() !== 'FFG'));
+
+        let showTheme = {};
+        try {
+          const u = JSON.parse(localStorage.getItem('mc_user'));
+          if (u && u.show_theme) showTheme = u.show_theme;
+        } catch (e) {}
+
+        const filteredPacks = data.filter(p => {
+          const t = p.theme ? p.theme.trim() : 'Marvel';
+          const norm = t.charAt(0).toUpperCase() + t.slice(1).toLowerCase();
+          return showTheme[t] !== false && showTheme[norm] !== false && showTheme[t.toLowerCase()] !== false;
+        });
+
+        setOfficialPacks(filteredPacks.filter(p => !p.creator || p.creator.toUpperCase() === 'FFG'));
+        setFanPacks(filteredPacks.filter(p => p.creator && p.creator.toUpperCase() !== 'FFG'));
       })
       .catch(() => {});
   }
@@ -169,8 +284,23 @@ export default function PackSearch({ currentPackCode, onNavigate, onPackSelect }
   }, []);
 
   useEffect(() => {
-    if (currentPackCode) setSelectedPack(currentPackCode);
+    if (currentPackCode !== undefined) setSelectedPack(currentPackCode);
   }, [currentPackCode]);
+
+  useEffect(() => {
+    if (currentCreatorName !== undefined) setSelectedCreator(currentCreatorName);
+  }, [currentCreatorName]);
+
+  const uniqueCreators = useMemo(() => {
+    const s = new Set();
+    fanPacks.forEach(p => {
+      if (p.creator && p.creator.toUpperCase() !== 'FFG') {
+        const parts = String(p.creator).split(/[,&]/).map(c => c.trim()).filter(Boolean);
+        parts.forEach(c => s.add(c));
+      }
+    });
+    return Array.from(s).sort((a,b) => a.localeCompare(b));
+  }, [fanPacks]);
 
   const applySort = (arr) => {
     const s = [...arr].sort((a, b) =>
@@ -208,6 +338,14 @@ export default function PackSearch({ currentPackCode, onNavigate, onPackSelect }
       })
       .catch(() => {})
       .finally(() => setNavigating(false));
+  };
+
+  const handleSelectCreator = (creatorName) => {
+    if (creatorName === selectedCreator) return;
+    setSelectedCreator(creatorName);
+    if (onCreatorSelect) {
+      onCreatorSelect(creatorName || '');
+    }
   };
 
   if (officialPacks.length === 0 && fanPacks.length === 0) return null;
@@ -253,16 +391,27 @@ export default function PackSearch({ currentPackCode, onNavigate, onPackSelect }
       )}
 
       {sortedFan.length > 0 && (
-        <div className="pack-search-group">
-          <label className="pack-search-label">Fan-made packs</label>
-          <CustomPackSelect
-            packs={sortedFan}
-            value={isFanSelected ? selectedPack : ''}
-            onChange={handleSelectPack}
-            disabled={navigating}
-            showCreator={true}
-          />
-        </div>
+        <>
+          <div className="pack-search-group">
+            <label className="pack-search-label">Fan-made packs</label>
+            <CustomPackSelect
+              packs={sortedFan}
+              value={isFanSelected ? selectedPack : ''}
+              onChange={handleSelectPack}
+              disabled={navigating}
+              showCreator={true}
+            />
+          </div>
+          <div className="pack-search-group">
+            <label className="pack-search-label">by creator</label>
+            <CustomCreatorSelect
+              creators={uniqueCreators}
+              value={selectedCreator}
+              onChange={handleSelectCreator}
+              disabled={navigating}
+            />
+          </div>
+        </>
       )}
 
       {navigating && <span className="pack-search-spinner" aria-label="Loading..." />}

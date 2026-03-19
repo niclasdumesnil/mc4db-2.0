@@ -135,7 +135,7 @@ export default function Collection({ user, packsData, onSaved }) {
                       {owned && <span className="pack-check">✓</span>}
                       {p.name}
                       {p.visibility === 'false' && <span className="mc-badge mc-badge-private" title="Pack privé">🔒</span>}
-                      {p.creator && p.creator !== 'FFG' && <span className="mc-badge mc-badge-creator">{p.creator}</span>}
+                      {p.creator && p.creator !== 'FFG' && String(p.creator).split(/[,&]/).map(c => c.trim()).filter(Boolean).map((c, i) => <span key={i} className="mc-badge mc-badge-creator">{c}</span>)}
                     </button>
                   );
                 })}

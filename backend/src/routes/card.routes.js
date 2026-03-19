@@ -83,7 +83,7 @@ router.get('/heroes', async (req, res, next) => {
     const { user_id } = req.query;
     const donator = await isUserDonator(user_id);
 
-    const rows = await Card.getHeroes(donator);
+    const rows = await Card.getHeroes(donator, user_id);
 
     const heroes = rows.map(row => ({
       code: row.code,

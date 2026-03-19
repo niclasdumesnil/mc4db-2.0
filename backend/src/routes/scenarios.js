@@ -189,10 +189,10 @@ router.get('/sets', async (req, res, next) => {
         'cs.parent_code',
         db.raw('MIN(ct.code) as type_code'),
         db.raw('MIN(ct.name) as type_name'),
-        db.raw('MAX(p.creator) as creator'),
+        db.raw('COALESCE(cs.creator, MAX(p.creator)) as creator'),
         db.raw('MAX(p.visibility) as visibility'),
         db.raw('MIN(p.environment) as pack_environment'),
-        db.raw('MIN(p.status) as pack_status'),
+        db.raw('COALESCE(cs.status, MIN(p.status)) as pack_status'),
         db.raw('MIN(p.date_release) as pack_date_release'),
         db.raw('COUNT(DISTINCT c.id) as card_count')
       )

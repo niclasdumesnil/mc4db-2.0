@@ -351,7 +351,7 @@ function HorizontalSetsBar({ setsData, setsLoading, selectedSet, onSelect }) {
                         >
                           <span>{set.name}</span>
                           {set.private && <span className="mc-badge mc-badge-private sets-topbar-badge" title="Pack privé">🔒</span>}
-                          {set.creator && set.creator !== 'FFG' && <span className="mc-badge mc-badge-creator sets-topbar-badge">{set.creator}</span>}
+                          {set.creator && set.creator !== 'FFG' && String(set.creator).split(/[,&]/).map(c => c.trim()).filter(Boolean).map((c, i) => <span key={i} className="mc-badge mc-badge-creator sets-topbar-badge">{c}</span>)}
                         </button>
                       ))}
                     </div>
@@ -622,7 +622,7 @@ export default function Sets() {
               {selectedSet.pack_environment === 'current' && <span className="mc-badge mc-badge-current" style={{ marginLeft: 8 }}>Current</span>}
               {selectedSet.private && <span className="mc-badge mc-badge-private" style={{ marginLeft: 8 }} title="Pack privé (donateurs)">🔒 Private</span>}
               {selectedSet.creator && selectedSet.creator !== 'FFG' && (
-                <span className="mc-badge mc-badge-creator" style={{ marginLeft: 8 }}>{selectedSet.creator}</span>
+                String(selectedSet.creator).split(/[,&]/).map(c => c.trim()).filter(Boolean).map((c, i) => <span key={i} className="mc-badge mc-badge-creator" style={{ marginLeft: 8 }}>{c}</span>)
               )}
               {selectedSet._src === 'fanmade' && selectedSet.pack_status && (() => {
                 const s = selectedSet.pack_status.toLowerCase();

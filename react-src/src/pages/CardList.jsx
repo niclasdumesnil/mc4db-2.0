@@ -37,6 +37,7 @@ function buildSearchUrl(filters, page, sort, order, showDuplicates, showAltArt, 
   if (locale && locale !== 'en') params.set('locale', locale);
   if (userId) params.set('user_id', userId);
   if (selectedTheme && selectedTheme !== 'all') params.set('theme', selectedTheme);
+  if (filters.creator_name) params.set('creator_name', filters.creator_name);
 
   if (filters.name) params.set('name', filters.name);
   if (filters.text) params.set('text', filters.text);
@@ -182,7 +183,7 @@ export default function CardList() {
   const [mode, setMode] = useState('checklist');
   const [filters, setFilters] = useState(_INIT_FILTERS);
   const [attributes, setAttributes] = useState({ types: [], subtypes: [], illustrators: [] });
-  const [selectedTheme, setSelectedTheme] = useState('Marvel');
+  const [selectedTheme, setSelectedTheme] = useState('all');
   const [themes, setThemes] = useState([]);
 
   // Debounce text filters so we don't fire on every keystroke
@@ -205,10 +206,20 @@ export default function CardList() {
         if (!Array.isArray(data)) return;
         // Normalize: capitalize first letter, then dedup case-insensitively
         const normalizeTheme = t => t ? t.charAt(0).toUpperCase() + t.slice(1) : 'Marvel';
+
+        let showTheme = {};
+        try {
+          const u = JSON.parse(localStorage.getItem('mc_user'));
+          if (u && u.show_theme) showTheme = u.show_theme;
+        } catch (e) {}
+
         const map = new Map();
         data.forEach(p => {
-          const norm = normalizeTheme((p.theme || 'Marvel').trim());
-          if (!map.has(norm.toLowerCase())) map.set(norm.toLowerCase(), norm);
+          const t = (p.theme || 'Marvel').trim();
+          const norm = normalizeTheme(t);
+          if (showTheme[t] !== false && showTheme[norm] !== false && showTheme[t.toLowerCase()] !== false) {
+            if (!map.has(norm.toLowerCase())) map.set(norm.toLowerCase(), norm);
+          }
         });
         setThemes([...map.values()].sort());
       })
@@ -296,6 +307,13 @@ export default function CardList() {
     setPage(1);
   }, [filters]);
 
+  const handleCreatorSelect = useCallback((creatorName) => {
+    const newFilters = { ...filters, creator_name: creatorName };
+    setFilters(newFilters);
+    setDebouncedFilters(newFilters);
+    setPage(1);
+  }, [filters]);
+
   const handleSort = useCallback((col) => {
     setSort(col);
     setPage(1);
@@ -312,10 +330,12 @@ export default function CardList() {
 
         {/* ── Top: Pack filter ── */}
         <div className="cardlist-topbar">
-          <p className="cardlist-topbar-title">Filter by pack</p>
+          <p className="cardlist-topbar-title">Filter by pack / by creator</p>
           <PackSearch
             currentPackCode={filters.pack}
+            currentCreatorName={filters.creator_name}
             onPackSelect={handlePackSelect}
+            onCreatorSelect={handleCreatorSelect}
           />
         </div>
 

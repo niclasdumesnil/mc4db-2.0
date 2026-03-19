@@ -600,9 +600,13 @@ function ScenarioStatsSidebar({ scenario, onDeselect }) {
             <span className={`scenario-difficulty-badge ${diffClass(scenario.difficulty)}`}>
               {diffLabel(scenario.difficulty)}
             </span>
-            <span className={`mc-badge ${official ? 'mc-badge-official' : 'mc-badge-creator'}`}>
-              {official ? 'Official' : creator}
-            </span>
+            {official ? (
+              <span className="mc-badge mc-badge-official">Official</span>
+            ) : (
+              String(creator).split(/[,&]/).map(c => c.trim()).filter(Boolean).map((c, i) => (
+                <span key={i} className="mc-badge mc-badge-creator">{c}</span>
+              ))
+            )}
             {!scenario.visibility && (
               <span className="mc-badge mc-badge-private">🔒 Private</span>
             )}
@@ -896,9 +900,13 @@ function ScenarioTab() {
                     {!scenario.visibility && donator && (
                       <span className="mc-badge mc-badge-private">🔒 Private</span>
                     )}
-                    <span className={`mc-badge ${official ? 'mc-badge-official' : 'mc-badge-creator'}`}>
-                      {official ? 'Official' : scenario.creator}
-                    </span>
+                    {official ? (
+                      <span className="mc-badge mc-badge-official">Official</span>
+                    ) : (
+                      String(scenario.creator).split(/[,&]/).map(c => c.trim()).filter(Boolean).map((c, i) => (
+                        <span key={i} className="mc-badge mc-badge-creator">{c}</span>
+                      ))
+                    )}
                   </div>
                 </div>
 
@@ -970,9 +978,13 @@ function ScenarioTab() {
                     {!scenario.visibility && donator && (
                       <span className="mc-badge mc-badge-private">🔒 Private</span>
                     )}
-                    <span className={`mc-badge ${official ? 'mc-badge-official' : 'mc-badge-creator'}`}>
-                      {official ? 'Official' : scenario.creator}
-                    </span>
+                    {official ? (
+                      <span className="mc-badge mc-badge-official">Official</span>
+                    ) : (
+                      String(scenario.creator).split(/[,&]/).map(c => c.trim()).filter(Boolean).map((c, i) => (
+                        <span key={i} className="mc-badge mc-badge-creator">{c}</span>
+                      ))
+                    )}
                   </div>
                 </div>
 

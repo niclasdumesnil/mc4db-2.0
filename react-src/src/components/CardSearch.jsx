@@ -132,7 +132,7 @@ function Section({ label, defaultOpen = true, active = false, onReset, children 
  *   subtypes  — array of { code, name }
  *   illustrators — array of strings
  */
-export default function CardSearch({ filters, onChange, types = [], subtypes = [], illustrators = [], themes = [], selectedTheme = 'Marvel', onThemeChange }) {
+export default function CardSearch({ filters, onChange, types = [], subtypes = [], illustrators = [], themes = [], selectedTheme = 'all', onThemeChange }) {
   const set = (patch) => onChange({ ...filters, ...patch });
 
   const toggleFaction = (code) => {

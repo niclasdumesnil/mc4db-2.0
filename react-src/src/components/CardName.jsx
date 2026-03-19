@@ -62,7 +62,7 @@ function StatusTag({ card }) {
       {/* 3. Private */}
       {card.visibility === 'false' && <span className="mc-badge mc-badge-private" title="Donor exclusive">🔒 Private</span>}
       {/* 4. Creator */}
-      {!isFFG && <span className="mc-badge mc-badge-creator" title={`Created by ${creator}`}>{creator}</span>}
+      {!isFFG && String(creator).split(/[,&]/).map(c => c.trim()).filter(Boolean).map((c, i) => <span key={i} className="mc-badge mc-badge-creator" title={`Created by ${c}`}>{c}</span>)}
       {/* 5. Status */}
       {hasStatus && <span className={`mc-badge mc-badge-${card.status}`}>{card.status}</span>}
     </>

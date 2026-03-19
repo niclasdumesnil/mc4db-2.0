@@ -75,7 +75,7 @@ export default function DeckCard({
             <div className="deck-hero-row-left">
               <span className="deck-hero-badge">{deck.hero_name}</span>
               {isFFG && <span className="mc-badge mc-badge-official">Official</span>}
-              {!isFFG && creator && <span className="mc-badge mc-badge-creator">{creator}</span>}
+              {!isFFG && creator && String(creator).split(/[,&]/).map(c => c.trim()).filter(Boolean).map((c, i) => <span key={i} className="mc-badge mc-badge-creator">{c}</span>)}
               {statusBadgeClass && <span className={`mc-badge ${statusBadgeClass}`}>{statusKey}</span>}
             </div>
             <div className="deck-hero-stats">

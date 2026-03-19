@@ -122,7 +122,7 @@ export default function CardListDisplay({ cards, mode = 'checklist', sort, onSor
                       : <a href={`/card/${card.code}`} className="card-tip" data-code={card.code}>{card.name}</a>}
                     {(!card.is_unique && card.quantity > 0) ? <span className="cl-qty">(x{card.quantity})</span> : null}
                     {card.pack_environment === 'current' ? <span className="mc-badge mc-badge-current" title="Standard format">Current</span> : null}
-                    {card.pack_creator ? <span className="mc-badge mc-badge-creator" title={`Created by ${card.pack_creator}`}>{card.pack_creator}</span> : null}
+                    {card.pack_creator ? String(card.pack_creator).split(/[,&]/).map(c => c.trim()).filter(Boolean).map((c, i) => <span key={i} className="mc-badge mc-badge-creator" title={`Created by ${c}`}>{c}</span>) : null}
                     <span className="cl-hover-action">
                       {card.visibility === 'false' && <span className="mc-badge mc-badge-private" title="Donor exclusive">🔒 Private</span>}
                       {card.alt_art ? <span className="mc-badge mc-badge-altart" title="Alternative art">Alt Art</span> : null}
