@@ -111,6 +111,22 @@ export default forwardRef(function DeckEditor(
   // Archetypes
   const [archetypes, setArchetypes] = useState([]);
   const [selectedArchetype, setSelectedArchetype] = useState('');
+  const [showArchetypesPanel, setShowArchetypesPanel] = useState(false);
+
+  // Fetch current user settings for layout toggles
+  useEffect(() => {
+    const uid = currentUserId();
+    if (uid) {
+      fetch(`/api/public/user/${uid}`)
+        .then(r => r.json())
+        .then(d => {
+          if (d.ok && d.user) {
+            setShowArchetypesPanel(!!d.user.show_archetype);
+          }
+        })
+        .catch(console.error);
+    }
+  }, []);
 
   // Fetch Archetypes on mount
   useEffect(() => {
@@ -579,6 +595,7 @@ export default forwardRef(function DeckEditor(
       <main className="editor-main">
 
         {/* ── Panneau Archetypes ── */}
+        {showArchetypesPanel && (
         <div className="editor-collection-panel" style={{ marginBottom: '16px' }}>
           <div className="editor-collection-panel__searchbar" style={{ borderBottom: 'none' }}>
             <span className="editor-collection-panel__label">ARCHETYPES</span>
@@ -599,6 +616,7 @@ export default forwardRef(function DeckEditor(
                 style={{ width: 'auto', padding: '0 10px', gap: '6px' }}
                 disabled={!selectedArchetype}
                 onClick={async () => {
+
                   try {
                     const confirmLoad = window.confirm("Loading this archetype will replace all your current aspect and basic cards. Do you want to continue?");
                     if (!confirmLoad) return;
@@ -692,6 +710,7 @@ export default forwardRef(function DeckEditor(
             </div>
           </div>
         </div>
+        )}
 
         {/* ── Panneau Search all collection ── */}
         <div className="editor-collection-panel">

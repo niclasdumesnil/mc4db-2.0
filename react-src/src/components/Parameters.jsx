@@ -17,6 +17,10 @@ export default function Parameters({ user }) {
     notif_mention: false,
     notif_follow: false,
     notif_successor: false,
+    is_share_collection: false,
+    show_icon_aspect: false,
+    show_archetype: false,
+    show_theme: {},
   });
 
   // user local si la prop n'est pas fournie
@@ -38,6 +42,10 @@ export default function Parameters({ user }) {
         notif_mention: u.notifications?.mention || false,
         notif_follow: u.notifications?.follow || false,
         notif_successor: u.notifications?.successor || false,
+        is_share_collection: u.is_share_collection === 1 || u.is_share_collection === true,
+        show_icon_aspect: u.show_icon_aspect === 1 || u.show_icon_aspect === true,
+        show_archetype: u.show_archetype === 1 || u.show_archetype === true,
+        show_theme: u.show_theme || {},
       });
     }
   }, [user, localUser]);
@@ -143,6 +151,65 @@ export default function Parameters({ user }) {
     );
   };
 
+  const handleThemeToggle = async (themeName) => {
+    const currentThemes = { ...settings.show_theme };
+    const newValue = !currentThemes[themeName];
+    const newThemes = { ...currentThemes, [themeName]: newValue };
+    
+    const userId = activeUser.id;
+    const key = `theme_${themeName}`;
+
+    // Optimistic update
+    setSettings(prev => ({ ...prev, show_theme: newThemes }));
+    setSaving(prev => ({ ...prev, [key]: true }));
+    setErrors(prev => ({ ...prev, [key]: null }));
+
+    try {
+      const response = await fetch(`/api/public/user/${userId}/settings`, {
+        method: 'PUT',
+        headers: getAuthHeaders({
+          'Content-Type': 'application/json',
+        }),
+        body: JSON.stringify({ show_theme: newThemes })
+      });
+
+      const data = await response.json();
+      if (!data.ok) {
+        // revert optimistic update
+        setSettings(prev => ({ ...prev, show_theme: currentThemes }));
+        setErrors(prev => ({ ...prev, [key]: data.error || 'Save failed' }));
+      }
+    } catch (err) {
+      console.error('Network error:', err);
+      setSettings(prev => ({ ...prev, show_theme: currentThemes }));
+      setErrors(prev => ({ ...prev, [key]: 'Network error' }));
+    } finally {
+      setSaving(prev => ({ ...prev, [key]: false }));
+      setTimeout(() => setErrors(prev => ({ ...prev, [key]: null })), 3000);
+    }
+  };
+
+  const ThemeToggleButton = ({ themeName }) => {
+    const isActive = settings.show_theme?.[themeName];
+    const key = `theme_${themeName}`;
+    const isSaving = !!saving[key];
+    const error = errors[key];
+    return (
+      <div className="toggle-wrapper" style={{ display: 'inline-block', marginRight: '10px', marginBottom: '10px' }}>
+        <button 
+          className={`status-indicator toggle-btn ${isActive ? 'active' : 'inactive'}`}
+          onClick={() => handleThemeToggle(themeName)}
+          title="Click to toggle theme visibility"
+          disabled={isSaving}
+        >
+          {isSaving ? 'Saving...' : (isActive ? `${themeName}` : `${themeName}`)}
+        </button>
+        {error ? <span className="setting-error" style={{display: 'block', fontSize:'0.8em'}}>{error}</span> : null}
+      </div>
+    );
+  };
+
+
   return (
     <div className="db-panel">
       <h3 className="panel-title">Parameters</h3>
@@ -159,7 +226,43 @@ export default function Parameters({ user }) {
           </div>
           <ToggleButton settingKey="share_decks" />
         </div>
+
+        <div className="setting-item">
+          <span className="setting-label">Share your collection</span>
+          <ToggleButton settingKey="is_share_collection" />
+        </div>
+
+        <div className="setting-item">
+          <span className="setting-label">Show archetype</span>
+          <ToggleButton settingKey="show_archetype" />
+        </div>
       </div>
+
+      <div className="settings-group mt-20">
+        <h4 className="settings-subtitle">Visual Settings</h4>
+        
+        <div className="setting-item">
+          <span className="setting-label">Show icon aspect</span>
+          <ToggleButton settingKey="show_icon_aspect" />
+        </div>
+      </div>
+
+      <div className="settings-group mt-20">
+        <h4 className="settings-subtitle">Theme Visibility</h4>
+        <div className="setting-item" style={{display: 'block'}}>
+          <p className="setting-description" style={{marginBottom: '15px'}}>Select which themes are visible across the application.</p>
+          <div className="themes-grid" style={{
+            display: 'flex', 
+            flexWrap: 'wrap', 
+            gap: '10px'
+          }}>
+            {Object.keys(settings.show_theme || {}).map(themeName => (
+              <ThemeToggleButton key={themeName} themeName={themeName} />
+            ))}
+          </div>
+        </div>
+      </div>
+
 
       <div className="settings-group mt-20">
         <h4 className="settings-subtitle">Notifications</h4>

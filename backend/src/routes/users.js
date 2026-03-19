@@ -108,6 +108,10 @@ router.get('/user/:id', async (req, res) => {
       is_new_ui: !!row.is_new_ui,
       is_admin: !!row.is_admin,
       is_donator: !!(Number(row.donation) > 0),
+      is_share_collection: Number(row.is_share_collection) || 0,
+      show_icon_aspect: Number(row.show_icon_aspect) || 0,
+      show_archetype: Number(row.show_archetype) || 0,
+
 
       // Notification Settings
       notifications: {
@@ -130,6 +134,32 @@ router.get('/user/:id', async (req, res) => {
         ? { name: topPrivateHeroRow.hero_name, code: topPrivateHeroRow.hero_code, count: Number(topPrivateHeroRow.cnt) }
         : null
     };
+
+    // Calculate show_theme defaults if empty
+    let showThemeObj = null;
+    if (row.show_theme) {
+      try {
+        showThemeObj = JSON.parse(row.show_theme);
+      } catch(e) { /* ignore */ }
+    }
+    
+    if (!showThemeObj || Object.keys(showThemeObj).length === 0) {
+      const dbPacks = await db('pack')
+        .distinct('theme')
+        .whereNotNull('theme')
+        .whereNot('theme', '');
+      
+      showThemeObj = {};
+      dbPacks.forEach(p => {
+        showThemeObj[p.theme] = true;
+      });
+      // Save it statically
+      if (Object.keys(showThemeObj).length > 0) {
+        await db('user').where('id', id).update({ show_theme: JSON.stringify(showThemeObj) });
+      }
+    }
+    completeUser.show_theme = showThemeObj || {};
+
 
     return res.json({ ok: true, user: completeUser });
   } catch (err) {
@@ -162,6 +192,12 @@ router.put('/user/:id/settings', requireAuth, async (req, res) => {
     if (data.notif_mention !== undefined) updateData.is_notif_mention = data.notif_mention ? 1 : 0;
     if (data.notif_follow !== undefined) updateData.is_notif_follow = data.notif_follow ? 1 : 0;
     if (data.notif_successor !== undefined) updateData.is_notif_successor = data.notif_successor ? 1 : 0;
+
+    if (data.is_share_collection !== undefined) updateData.is_share_collection = data.is_share_collection ? 1 : 0;
+    if (data.show_icon_aspect !== undefined) updateData.show_icon_aspect = data.show_icon_aspect ? 1 : 0;
+    if (data.show_archetype !== undefined) updateData.show_archetype = data.show_archetype ? 1 : 0;
+    if (data.show_theme !== undefined) updateData.show_theme = JSON.stringify(data.show_theme);
+
 
     // Mise à jour de la date de modification
     updateData.date_update = new Date();
@@ -216,7 +252,7 @@ router.get('/users/search', async (req, res) => {
 
     const users = await db('user')
       .where('username', 'like', `%${q}%`)
-      // .where('is_share_decks', 1) // Optionally restrict to users who share decks, but for now we just find users
+      .where('is_share_collection', 1)
       .select('id', 'username')
       .limit(10);
 
