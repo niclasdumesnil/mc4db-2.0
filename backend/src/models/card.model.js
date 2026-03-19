@@ -229,7 +229,7 @@ async function searchCards(filters, pagination, donator) {
       else q = q.whereRaw('c.name LIKE ?', [`%${name}%`]);
   }
   if (text) {
-      if (locale && locale !== 'en') q = q.whereRaw('(COALESCE(ct.text, c.text) LIKE ? OR COALESCE(ct.real_text, c.real_text) LIKE ?)', [`%${text}%`, `%${text}%`]);
+      if (locale && locale !== 'en') q = q.whereRaw('(COALESCE(ct.text, c.text) LIKE ? OR c.real_text LIKE ?)', [`%${text}%`, `%${text}%`]);
       else q = q.whereRaw('(c.text LIKE ? OR c.real_text LIKE ?)', [`%${text}%`, `%${text}%`]);
   }
   if (flavor) {
