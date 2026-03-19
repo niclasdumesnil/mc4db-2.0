@@ -157,13 +157,25 @@ export function TooltipContent({ card, isLink = false }) {
                     </div>
                 </div>
 
-                <div className="card-tooltip__image-box">
-                    <ImageWithWebp
-                        src={card.imagesrc}
-                        alt={card.name}
-                        locale={locale}
-                        langDir={langDir}
-                    />
+                <div className="card-tooltip__image-box tw-flex tw-gap-2 tw-items-start">
+                    <div className="tw-flex-1">
+                        <ImageWithWebp
+                            src={card.imagesrc}
+                            alt={card.name}
+                            locale={locale}
+                            langDir={langDir}
+                        />
+                    </div>
+                    {(card.linked_card?.imagesrc || card.backimagesrc) && (
+                        <div className="tw-flex-1">
+                            <ImageWithWebp
+                                src={card.linked_card?.imagesrc || card.backimagesrc}
+                                alt={`${card.name} Back`}
+                                locale={locale}
+                                langDir={langDir}
+                            />
+                        </div>
+                    )}
                 </div>
             </div>
 

@@ -156,7 +156,7 @@ export default function CardSearch({ filters, onChange, types = [], subtypes = [
     filters.name || filters.text || filters.flavor ||
     (filters.factions && filters.factions.length > 0) ||
     filters.type || filters.subtype || filters.traits ||
-    filters.is_unique !== '' ||
+    filters.is_unique !== '' || filters.include_hidden !== '' ||
     filters.cost !== '' || filters.atk !== '' || filters.thw !== '' ||
     filters.def !== '' || filters.health !== '' || filters.qty !== '' ||
     filters.res_physical || filters.res_mental || filters.res_energy || filters.res_wild ||
@@ -305,9 +305,9 @@ export default function CardSearch({ filters, onChange, types = [], subtypes = [
       <Section label="Attributes" defaultOpen={true}
         active={!!(filters.type || filters.subtype || filters.traits ||
           filters.res_physical || filters.res_mental || filters.res_energy || filters.res_wild ||
-          filters.is_unique !== '')}
+          filters.is_unique !== '' || filters.include_hidden !== '')}
         onReset={() => set({
-          type: '', subtype: '', traits: '', is_unique: '',
+          type: '', subtype: '', traits: '', is_unique: '', include_hidden: '',
           res_physical: '', res_mental: '', res_energy: '', res_wild: ''
         })}
       >
@@ -391,6 +391,20 @@ export default function CardSearch({ filters, onChange, types = [], subtypes = [
             >No</button>
           </div>
         </div>
+
+        <div className="card-search__unique-row" style={{ display: 'flex', alignItems: 'center', marginTop: 8 }}>
+          <span className="card-search__numeric-label" style={{ minWidth: '70px' }}>Hidden</span>
+          <div className="card-search__res-qty-btns">
+            <button
+              className={`card-search__res-qty-btn${!filters.include_hidden ? ' card-search__res-qty-btn--active' : ''}`}
+              onClick={() => set({ include_hidden: '' })}
+            >No</button>
+            <button
+              className={`card-search__res-qty-btn${filters.include_hidden === '1' ? ' card-search__res-qty-btn--active' : ''}`}
+              onClick={() => set({ include_hidden: '1' })}
+            >Yes</button>
+          </div>
+        </div>
       </Section>
 
       {/* ── Numerics ── */}
@@ -450,7 +464,7 @@ export default function CardSearch({ filters, onChange, types = [], subtypes = [
 export const EMPTY_FILTERS = {
   name: '', text: '', flavor: '',
   factions: [],
-  type: '', subtype: '', traits: '', is_unique: '',
+  type: '', subtype: '', traits: '', is_unique: '', include_hidden: '',
   cost: '', cost_op: '=', cost2: '', cost_op2: '=',
   qty: '', qty_op: '=', qty2: '', qty_op2: '=',
   atk: '', atk_op: '=', atk2: '', atk_op2: '=',

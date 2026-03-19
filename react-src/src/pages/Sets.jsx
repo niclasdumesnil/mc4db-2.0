@@ -17,6 +17,19 @@ function isDonator(u) {
   return !!(u.is_donator || u.donator || u.isDonator);
 }
 
+const getSessionItem = (key, defaultVal) => {
+  if (!currentUserId()) return defaultVal;
+  try {
+    const item = sessionStorage.getItem(`mc4db_${key}`);
+    return item ? JSON.parse(item) : defaultVal;
+  } catch { return defaultVal; }
+};
+
+const setSessionItem = (key, val) => {
+  if (!currentUserId()) return;
+  try { sessionStorage.setItem(`mc4db_${key}`, JSON.stringify(val)); } catch {}
+};
+
 const DISPLAY_MODES = [
   { key: 'checklist', icon: '☰', label: 'List' },
   { key: 'grid',      icon: '⊞', label: 'Image' },
@@ -191,16 +204,22 @@ async function fetchSetCards(setCode, locale = 'en') {
 // ── Horizontal Sets Bar ───────────────────────────────────────────────────────
 
 function HorizontalSetsBar({ setsData, setsLoading, selectedSet, onSelect }) {
-  const [source, setSource]       = useState('all'); // 'all' | 'official' | 'fanmade'
+  const [source, setSource]       = useState(() => getSessionItem('sets_source', 'all')); // 'all' | 'official' | 'fanmade'
   const [openCat, setOpenCat]     = useState(null);
   const [dropdownSearch, setDropdownSearch] = useState('');
   
   // Sort states
-  const [sortBy, setSortBy] = useState('alpha'); // 'alpha' | 'date'
-  const [sortDesc, setSortDesc] = useState(false); // false = Ascending, true = Descending
+  const [sortBy, setSortBy] = useState(() => getSessionItem('sets_sortBy', 'alpha')); // 'alpha' | 'date'
+  const [sortDesc, setSortDesc] = useState(() => getSessionItem('sets_sortDesc', false)); // false = Ascending, true = Descending
 
   const barRef = useRef(null);
   const dropdownSearchRef = useRef(null);
+
+  useEffect(() => {
+    setSessionItem('sets_source', source);
+    setSessionItem('sets_sortBy', sortBy);
+    setSessionItem('sets_sortDesc', sortDesc);
+  }, [source, sortBy, sortDesc]);
 
   // Close on outside click
   useEffect(() => {
@@ -411,15 +430,23 @@ export default function Sets() {
 
   const [setsData, setSetsData]         = useState(null);
   const [setsLoading, setSetsLoading]   = useState(true);
-  const [selectedSet, setSelectedSet]   = useState(null);
+  const [selectedSet, setSelectedSet]   = useState(() => getSessionItem('sets_selectedSet', null));
   const [heroCards, setHeroCards]       = useState([]);
   const [encounterCards, setEncounterCards] = useState([]);
   const [cardsLoading, setCardsLoading] = useState(false);
 
-  const [mode, setMode]         = useState('checklist');
+  const [mode, setMode]         = useState(() => getSessionItem('display_mode', 'checklist'));
   const [sort, setSort]         = useState('pack');
   const [costFilter, setCostFilter] = useState(null);
   const [boostFilter, setBoostFilter] = useState(null);
+
+  useEffect(() => {
+    setSessionItem('display_mode', mode);
+  }, [mode]);
+
+  useEffect(() => {
+    setSessionItem('sets_selectedSet', selectedSet);
+  }, [selectedSet]);
 
   // Load sets index
   const loadSets = useCallback(() => {

@@ -8,6 +8,19 @@ function currentUserId() {
   try { const u = JSON.parse(localStorage.getItem('mc_user')); return u && (u.id || u.userId); } catch (e) { return null; }
 }
 
+const getSessionItem = (key, defaultVal) => {
+  if (!currentUserId()) return defaultVal;
+  try {
+    const item = sessionStorage.getItem(`mc4db_${key}`);
+    return item ? JSON.parse(item) : defaultVal;
+  } catch { return defaultVal; }
+};
+
+const setSessionItem = (key, val) => {
+  if (!currentUserId()) return;
+  try { sessionStorage.setItem(`mc4db_${key}`, JSON.stringify(val)); } catch {}
+};
+
 // Single shared reference used to initialise both `filters` and `debouncedFilters`.
 // Because both states start from the *same* object reference, the debounce timeout
 // that fires 350 ms after mount calls setDebouncedFilters(filters) where
@@ -46,6 +59,7 @@ function buildSearchUrl(filters, page, sort, order, showDuplicates, showAltArt, 
   if (filters.type) params.set('type', filters.type);
   if (filters.subtype) params.set('subtype', filters.subtype);
   if (filters.traits) params.set('traits', filters.traits);
+  if (filters.include_hidden) params.set('include_hidden', filters.include_hidden);
   if (filters.is_unique !== '') params.set('is_unique', filters.is_unique);
   if (filters.illustrator) params.set('illustrator', filters.illustrator);
 
@@ -169,19 +183,20 @@ export default function CardList() {
   const [totalFanmade, setTotalFanmade] = useState(0);
   const [totalSumFanmade, setTotalSumFanmade] = useState(0);
   const [totalDuplicates, setTotalDuplicates] = useState(0);
-  const [sort, setSort] = useState('pack');
-  const [order, setOrder] = useState('asc');
-  const [showDuplicates, setShowDuplicates] = useState(false);
-  const [showAltArt, setShowAltArt] = useState(true);
-  const [showOfficial, setShowOfficial] = useState(true);
-  const [showFanmade, setShowFanmade] = useState(true);
-  const [showOnlyCurrent, setShowOnlyCurrent] = useState(false);
+  const [sort, setSort] = useState(() => getSessionItem('cardlist_sort', 'pack'));
+  const [order, setOrder] = useState(() => getSessionItem('cardlist_order', 'asc'));
+  const [showDuplicates, setShowDuplicates] = useState(() => getSessionItem('cardlist_showDuplicates', false));
+  const [showAltArt, setShowAltArt] = useState(() => getSessionItem('cardlist_showAltArt', true));
+  const [showOfficial, setShowOfficial] = useState(() => getSessionItem('cardlist_showOfficial', true));
+  const [showFanmade, setShowFanmade] = useState(() => getSessionItem('cardlist_showFanmade', true));
+  const [showOnlyCurrent, setShowOnlyCurrent] = useState(() => getSessionItem('cardlist_showOnlyCurrent', false));
   const [totalSumDuplicates, setTotalSumDuplicates] = useState(0);
   const [totalCurrentOfficial, setTotalCurrentOfficial] = useState(0);
   const [totalSumCurrentOfficial, setTotalSumCurrentOfficial] = useState(0);
   const [totalAltArts, setTotalAltArts] = useState(0);
-  const [mode, setMode] = useState('checklist');
-  const [filters, setFilters] = useState(_INIT_FILTERS);
+  const [mode, setMode] = useState(() => getSessionItem('display_mode', 'checklist'));
+  const initialFilters = useMemo(() => getSessionItem('cardlist_filters', _INIT_FILTERS), []);
+  const [filters, setFilters] = useState(initialFilters);
   const [attributes, setAttributes] = useState({ types: [], subtypes: [], illustrators: [] });
   const [selectedTheme, setSelectedTheme] = useState('all');
   const [themes, setThemes] = useState([]);
@@ -190,7 +205,22 @@ export default function CardList() {
   const debounceRef = useRef(null);
   // Start from the *same* reference as `filters` to avoid a spurious second fetch
   // 350 ms after mount (see module-level _INIT_FILTERS comment above).
-  const [debouncedFilters, setDebouncedFilters] = useState(_INIT_FILTERS);
+  const [debouncedFilters, setDebouncedFilters] = useState(initialFilters);
+
+  useEffect(() => {
+    setSessionItem('cardlist_showDuplicates', showDuplicates);
+    setSessionItem('cardlist_showAltArt', showAltArt);
+    setSessionItem('cardlist_showOfficial', showOfficial);
+    setSessionItem('cardlist_showFanmade', showFanmade);
+    setSessionItem('cardlist_showOnlyCurrent', showOnlyCurrent);
+    setSessionItem('display_mode', mode);
+    setSessionItem('cardlist_sort', sort);
+    setSessionItem('cardlist_order', order);
+  }, [showDuplicates, showAltArt, showOfficial, showFanmade, showOnlyCurrent, mode, sort, order]);
+
+  useEffect(() => {
+    setSessionItem('cardlist_filters', filters);
+  }, [filters]);
 
   useEffect(() => {
     fetch('/api/public/cards/attributes')

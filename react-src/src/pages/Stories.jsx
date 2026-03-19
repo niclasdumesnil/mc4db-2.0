@@ -216,10 +216,11 @@ function ChallengeTab() {
 
     // 1. Fetch fm_theme pack list
     // 2. Fetch ALL challenge cards (high limit) in one search request
-    const packsParams = new URLSearchParams();
+    const locale = localStorage.getItem('mc_locale') || window.__MC_LOCALE__ || 'en';
+    const packsParams = new URLSearchParams({ locale });
     if (userId) packsParams.set('user_id', userId);
 
-    const cardsParams = new URLSearchParams({ type: 'challenge', limit: '500', sort: 'pack' });
+    const cardsParams = new URLSearchParams({ type: 'challenge', limit: '500', sort: 'pack', locale });
     if (userId) cardsParams.set('user_id', userId);
 
     Promise.all([
@@ -492,7 +493,8 @@ function ScenarioStatsSidebar({ scenario, onDeselect }) {
     // Fetch main scheme cards for briefing section
     if (scenario.villain_set_code) {
       const userId = currentUserId();
-      const p = new URLSearchParams({ cardset: scenario.villain_set_code, type: 'main_scheme', limit: '50', include_hidden: '1' });
+      const locale = localStorage.getItem('mc_locale') || window.__MC_LOCALE__ || 'en';
+      const p = new URLSearchParams({ cardset: scenario.villain_set_code, type: 'main_scheme', limit: '50', include_hidden: '1', locale });
       if (userId) p.set('user_id', userId);
       fetch(`/api/public/cards/search?${p}`)
         .then(r => r.json())
@@ -532,7 +534,8 @@ function ScenarioStatsSidebar({ scenario, onDeselect }) {
     setLoadingSet(true);
     setCachedCards(null);
     const userId = currentUserId();
-    const params = new URLSearchParams({ cardset: activeSet, limit: '500' });
+    const locale = localStorage.getItem('mc_locale') || window.__MC_LOCALE__ || 'en';
+    const params = new URLSearchParams({ cardset: activeSet, limit: '500', locale });
     if (userId) params.set('user_id', userId);
     fetch(`/api/public/cards/search?${params}`)
       .then(r => r.json())
@@ -555,7 +558,8 @@ function ScenarioStatsSidebar({ scenario, onDeselect }) {
     const userId = currentUserId();
     const toFetch = sets.filter(s => cacheRef.current[`${scenario.id}__${s.code}`] === undefined);
     const fetchSet = (code) => {
-      const params = new URLSearchParams({ cardset: code, limit: '500' });
+      const locale = localStorage.getItem('mc_locale') || window.__MC_LOCALE__ || 'en';
+      const params = new URLSearchParams({ cardset: code, limit: '500', locale });
       if (userId) params.set('user_id', userId);
       return fetch(`/api/public/cards/search?${params}`)
         .then(r => r.json())
@@ -747,10 +751,11 @@ function ScenarioTab() {
 
   const fetchScenarios = useCallback(() => {
     const userId = currentUserId();
-    const params = new URLSearchParams();
+    const locale = localStorage.getItem('mc_locale') || window.__MC_LOCALE__ || 'en';
+    const params = new URLSearchParams({ locale });
     if (userId) params.set('user_id', userId);
     setLoading(true);
-    fetch(`/api/public/scenarios${params.toString() ? '?' + params : ''}`)
+    fetch(`/api/public/scenarios?${params}`)
       .then(r => r.json())
       .then(data => {
         if (Array.isArray(data)) setScenarios(data);
