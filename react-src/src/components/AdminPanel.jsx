@@ -311,6 +311,7 @@ export default function AdminPanel({ onUserUpdate }) {
   const [stats, setStats]             = useState(null);
   const [users, setUsers]             = useState([]);
   const [loading, setLoading]         = useState(true);
+  const [errorMsg, setErrorMsg]       = useState(null);
   const [showCreate, setShowCreate]   = useState(false);
   const [resetTarget, setResetTarget] = useState(null);
   const [roleLoading, setRoleLoading] = useState({});
@@ -329,15 +330,23 @@ export default function AdminPanel({ onUserUpdate }) {
 
   const loadData = useCallback(async () => {
     setLoading(true);
+    setErrorMsg(null);
     try {
       const options = { headers: getAuthHeaders() };
       const [statsRes, usersRes] = await Promise.all([
         fetch('/api/public/admin/stats', options).then(r => r.json()),
         fetch('/api/public/admin/users', options).then(r => r.json()),
       ]);
-      if (statsRes.ok) setStats(statsRes.stats);
-      if (usersRes.ok) { setUsers(usersRes.users); setPage(1); }
-    } catch { /* ignore */ }
+      if (statsRes.ok && usersRes.ok) {
+        setStats(statsRes.stats);
+        setUsers(usersRes.users);
+        setPage(1);
+      } else {
+        setErrorMsg(statsRes.error || usersRes.error || 'Failed to load panel data. Please try logging out and logging back in to refresh your admin session.');
+      }
+    } catch {
+      setErrorMsg('Network error. Ensure the API server is running.');
+    }
     setLoading(false);
   }, []);
 
@@ -394,7 +403,13 @@ export default function AdminPanel({ onUserUpdate }) {
 
       {loading && <div className="db-status" style={{ padding: '20px 0' }}>Loading…</div>}
 
-      {!loading && stats && (
+      {!loading && errorMsg && (
+        <div className="admin-form-error" style={{ margin: '20px 0', fontSize: '1rem', textAlign: 'center' }}>
+          ⚠️ {errorMsg}
+        </div>
+      )}
+
+      {!loading && !errorMsg && stats && (
         <>
           {/* ── Global stats ── */}
           <div className="admin-stats-row">

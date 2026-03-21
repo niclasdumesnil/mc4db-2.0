@@ -19,6 +19,22 @@ import NewDeck from './pages/NewDeck';
 import Stories from './pages/Stories';
 import Sets from './pages/Sets';
 
+// ── Global Fetch Interceptor ──
+// Automatically log out if the API returns 401 Unauthorized (e.g. expired token)
+const originalFetch = window.fetch;
+window.fetch = async function(...args) {
+  const response = await originalFetch(...args);
+  if (response.status === 401) {
+    if (localStorage.getItem('mc_token')) {
+      console.warn('[mc4db] 401 Unauthorized detected. Session expired, logging out.');
+      localStorage.removeItem('mc_token');
+      localStorage.removeItem('mc_user');
+      window.dispatchEvent(new Event('mc_user_changed'));
+    }
+  }
+  return response;
+};
+
 function mountAllCards() {
   document.querySelectorAll('[data-react-component="CardFront"]').forEach((container) => {
     try {
