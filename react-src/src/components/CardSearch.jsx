@@ -314,13 +314,8 @@ export default function CardSearch({ filters, onChange, types = [], subtypes = [
           <div className="deck-filters__aspects" style={{ flexWrap: 'wrap' }}>
             <button
               className={`deck-filters__aspect-btn deck-filters__aspect-btn--all${!hasActiveMain ? ' deck-filters__aspect-btn--active' : ''}`}
-              style={{
-                borderColor: !hasActiveMain ? '#6366f1' : 'transparent',
-                background: !hasActiveMain ? 'rgba(99,102,241,0.2)' : 'rgba(255,255,255,0.05)',
-                color: !hasActiveMain ? '#a5b4fc' : '#cbd5e1',
-              }}
               onClick={clearMainTypes}
-            >Any</button>
+            >All</button>
             {mainVisibleTypes.map(t => {
               const active = currentTypeArr.includes(t.code);
               return (
@@ -351,13 +346,8 @@ export default function CardSearch({ filters, onChange, types = [], subtypes = [
           <div className="deck-filters__aspects" style={{ flexWrap: 'wrap' }}>
             <button
               className={`deck-filters__aspect-btn deck-filters__aspect-btn--all${!hasActiveSpecial ? ' deck-filters__aspect-btn--active' : ''}`}
-              style={{
-                borderColor: !hasActiveSpecial ? '#6366f1' : 'transparent',
-                background: !hasActiveSpecial ? 'rgba(99,102,241,0.2)' : 'rgba(255,255,255,0.05)',
-                color: !hasActiveSpecial ? '#a5b4fc' : '#cbd5e1',
-              }}
               onClick={clearSpecialTypes}
-            >Any</button>
+            >All</button>
             {specialVisibleTypes.map(t => {
               const active = currentTypeArr.includes(t.code);
               return (
