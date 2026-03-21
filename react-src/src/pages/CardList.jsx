@@ -361,7 +361,22 @@ export default function CardList() {
 
         {/* ── Top: Pack filter ── */}
         <div className="cardlist-topbar">
-          <p className="cardlist-topbar-title">Filter by pack / by creator</p>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+            <p className="cardlist-topbar-title" style={{ margin: 0 }}>Filter by pack / by creator</p>
+            {(filters.pack || filters.creator_name) && (
+              <button 
+                className="card-search-reset" 
+                style={{ position: 'relative', top: 0, right: 0 }}
+                onClick={() => {
+                  const newFilters = { ...filters, pack: '', creator_name: '' };
+                  setFilters(newFilters);
+                  setDebouncedFilters(newFilters);
+                  setPage(1);
+                }}
+                title="Reset pack and creator filters"
+              >✕</button>
+            )}
+          </div>
           <PackSearch
             currentPackCode={filters.pack}
             currentCreatorName={filters.creator_name}

@@ -142,14 +142,51 @@ export default function CardSearch({ filters, onChange, types = [], subtypes = [
     onChange({ ...filters, factions });
   };
 
-  const clearAffinities = () => {
-    const factions = (filters.factions || []).filter(f => CATEGORIES.some(c => c.code === f));
-    onChange({ ...filters, factions });
+  const clearAllFactions = () => {
+    onChange({ ...filters, factions: [] });
   };
 
-  const clearCategories = () => {
-    const factions = (filters.factions || []).filter(f => AFFINITIES.some(a => a.code === f));
-    onChange({ ...filters, factions });
+  const encounterTypes = ['villain', 'main_scheme', 'side_scheme', 'environment', 'minion', 'treachery', 'attachment', 'obligation', 'leader'];
+  const heroTypes = ['hero', 'alter_ego'];
+  const playerTypes = ['event', 'support', 'upgrade', 'resource', 'ally', 'player_side_scheme', 'player_minion'];
+  const campaignTypes = ['campaign', 'player_side_scheme'];
+
+  const activeFactions = filters.factions || [];
+  const visibleTypes = types.filter(t => {
+    if (activeFactions.length === 0) return true;
+    let allowed = false;
+    if (activeFactions.includes('encounter') && encounterTypes.includes(t.code)) allowed = true;
+    if (activeFactions.includes('campaign') && campaignTypes.includes(t.code)) allowed = true;
+    if (activeFactions.includes('hero') && (heroTypes.includes(t.code) || playerTypes.includes(t.code))) allowed = true;
+    if (activeFactions.some(f => f !== 'encounter' && f !== 'campaign') && playerTypes.includes(t.code)) allowed = true;
+    return allowed;
+  });
+
+  const specialVisibleTypes = visibleTypes.filter(t => t.code === 'challenge' || t.name.toLowerCase().startsWith('evidence'));
+  const mainVisibleTypes = visibleTypes.filter(t => !(t.code === 'challenge' || t.name.toLowerCase().startsWith('evidence')));
+
+  const currentTypeArr = (filters.type || '').split(',').filter(Boolean);
+  const hasActiveMain = mainVisibleTypes.some(t => currentTypeArr.includes(t.code));
+  const hasActiveSpecial = specialVisibleTypes.some(t => currentTypeArr.includes(t.code));
+
+  const toggleType = (code) => {
+    const arr = (filters.type || '').split(',').filter(Boolean);
+    const newArr = arr.includes(code) ? arr.filter(t => t !== code) : [...arr, code];
+    set({ type: newArr.join(',') });
+  };
+
+  const clearMainTypes = () => {
+    const currentTypes = (filters.type || '').split(',').filter(Boolean);
+    const mainCodes = mainVisibleTypes.map(t => t.code);
+    const newTypes = currentTypes.filter(code => !mainCodes.includes(code));
+    set({ type: newTypes.join(',') });
+  };
+  
+  const clearSpecialTypes = () => {
+    const currentTypes = (filters.type || '').split(',').filter(Boolean);
+    const specialCodes = specialVisibleTypes.map(t => t.code);
+    const newTypes = currentTypes.filter(code => !specialCodes.includes(code));
+    set({ type: newTypes.join(',') });
   };
 
   const hasFilters =
@@ -231,20 +268,20 @@ export default function CardSearch({ filters, onChange, types = [], subtypes = [
         </Section>
       )}
 
-      {/* ── Category / Faction ── */}
+      {/* ── Category & Affinity ── */}
       <Section label="Category" defaultOpen={true}
-        active={!!(filters.factions && CATEGORIES.some(c => filters.factions.includes(c.code)))}
-        onReset={clearCategories}
+        active={!!(filters.factions && filters.factions.length > 0)}
+        onReset={clearAllFactions}
       >
         <div className="deck-filters__aspects" style={{ flexWrap: 'wrap' }}>
           <button
-            className={`deck-filters__aspect-btn deck-filters__aspect-btn--all${!(filters.factions && filters.factions.some(f => CATEGORIES.some(c => c.code === f)))
+            className={`deck-filters__aspect-btn deck-filters__aspect-btn--all${!(filters.factions && filters.factions.length > 0)
               ? ' deck-filters__aspect-btn--active'
               : ''
               }`}
-            onClick={clearCategories}
+            onClick={clearAllFactions}
           >All</button>
-          {CATEGORIES.map(f => {
+          {[...CATEGORIES, ...AFFINITIES].map(f => {
             const active = (filters.factions || []).includes(f.code);
             const color = getFactionColor(f.code);
             return (
@@ -266,40 +303,81 @@ export default function CardSearch({ filters, onChange, types = [], subtypes = [
         </div>
       </Section>
 
-      {/* ── Affinity / Aspect ── */}
-      <Section label="Affinity" defaultOpen={true}
-        active={!!(filters.factions && AFFINITIES.some(a => filters.factions.includes(a.code)))}
-        onReset={clearAffinities}
+      {/* ── Main Type ── */}
+      <Section label="Main Type" defaultOpen={true}
+        active={hasActiveMain}
+        onReset={clearMainTypes}
       >
-        <div className="deck-filters__aspects" style={{ flexWrap: 'wrap' }}>
-          <button
-            className={`deck-filters__aspect-btn deck-filters__aspect-btn--all${!(filters.factions && filters.factions.some(f => AFFINITIES.some(a => a.code === f)))
-              ? ' deck-filters__aspect-btn--active'
-              : ''
-              }`}
-            onClick={clearAffinities}
-          >All</button>
-          {AFFINITIES.map(f => {
-            const active = (filters.factions || []).includes(f.code);
-            const color = getFactionColor(f.code);
-            return (
-              <button
-                key={f.code}
-                className={`deck-filters__aspect-btn${active ? ' deck-filters__aspect-btn--active' : ''}`}
-                style={{
-                  borderColor: active ? color : `${color}55`,
-                  background: active ? color : `${color}18`,
-                  color: active ? '#fff' : `${color}cc`,
-                }}
-                title={f.label}
-                onClick={() => toggleFaction(f.code)}
-              >
-                {f.label}
-              </button>
-            );
-          })}
-        </div>
+        {mainVisibleTypes.length === 0 ? (
+           <div style={{ color: '#aaa', fontSize: '0.85rem', fontStyle: 'italic' }}>No matching main types found.</div>
+        ) : (
+          <div className="deck-filters__aspects" style={{ flexWrap: 'wrap' }}>
+            <button
+              className={`deck-filters__aspect-btn deck-filters__aspect-btn--all${!hasActiveMain ? ' deck-filters__aspect-btn--active' : ''}`}
+              style={{
+                borderColor: !hasActiveMain ? '#6366f1' : 'transparent',
+                background: !hasActiveMain ? 'rgba(99,102,241,0.2)' : 'rgba(255,255,255,0.05)',
+                color: !hasActiveMain ? '#a5b4fc' : '#cbd5e1',
+              }}
+              onClick={clearMainTypes}
+            >Any</button>
+            {mainVisibleTypes.map(t => {
+              const active = currentTypeArr.includes(t.code);
+              return (
+                <button
+                  key={t.code}
+                  className={`deck-filters__aspect-btn${active ? ' deck-filters__aspect-btn--active' : ''}`}
+                  style={{
+                    borderColor: active ? '#6366f1' : 'transparent',
+                    background: active ? 'rgba(99,102,241,0.2)' : 'rgba(255,255,255,0.05)',
+                    color: active ? '#a5b4fc' : '#cbd5e1',
+                  }}
+                  onClick={() => toggleType(t.code)}
+                >
+                  {t.name}
+                </button>
+              );
+            })}
+          </div>
+        )}
       </Section>
+
+      {/* ── Special Type ── */}
+      {specialVisibleTypes.length > 0 && (
+        <Section label="Special Type" defaultOpen={false}
+          active={hasActiveSpecial}
+          onReset={clearSpecialTypes}
+        >
+          <div className="deck-filters__aspects" style={{ flexWrap: 'wrap' }}>
+            <button
+              className={`deck-filters__aspect-btn deck-filters__aspect-btn--all${!hasActiveSpecial ? ' deck-filters__aspect-btn--active' : ''}`}
+              style={{
+                borderColor: !hasActiveSpecial ? '#6366f1' : 'transparent',
+                background: !hasActiveSpecial ? 'rgba(99,102,241,0.2)' : 'rgba(255,255,255,0.05)',
+                color: !hasActiveSpecial ? '#a5b4fc' : '#cbd5e1',
+              }}
+              onClick={clearSpecialTypes}
+            >Any</button>
+            {specialVisibleTypes.map(t => {
+              const active = currentTypeArr.includes(t.code);
+              return (
+                <button
+                  key={t.code}
+                  className={`deck-filters__aspect-btn${active ? ' deck-filters__aspect-btn--active' : ''}`}
+                  style={{
+                    borderColor: active ? '#6366f1' : 'transparent',
+                    background: active ? 'rgba(99,102,241,0.2)' : 'rgba(255,255,255,0.05)',
+                    color: active ? '#a5b4fc' : '#cbd5e1',
+                  }}
+                  onClick={() => toggleType(t.code)}
+                >
+                  {t.name}
+                </button>
+              );
+            })}
+          </div>
+        </Section>
+      )}
 
       {/* ── Attributes ── */}
       <Section label="Attributes" defaultOpen={true}
@@ -311,27 +389,9 @@ export default function CardSearch({ filters, onChange, types = [], subtypes = [
           res_physical: '', res_mental: '', res_energy: '', res_wild: ''
         })}
       >
-        <span className="card-search__numeric-label">Type</span>
-        <select
-          className="card-search__select"
-          value={filters.type || ''}
-          onChange={e => set({ type: e.target.value })}
-          style={{ marginBottom: 8 }}
-        >
-          <option value="">any</option>
-          {types.map(t => <option key={t.code} value={t.code}>{t.name}</option>)}
-        </select>
 
-        <span className="card-search__numeric-label">SubType</span>
-        <select
-          className="card-search__select"
-          value={filters.subtype || ''}
-          onChange={e => set({ subtype: e.target.value })}
-          style={{ marginBottom: 8 }}
-        >
-          <option value="">any</option>
-          {subtypes.map(st => <option key={st.code} value={st.code}>{st.name}</option>)}
-        </select>
+
+
 
         <span className="card-search__numeric-label">Traits</span>
         <input
@@ -373,6 +433,20 @@ export default function CardSearch({ filters, onChange, types = [], subtypes = [
           </div>
         </div>
         <div style={{ marginBottom: 8 }} />
+
+        <div className="card-search__unique-row" style={{ display: 'flex', alignItems: 'center', marginBottom: 8 }}>
+          <span className="card-search__numeric-label" style={{ minWidth: '70px' }}>SubType</span>
+          <div className="card-search__res-qty-btns">
+            <button
+              className={`card-search__res-qty-btn${!filters.subtype ? ' card-search__res-qty-btn--active' : ''}`}
+              onClick={() => set({ subtype: '' })}
+            >Any</button>
+            <button
+              className={`card-search__res-qty-btn${filters.subtype === 'nemesis' ? ' card-search__res-qty-btn--active' : ''}`}
+              onClick={() => set({ subtype: 'nemesis' })}
+            >Nemesis</button>
+          </div>
+        </div>
 
         <div className="card-search__unique-row" style={{ display: 'flex', alignItems: 'center' }}>
           <span className="card-search__numeric-label" style={{ minWidth: '70px' }}>Unique</span>

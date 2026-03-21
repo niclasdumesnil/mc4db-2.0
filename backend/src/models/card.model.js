@@ -249,7 +249,10 @@ async function searchCards(filters, pagination, donator) {
         });
       });
   }
-  if (type) q = q.where('t.code', type);
+  const typesList = type ? type.split(',').map(s => s.trim()).filter(Boolean) : [];
+  if (typesList.length > 0) {
+      q = q.whereIn('t.code', typesList);
+  }
   if (subtype) q = q.where('st.code', subtype);
   if (traits) {
       if (locale && locale !== 'en') q = q.whereRaw('COALESCE(ct.traits, c.traits) LIKE ?', [`%${traits}%`]);
