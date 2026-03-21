@@ -393,7 +393,16 @@ export default function CardSearch({ filters, onChange, types = [], subtypes = [
           style={{ marginBottom: 8 }}
         />
 
-        <span className="card-search__numeric-label">Resources (min)</span>
+        <div className="card-search__unique-row" style={{ display: 'flex', alignItems: 'center', marginBottom: 8 }}>
+          <span className="card-search__numeric-label" style={{ minWidth: '130px', marginBottom: 0 }}>Resources (min)</span>
+          <div className="card-search__res-qty-btns">
+            <button
+              className={`card-search__res-qty-btn${!filters.res_physical && !filters.res_mental && !filters.res_energy && !filters.res_wild
+                ? ' card-search__res-qty-btn--active' : ''}`}
+              onClick={() => set({ res_physical: '', res_mental: '', res_energy: '', res_wild: '' })}
+            >Any</button>
+          </div>
+        </div>
         <div className="card-search__res-grid">
           {[
             { key: 'res_physical', iconCls: 'icon-physical' },
@@ -414,27 +423,20 @@ export default function CardSearch({ filters, onChange, types = [], subtypes = [
               <span className={`cl-res-icon ${r.iconCls} card-search__res-icon-inline`} />
             </div>
           ))}
-          <div className="card-search__res-item card-search__res-item--any">
-            <button
-              className={`card-search__res-qty-btn card-search__res-any-btn${!filters.res_physical && !filters.res_mental && !filters.res_energy && !filters.res_wild
-                ? ' card-search__res-qty-btn--active' : ''}`}
-              onClick={() => set({ res_physical: '', res_mental: '', res_energy: '', res_wild: '' })}
-            >Any</button>
-          </div>
         </div>
         <div style={{ marginBottom: 8 }} />
 
         <div className="card-search__unique-row" style={{ display: 'flex', alignItems: 'center', marginBottom: 8 }}>
-          <span className="card-search__numeric-label" style={{ minWidth: '70px' }}>SubType</span>
+          <span className="card-search__numeric-label" style={{ minWidth: '130px' }}>Show only Nemesis</span>
           <div className="card-search__res-qty-btns">
-            <button
-              className={`card-search__res-qty-btn${!filters.subtype ? ' card-search__res-qty-btn--active' : ''}`}
-              onClick={() => set({ subtype: '' })}
-            >Any</button>
             <button
               className={`card-search__res-qty-btn${filters.subtype === 'nemesis' ? ' card-search__res-qty-btn--active' : ''}`}
               onClick={() => set({ subtype: 'nemesis' })}
-            >Nemesis</button>
+            >Yes</button>
+            <button
+              className={`card-search__res-qty-btn${filters.subtype === '' ? ' card-search__res-qty-btn--active' : ''}`}
+              onClick={() => set({ subtype: '' })}
+            >No</button>
           </div>
         </div>
 
