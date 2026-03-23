@@ -55,9 +55,10 @@ export function isTeamUpCard(card) {
 function checkOption(option, card, deckSlotsMap, allCards, prebuiltCardMap = null) {
   // faction check
   if (option.faction && option.faction.length > 0) {
+    const factions = Array.isArray(option.faction) ? option.faction : [option.faction];
     const fc  = (card.faction_code  || '').toLowerCase();
     const fc2 = (card.faction2_code || '').toLowerCase();
-    const factionValid = option.faction.some(f =>
+    const factionValid = factions.some(f =>
       f === fc || (fc2 && f === fc2)
     );
     if (!factionValid) return false;
@@ -65,15 +66,17 @@ function checkOption(option, card, deckSlotsMap, allCards, prebuiltCardMap = nul
 
   // type check
   if (option.type && option.type.length > 0) {
-    if (!option.type.includes(card.type_code)) return false;
+    const types = Array.isArray(option.type) ? option.type : [option.type];
+    if (!types.includes(card.type_code)) return false;
   }
 
   // trait check – "Avenger." must appear in the card's real_traits
   // Strip any trailing dot from the option value before appending one, so that
   // traits like "S.H.I.E.L.D." (already dot-terminated) don't become "S.H.I.E.L.D.."
   if (option.trait && option.trait.length > 0) {
+    const traits = Array.isArray(option.trait) ? option.trait : [option.trait];
     const realTraits = (card.real_traits || card.traits || '').toUpperCase();
-    const traitValid = option.trait.some(t => {
+    const traitValid = traits.some(t => {
       const normalized = t.replace(/\.$/, '');
       return realTraits.includes(normalized.toUpperCase() + '.');
     });
@@ -82,8 +85,9 @@ function checkOption(option, card, deckSlotsMap, allCards, prebuiltCardMap = nul
 
   // text regex check
   if (option.text && option.text.length > 0) {
+    const texts = Array.isArray(option.text) ? option.text : [option.text];
     const cardText = (card.real_text || card.text || '').toLowerCase();
-    const textValid = option.text.some(t => {
+    const textValid = texts.some(t => {
       try { return new RegExp(t).test(cardText); } catch { return false; }
     });
     if (!textValid) return false;
@@ -91,8 +95,9 @@ function checkOption(option, card, deckSlotsMap, allCards, prebuiltCardMap = nul
 
   // uses check – keyword like "Charge)." appearing in text
   if (option.uses && option.uses.length > 0) {
+    const uses = Array.isArray(option.uses) ? option.uses : [option.uses];
     const realText = (card.real_text || card.text || '').toUpperCase();
-    const usesValid = option.uses.some(u =>
+    const usesValid = uses.some(u =>
       realText.includes(u.toUpperCase() + ').')
     );
     if (!usesValid) return false;
@@ -113,7 +118,8 @@ function checkOption(option, card, deckSlotsMap, allCards, prebuiltCardMap = nul
   // resource check – card must have at least one of the listed resource types
   // e.g. option.resource = ["energy"] means card.resource_energy > 0
   if (option.resource && option.resource.length > 0) {
-    const hasResource = option.resource.some(r => {
+    const resources = Array.isArray(option.resource) ? option.resource : [option.resource];
+    const hasResource = resources.some(r => {
       const key = `resource_${r.toLowerCase()}`;
       return card[key] && card[key] > 0;
     });
@@ -171,6 +177,8 @@ function countOptionMatches(option, deckSlotsMap, allCards, heroCard, deckAspect
       const cf  = (c.faction_code  || '').toLowerCase();
       const cf2 = (c.faction2_code || '').toLowerCase();
       if (cf === deckAspect || (cf2 && cf2 === deckAspect)) continue;
+      // Les cartes basiques (et autres non-aspects) sont toujours autorisées, elles ne comptent pas dans la limite hors-aspect
+      if (NON_ASPECT_FACTIONS.has(cf)) continue;
     }
     if (checkOption(optNoLimit, c, deckSlotsMap, allCards, cardMap)) count += qty;
   }
@@ -197,6 +205,8 @@ function countOptionNameMatches(option, deckSlotsMap, allCards, heroCard, deckAs
       const cf  = (c.faction_code  || '').toLowerCase();
       const cf2 = (c.faction2_code || '').toLowerCase();
       if (cf === deckAspect || (cf2 && cf2 === deckAspect)) continue;
+      // Les cartes basiques (et autres non-aspects) sont toujours autorisées, elles ne comptent pas dans la limite hors-aspect
+      if (NON_ASPECT_FACTIONS.has(cf)) continue;
     }
     if (checkOption(optStripped, c, deckSlotsMap, allCards, cardMap)) {
       names.add(c.duplicate_of_code || code);
@@ -488,17 +498,25 @@ export function getDeckProblems(slotsMap, heroCard, allCards, deckAspect) {
 
   // ── Size ──
   const deckSize = getDeckSize(slotsMap, allCards);
-  if (deckSize < 40) problems.push(`Too few cards: ${deckSize}/40 minimum`);
-  if (deckSize > 50) problems.push(`Too many cards: ${deckSize}/50 maximum`);
+  let minSize = 40;
+  let maxSize = 50;
+
+  // Règle spéciale pour Beast (202901a)
+  if (heroCard?.code === '202901a') {
+    minSize = 45;
+  }
+
+  if (deckSize < minSize) problems.push(`Too few cards: ${deckSize}/${minSize} minimum`);
+  if (deckSize > maxSize) problems.push(`Too many cards: ${deckSize}/${maxSize} maximum`);
 
   // ── Option limits (e.g. Gamora: max 6 attack/thwart events) ──
   if (heroCard?.deck_options) {
     for (const option of heroCard.deck_options) {
       if (option.not) continue;
       const parts = [];
-      if (option.type)  parts.push(option.type.join('/'));
-      if (option.trait) parts.push(`[${option.trait.join('/')}]`);
-      if (option.faction) parts.push(option.faction.join('/'));
+      if (option.type)  parts.push(Array.isArray(option.type) ? option.type.join('/') : option.type);
+      if (option.trait) parts.push(`[${Array.isArray(option.trait) ? option.trait.join('/') : option.trait}]`);
+      if (option.faction) parts.push(Array.isArray(option.faction) ? option.faction.join('/') : option.faction);
       const desc = parts.length ? parts.join(' ') : 'cards';
 
       // limit: max total quantity of matching off-aspect cards
