@@ -91,21 +91,22 @@ export default function ImageWithWebp({ src, id, alt, className, locale, langDir
       });
 
     (async () => {
+      let found = false;
       for (let i = 0; i < candidates.length; i++) {
         if (cancelled) break;
         const url = candidates[i];
         let ok = null;
         try { ok = await probeWithFetch(url); } catch (e) { ok = null; }
-        if (ok === true) { if (!cancelled) setIdx(i); break; }
+        if (ok === true) { if (!cancelled) { setIdx(i); found = true; } break; }
         if (ok === false) continue;
         try {
           const r = await probeWithImage(url);
-          if (r) { if (!cancelled) setIdx(i); break; }
+          if (r) { if (!cancelled) { setIdx(i); found = true; } break; }
         } catch (e) {}
       }
       
       // If none worked, fallback to the last candidate (missing.webp)
-      if (!cancelled) setIdx(candidates.length - 1);
+      if (!cancelled && !found) setIdx(candidates.length - 1);
     })();
 
     return () => { cancelled = true; };
