@@ -211,9 +211,9 @@ export default function CardSearch({ filters, onChange, types = [], subtypes = [
       </div>
 
       {/* ── Text searches ── */}
-      <Section label="Name" defaultOpen={true}
-        active={!!filters.name}
-        onReset={() => set({ name: '' })}
+            <Section label="Name" defaultOpen={true}
+        active={!!filters.name || filters.is_unique !== '' || filters.include_hidden !== ''}
+        onReset={() => set({ name: '', is_unique: '', include_hidden: '' })}
       >
         <input
           className="card-search__input"
@@ -221,57 +221,45 @@ export default function CardSearch({ filters, onChange, types = [], subtypes = [
           placeholder="Card name…"
           value={filters.name || ''}
           onChange={e => set({ name: e.target.value })}
+          style={{ marginBottom: 12 }}
         />
+        
+        <div className="card-search__unique-row" style={{ display: 'flex', alignItems: 'center' }}>
+          <span className="card-search__numeric-label" style={{ minWidth: '60px' }}>Unique</span>
+          <div className="card-search__res-qty-btns">
+            <button
+              className={"card-search__res-qty-btn" + (filters.is_unique === '' ? ' card-search__res-qty-btn--active' : '')}
+              onClick={() => set({ is_unique: '' })}
+            >Any</button>
+            <button
+              className={"card-search__res-qty-btn" + (filters.is_unique === '1' ? ' card-search__res-qty-btn--active' : '')}
+              onClick={() => set({ is_unique: '1' })}
+            >Yes</button>
+            <button
+              className={"card-search__res-qty-btn" + (filters.is_unique === '0' ? ' card-search__res-qty-btn--active' : '')}
+              onClick={() => set({ is_unique: '0' })}
+            >No</button>
+          </div>
+        </div>
+
+        <div className="card-search__unique-row" style={{ display: 'flex', alignItems: 'center', marginTop: 8 }}>
+          <span className="card-search__numeric-label" style={{ minWidth: '60px' }}>Hidden</span>
+          <div className="card-search__res-qty-btns">
+            <button
+              className={"card-search__res-qty-btn" + (!filters.include_hidden ? ' card-search__res-qty-btn--active' : '')}
+              onClick={() => set({ include_hidden: '' })}
+            >No</button>
+            <button
+              className={"card-search__res-qty-btn" + (filters.include_hidden === '1' ? ' card-search__res-qty-btn--active' : '')}
+              onClick={() => set({ include_hidden: '1' })}
+            >Yes</button>
+          </div>
+        </div>
       </Section>
 
       <Section label="Text" defaultOpen={false}
         active={!!(filters.text || filters.flavor)}
         onReset={() => set({ text: '', flavor: '' })}
-      >
-        <input
-          className="card-search__input"
-          type="text"
-          placeholder="Card text…"
-          value={filters.text || ''}
-          onChange={e => set({ text: e.target.value })}
-          style={{ marginBottom: 6 }}
-        />
-        <input
-          className="card-search__input"
-          type="text"
-          placeholder="Flavor text…"
-          value={filters.flavor || ''}
-          onChange={e => set({ flavor: e.target.value })}
-        />
-      </Section>
-
-      {/* ── Theme ── */}
-      {themes.length > 0 && (
-        <Section label="Theme" defaultOpen={true}
-          active={selectedTheme !== 'all'}
-          onReset={() => onThemeChange && onThemeChange('all')}
-        >
-          <div className="deck-filters__aspects" style={{ flexWrap: 'wrap' }}>
-            <button
-              className={`deck-filters__aspect-btn deck-filters__aspect-btn--all${selectedTheme === 'all' ? ' deck-filters__aspect-btn--active' : ''}`}
-              onClick={() => onThemeChange && onThemeChange('all')}
-            >All</button>
-            {themes.map(t => (
-              <button
-                key={t}
-                className={`deck-filters__aspect-btn${selectedTheme === t ? ' deck-filters__aspect-btn--active' : ''}`}
-                style={selectedTheme === t ? { background: 'rgba(99,102,241,0.25)', borderColor: 'rgba(99,102,241,0.6)', color: '#a5b4fc' } : {}}
-                onClick={() => onThemeChange && onThemeChange(t)}
-              >{t}</button>
-            ))}
-          </div>
-        </Section>
-      )}
-
-      {/* ── Category & Affinity ── */}
-      <Section label="Category" defaultOpen={true}
-        active={!!(filters.factions && filters.factions.length > 0)}
-        onReset={clearAllFactions}
       >
         <div className="deck-filters__aspects" style={{ flexWrap: 'wrap' }}>
           <button
@@ -324,8 +312,8 @@ export default function CardSearch({ filters, onChange, types = [], subtypes = [
                   className={`deck-filters__aspect-btn${active ? ' deck-filters__aspect-btn--active' : ''}`}
                   style={{
                     borderColor: active ? '#6366f1' : 'transparent',
-                    background: active ? 'rgba(99,102,241,0.2)' : 'rgba(255,255,255,0.05)',
-                    color: active ? '#a5b4fc' : '#cbd5e1',
+                    background: active ? 'rgba(99,102,241,0.2)' : 'var(--st-surface-2, rgba(255,255,255,0.05))',
+                    color: active ? 'var(--st-accent-hover, #a5b4fc)' : 'var(--st-text, #cbd5e1)',
                   }}
                   onClick={() => toggleType(t.code)}
                 >
@@ -356,8 +344,8 @@ export default function CardSearch({ filters, onChange, types = [], subtypes = [
                   className={`deck-filters__aspect-btn${active ? ' deck-filters__aspect-btn--active' : ''}`}
                   style={{
                     borderColor: active ? '#6366f1' : 'transparent',
-                    background: active ? 'rgba(99,102,241,0.2)' : 'rgba(255,255,255,0.05)',
-                    color: active ? '#a5b4fc' : '#cbd5e1',
+                    background: active ? 'rgba(99,102,241,0.2)' : 'var(--st-surface-2, rgba(255,255,255,0.05))',
+                    color: active ? 'var(--st-accent-hover, #a5b4fc)' : 'var(--st-text, #cbd5e1)',
                   }}
                   onClick={() => toggleType(t.code)}
                 >
@@ -371,9 +359,7 @@ export default function CardSearch({ filters, onChange, types = [], subtypes = [
 
       {/* ── Attributes ── */}
       <Section label="Attributes" defaultOpen={true}
-        active={!!(filters.type || filters.subtype || filters.traits ||
-          filters.res_physical || filters.res_mental || filters.res_energy || filters.res_wild ||
-          filters.is_unique !== '' || filters.include_hidden !== '')}
+        active={!!(filters.type || filters.subtype || filters.traits || filters.res_physical || filters.res_mental || filters.res_energy || filters.res_wild || filters.boost !== '')}
         onReset={() => set({
           type: '', subtype: '', traits: '', is_unique: '', include_hidden: '',
           res_physical: '', res_mental: '', res_energy: '', res_wild: ''
@@ -439,39 +425,65 @@ export default function CardSearch({ filters, onChange, types = [], subtypes = [
             >No</button>
           </div>
         </div>
-
-        <div className="card-search__unique-row" style={{ display: 'flex', alignItems: 'center' }}>
-          <span className="card-search__numeric-label" style={{ minWidth: '70px' }}>Unique</span>
+        <div className="card-search__unique-row" style={{ display: 'flex', alignItems: 'center', marginTop: 12, marginBottom: 8 }}>
+          <span className="card-search__numeric-label" style={{ minWidth: '130px', marginBottom: 0 }}>Boost</span>
           <div className="card-search__res-qty-btns">
             <button
-              className={`card-search__res-qty-btn${filters.is_unique === '' ? ' card-search__res-qty-btn--active' : ''}`}
-              onClick={() => set({ is_unique: '' })}
+              className={"card-search__res-qty-btn" + (!filters.boost && !filters.boost_star ? ' card-search__res-qty-btn--active' : '')}
+              onClick={() => set({ boost: '', boost_op: '=', boost_star: '' })}
             >Any</button>
-            <button
-              className={`card-search__res-qty-btn${filters.is_unique === '1' ? ' card-search__res-qty-btn--active' : ''}`}
-              onClick={() => set({ is_unique: '1' })}
-            >Yes</button>
-            <button
-              className={`card-search__res-qty-btn${filters.is_unique === '0' ? ' card-search__res-qty-btn--active' : ''}`}
-              onClick={() => set({ is_unique: '0' })}
-            >No</button>
           </div>
         </div>
+        <div className="card-search__res-grid" style={{ gridTemplateColumns: '1fr', marginBottom: 8 }}>
+            <div className="card-search__res-item">
+              <div className="card-search__res-qty-btns">
+                <button
+                  className={"card-search__res-qty-btn" + (filters.boost_star === '1' ? ' card-search__res-qty-btn--active' : '')}
+                  onClick={() => set({ boost_star: filters.boost_star === '1' ? '' : '1' })}
+                >★</button>
 
-        <div className="card-search__unique-row" style={{ display: 'flex', alignItems: 'center', marginTop: 8 }}>
-          <span className="card-search__numeric-label" style={{ minWidth: '70px' }}>Hidden</span>
-          <div className="card-search__res-qty-btns">
-            <button
-              className={`card-search__res-qty-btn${!filters.include_hidden ? ' card-search__res-qty-btn--active' : ''}`}
-              onClick={() => set({ include_hidden: '' })}
-            >No</button>
-            <button
-              className={`card-search__res-qty-btn${filters.include_hidden === '1' ? ' card-search__res-qty-btn--active' : ''}`}
-              onClick={() => set({ include_hidden: '1' })}
-            >Yes</button>
-          </div>
+                <div style={{ marginLeft: 16, display: 'flex', gap: 3 }}>
+                  {[
+                    { label: '0', val: '0' },
+                    { label: '1', val: '1' },
+                    { label: '2', val: '2' },
+                    { label: '3+', val: '3', op: 'gte' }
+                  ].map(b => (
+                    <button
+                      key={b.label}
+                      className={"card-search__res-qty-btn" + (filters.boost === b.val && (b.op ? filters.boost_op === b.op : true) ? ' card-search__res-qty-btn--active' : '')}
+                      onClick={() => set({ boost: filters.boost === b.val && (filters.boost_op === b.op || !b.op) ? '' : b.val, boost_op: b.op || '=' })}
+                    >{b.label}</button>
+                  ))}
+                </div>
+              </div>
+              <span className="cl-res-icon icon-boost card-search__res-icon-inline" style={{ marginLeft: 6, opacity: 0.7 }} />
+            </div>
         </div>
       </Section>
+
+      {/* ── Theme ── */}
+      {themes.length > 0 && (
+        <Section label="Theme" defaultOpen={false}
+          active={selectedTheme !== 'all'}
+          onReset={() => onThemeChange && onThemeChange('all')}
+        >
+          <div className="deck-filters__aspects" style={{ flexWrap: 'wrap' }}>
+            <button
+              className={`deck-filters__aspect-btn deck-filters__aspect-btn--all${selectedTheme === 'all' ? ' deck-filters__aspect-btn--active' : ''}`}
+              onClick={() => onThemeChange && onThemeChange('all')}
+            >All</button>
+            {themes.map(t => (
+              <button
+                key={t}
+                className={`deck-filters__aspect-btn${selectedTheme === t ? ' deck-filters__aspect-btn--active' : ''}`}
+                style={selectedTheme === t ? { background: 'rgba(99,102,241,0.25)', borderColor: 'rgba(99,102,241,0.6)', color: 'var(--st-accent-hover, #a5b4fc)' } : {}}
+                onClick={() => onThemeChange && onThemeChange(t)}
+              >{t}</button>
+            ))}
+          </div>
+        </Section>
+      )}
 
       {/* ── Numerics ── */}
       <Section label="Numerics" defaultOpen={false}
@@ -492,7 +504,7 @@ export default function CardSearch({ filters, onChange, types = [], subtypes = [
           thw: '', thw_op: '=', thw2: '', thw_op2: '=',
           def: '', def_op: '=', def2: '', def_op2: '=',
           health: '', health_op: '=', health2: '', health_op2: '=',
-          boost: '', boost_op: '=', boost2: '', boost_op2: '=',
+          boost: '', boost_op: '=', boost2: '', boost_op2: '=', boost_star: '',
           scheme: '', scheme_op: '=', scheme2: '', scheme_op2: '='
         })}
       >
@@ -502,7 +514,7 @@ export default function CardSearch({ filters, onChange, types = [], subtypes = [
         <NumericField label="Thwart" valKey="thw" opKey="thw_op" filters={filters} onChange={onChange} />
         <NumericField label="Defense" valKey="def" opKey="def_op" filters={filters} onChange={onChange} />
         <NumericField label="Health" valKey="health" opKey="health_op" filters={filters} onChange={onChange} />
-        <NumericField label="Boost" valKey="boost" opKey="boost_op" filters={filters} onChange={onChange} />
+        
         <NumericField label="Scheme" valKey="scheme" opKey="scheme_op" filters={filters} onChange={onChange} />
 
       </Section>

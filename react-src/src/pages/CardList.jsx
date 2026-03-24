@@ -62,6 +62,7 @@ function buildSearchUrl(filters, page, sort, order, showDuplicates, showAltArt, 
   if (filters.include_hidden) params.set('include_hidden', filters.include_hidden);
   if (filters.is_unique !== '') params.set('is_unique', filters.is_unique);
   if (filters.illustrator) params.set('illustrator', filters.illustrator);
+  if (filters.boost_star === '1') params.set('boost_star', '1');
 
   // Factions — submit one at a time using multiple params (or comma-joined)
   // The backend handles a single faction code; if multiple selected, we request

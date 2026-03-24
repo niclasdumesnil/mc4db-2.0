@@ -719,8 +719,8 @@ button.pack-nav-btn:hover {
   left: 0;
   right: 0;
   z-index: 200;
-  background: #0f1c30;
-  border: 1px solid rgba(255,255,255,.18);
+  background: var(--st-surface, #0f1c30);
+  border: 1px solid var(--st-border-focus, rgba(255,255,255,.18));
   border-radius: 8px;
   box-shadow: 0 8px 24px rgba(0,0,0,.5);
   overflow: hidden;
@@ -740,7 +740,7 @@ button.pack-nav-btn:hover {
   background: transparent;
   border: none;
   outline: none;
-  color: #dbeafa;
+  color: var(--st-title, #dbeafa);
   font-size: 0.85rem;
   padding: 2px 4px;
   caret-color: #60b0ff;
@@ -768,10 +768,10 @@ button.pack-nav-btn:hover {
   justify-content: space-between;
   gap: 8px;
   width: 100%;
-  background-color: rgba(255,255,255,.05);
-  border: 1px solid rgba(255,255,255,.14);
+  background-color: var(--st-surface-2, rgba(255,255,255,.05));
+  border: 1px solid var(--st-border, rgba(255,255,255,.14));
   border-radius: 8px;
-  color: #dbeafa;
+  color: var(--st-title, #dbeafa);
   font-size: 0.88rem;
   padding: 7px 12px;
   cursor: pointer;
@@ -782,8 +782,8 @@ button.pack-nav-btn:hover {
 }
 
 .pack-search-trigger:hover:not(:disabled) {
-  border-color: rgba(255,255,255,.32);
-  background-color: rgba(255,255,255,.09);
+  border-color: var(--st-border-focus, rgba(255,255,255,.32));
+  background-color: var(--st-surface-hover, rgba(255,255,255,.09));
 }
 
 .pack-search-trigger:focus,
@@ -814,7 +814,7 @@ button.pack-nav-btn:hover {
 
 .pack-search-trigger-placeholder {
   flex: 1;
-  color: #8a99af;
+  color: var(--st-muted, #8a99af);
 }
 
 /* Chevron arrow */
@@ -861,9 +861,10 @@ button.pack-nav-btn:hover {
   padding: 7px 12px;
   cursor: pointer;
   font-size: 0.88rem;
-  color: #dbeafa;
+  color: var(--st-title, #dbeafa);
   transition: background-color .1s;
   white-space: nowrap;
+  border-bottom: 1px solid var(--st-border-subtle, rgba(255,255,255,0.05));
 }
 
 .pack-search-option:hover {
@@ -876,12 +877,12 @@ button.pack-nav-btn:hover {
 }
 
 .pack-search-option--placeholder {
-  color: #8a99af;
+  color: var(--st-muted, #8a99af);
   font-style: italic;
 }
 
 .pack-search-option--empty {
-  color: #506070;
+  color: var(--st-disabled, #506070);
   font-style: italic;
   cursor: default;
   justify-content: center;

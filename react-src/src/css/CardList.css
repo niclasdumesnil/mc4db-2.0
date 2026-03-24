@@ -145,7 +145,11 @@
 
 .cardlist-main {
   min-width: 0;
-  padding-right: 16px;
+  background: var(--cl-surface);
+  border: 1px solid var(--cl-border);
+  border-radius: 10px;
+  padding: 16px;
+  margin-right: 16px;
 }
 
 .cardlist-sidebar {
@@ -219,20 +223,20 @@
 
 /* Official = actif par défaut : blanc */
 .cardlist-filtertype-btn--official {
-  background: rgba(226, 232, 240, 0.08);
-  border-color: rgba(226, 232, 240, 0.35);
-  color: #e2e8f0;
+  background: var(--st-surface-hover, rgba(226, 232, 240, 0.08));
+  border-color: var(--st-border-focus, rgba(226, 232, 240, 0.35));
+  color: var(--st-title, #e2e8f0);
 }
 
 .cardlist-filtertype-btn--official:hover {
-  background: rgba(226, 232, 240, 0.14);
+  background: var(--st-surface-2, rgba(226, 232, 240, 0.14));
 }
 
 /* Fan-Made = actif par défaut : bleu creator */
 .cardlist-filtertype-btn--fanmade {
   background: rgba(18, 120, 216, 0.12);
   border-color: rgba(18, 120, 216, 0.4);
-  color: #93caff;
+  color: var(--st-accent, #93caff);
 }
 
 .cardlist-filtertype-btn--fanmade:hover {
@@ -241,15 +245,15 @@
 
 /* État off : très atténué - utilisé par tous les filtres inactifs */
 .cardlist-filtertype-btn--off {
-  background: rgba(255, 255, 255, 0.02) !important;
-  color: rgba(148, 163, 184, 0.35) !important;
-  border-color: rgba(255, 255, 255, 0.05) !important;
+  background: var(--st-surface-2, rgba(255, 255, 255, 0.02)) !important;
+  color: var(--st-disabled, rgba(148, 163, 184, 0.35)) !important;
+  border-color: var(--st-border, rgba(255, 255, 255, 0.05)) !important;
   text-decoration: line-through;
   opacity: 0.8;
 }
 
 .cardlist-filtertype-btn--off:hover {
-  color: rgba(148, 163, 184, 0.6) !important;
+  color: var(--st-muted, rgba(148, 163, 184, 0.6)) !important;
 }
 
 .cardlist-sort {
@@ -380,15 +384,15 @@
 }
 
 .cardlist-current-btn:hover:not(:disabled) {
-  background: rgba(180, 186, 195, 0.25);
-  color: #e2e8f0;
-  border-color: rgba(180, 186, 195, 0.6);
+  background: rgba(100, 116, 139, 0.10);
+  color: var(--st-title, #e2e8f0);
+  border-color: rgba(100, 116, 139, 0.3);
 }
 
 .cardlist-current-btn--active {
-  background: rgba(180, 186, 195, 0.15);
-  color: #bac0ca;
-  border-color: rgba(180, 186, 195, 0.4);
+  background: rgba(100, 116, 139, 0.15);
+  color: var(--st-title, #bac0ca);
+  border-color: rgba(100, 116, 139, 0.4);
 }
 
 .cardlist-current-btn:disabled,
@@ -647,19 +651,20 @@
 
 .card-search-reset {
   padding: 1px 5px;
-  border: 1px solid rgba(160, 160, 160, 0.35);
+  border: 1px solid var(--st-border);
   border-radius: 4px;
-  background: rgba(255, 255, 255, 0.05);
-  color: rgba(180, 180, 180, 0.7);
+  background: var(--st-surface-1);
+  color: var(--st-text-muted);
   font-size: 0.65rem;
   line-height: 1.4;
   cursor: pointer;
-  transition: background 0.12s, color 0.12s;
+  transition: background 0.12s, color 0.12s, border-color 0.12s;
 }
 
 .card-search-reset:hover {
-  background: rgba(255, 255, 255, 0.12);
-  color: #d1d5db;
+  background: var(--st-surface-2);
+  color: var(--st-text);
+  border-color: var(--st-text-muted);
 }
 
 .card-search__section {
@@ -686,7 +691,7 @@
 
 .card-search__input {
   width: 100%;
-  background: rgba(0, 0, 0, 0.3);
+  background: var(--st-surface-2, rgba(255, 255, 255, 0.05));
   border: 1px solid var(--cl-border);
   border-radius: 5px;
   color: var(--cl-text);
@@ -702,7 +707,7 @@
 
 .card-search__select {
   width: 100%;
-  background: rgba(0, 0, 0, 0.3);
+  background: var(--st-surface-2, rgba(255, 255, 255, 0.05));
   border: 1px solid var(--cl-border);
   border-radius: 5px;
   color: var(--cl-text);
@@ -723,7 +728,7 @@
 
 .card-search__op-select {
   width: 56px;
-  background: rgba(0, 0, 0, 0.3);
+  background: var(--st-surface-2, rgba(255, 255, 255, 0.05));
   border: 1px solid var(--cl-border);
   border-radius: 5px;
   color: var(--cl-text);
@@ -734,7 +739,7 @@
 
 .card-search__number {
   flex: 1;
-  background: rgba(0, 0, 0, 0.3);
+  background: var(--st-surface-2, rgba(255, 255, 255, 0.05));
   border: 1px solid var(--cl-border);
   border-radius: 5px;
   color: var(--cl-text);

@@ -163,7 +163,7 @@ async function searchCards(filters, pagination, donator) {
       thw_op = '=', thw, thw_op2 = '=', thw2,
       def_op = '=', def, def_op2 = '=', def2,
       health_op = '=', health, health_op2 = '=', health2,
-      boost_op = '=', boost, boost_op2 = '=', boost2,
+      boost_op = '=', boost, boost_op2 = '=', boost2, boost_star,
       scheme_op = '=', scheme, scheme_op2 = '=', scheme2,
       res_physical, res_mental, res_energy, res_wild,
       factions, locale,
@@ -262,15 +262,37 @@ async function searchCards(filters, pagination, donator) {
   if (is_unique === '1') q = q.where('c.is_unique', 1);
   if (is_unique === '0') q = q.where('c.is_unique', 0);
 
-  const applyNumeric = (field, val, op, val2, op2) => {
+  const applyNumeric = (field, val, op, val2, op2, allowNullIfZero = false) => {
       let queryFn = q;
       if (val !== undefined && val !== '') {
-        const sqlOp = VALID_OPS[op] || '=';
-        queryFn = queryFn.where(field, sqlOp, parseInt(val, 10));
+        if (val === '*') {
+          queryFn = queryFn.where(`${field}_star`, 1);
+        } else {
+          const sqlOp = VALID_OPS[op] || '=';
+          const numVal = parseInt(val, 10);
+          if (allowNullIfZero && numVal === 0 && (sqlOp === '=' || sqlOp === '<=')) {
+            queryFn = queryFn.where(function() {
+              this.where(field, sqlOp, 0).orWhereNull(field);
+            });
+          } else {
+            queryFn = queryFn.where(field, sqlOp, numVal);
+          }
+        }
       }
       if (val2 !== undefined && val2 !== '') {
-        const sqlOp2 = VALID_OPS[op2] || '=';
-        queryFn = queryFn.where(field, sqlOp2, parseInt(val2, 10));
+        if (val2 === '*') {
+          queryFn = queryFn.where(`${field}_star`, 1);
+        } else {
+          const sqlOp2 = VALID_OPS[op2] || '=';
+          const numVal2 = parseInt(val2, 10);
+          if (allowNullIfZero && numVal2 === 0 && (sqlOp2 === '=' || sqlOp2 === '<=')) {
+            queryFn = queryFn.where(function() {
+              this.where(field, sqlOp2, 0).orWhereNull(field);
+            });
+          } else {
+            queryFn = queryFn.where(field, sqlOp2, numVal2);
+          }
+        }
       }
       return queryFn;
   };
@@ -280,7 +302,8 @@ async function searchCards(filters, pagination, donator) {
   q = applyNumeric('c.thwart', thw, thw_op, thw2, thw_op2);
   q = applyNumeric('c.defense', def, def_op, def2, def_op2);
   q = applyNumeric('c.health', health, health_op, health2, health_op2);
-  q = applyNumeric('c.boost', boost, boost_op, boost2, boost_op2);
+  q = applyNumeric('c.boost', boost, boost_op, boost2, boost_op2, true);
+  if (boost_star === '1') q = q.where('c.boost_star', 1);
   q = applyNumeric('c.scheme', scheme, scheme_op, scheme2, scheme_op2);
 
   if (res_physical) q = q.where('c.resource_physical', '>=', parseInt(res_physical, 10));

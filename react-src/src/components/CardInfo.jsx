@@ -92,16 +92,14 @@ function CardProps({ card }) {
   else if (t === 'attachment') {
     propsElement = (
       <div className="mc-card-props">
-        {(card.attack !== 0 || card.attack_star) && (
-          <div>
-            Attack: {card.attack > 0 && '+'}<FormattedValue value={card.attack} star={card.attack_star} />
-          </div>
-        )}
-        {(card.scheme !== 0 || card.scheme_star) && (
-          <div>
-            Scheme: {card.scheme > 0 && '+'}<FormattedValue value={card.scheme} star={card.scheme_star} />
-          </div>
-        )}
+        <div>
+          {(card.scheme !== 0 || card.scheme_star) && (
+            <>Scheme: {card.scheme > 0 && '+'}<FormattedValue value={card.scheme} star={card.scheme_star} />.{' '}</>
+          )}
+          {(card.attack !== 0 || card.attack_star) && (
+            <>Attack: {card.attack > 0 && '+'}<FormattedValue value={card.attack} star={card.attack_star} />.</>
+          )}
+        </div>
       </div>
     );
   }

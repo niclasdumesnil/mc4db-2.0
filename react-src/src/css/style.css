@@ -510,6 +510,7 @@ html.dark body {
 
 /* Base CSS Variables for components that use them (like Stories, CardList) */
 html.dark {
+  --st-input-bg: rgba(0, 0, 0, 0.3);
   --st-search-bg: rgba(255, 255, 255, 0.05);
   --st-surface-3: rgba(255, 255, 255, 0.06);
 
