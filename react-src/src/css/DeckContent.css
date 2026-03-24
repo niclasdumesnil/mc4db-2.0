@@ -1,6 +1,6 @@
 /* Container Principal */
 .deck-content-container {
-  background: var(--st-surface-1);
+  background: var(--st-surface, var(--st-surface-1));
   border: 1px solid var(--st-border);
   border-radius: 12px;
   padding: 24px;
