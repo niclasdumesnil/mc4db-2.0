@@ -174,6 +174,8 @@ router.get('/sets', async (req, res, next) => {
     const { user_id } = req.query;
     const donator = await isUserDonator(user_id);
 
+    const localeClean = (req.query.locale || 'en').toLowerCase();
+
     // Query all cardsets that have at least one card, with pack creator info.
     // Use MIN() instead of ANY_VALUE() for compatibility with older MySQL versions.
     const rows = await db('Cardset as cs')
@@ -194,14 +196,18 @@ router.get('/sets', async (req, res, next) => {
         db.raw('MIN(p.environment) as pack_environment'),
         db.raw('COALESCE(cs.status, MIN(p.status)) as pack_status'),
         db.raw('MIN(p.date_release) as pack_date_release'),
+        db.raw('MIN(p.language) as language'),
         db.raw('COUNT(DISTINCT c.id) as card_count')
       )
       .orderBy('cs.name', 'asc');
 
     // Non-donators cannot see sets from private packs
-    const visible = donator
-      ? rows
-      : rows.filter(r => (r.visibility || 'true') !== 'false');
+    // Filter by language (same logic as pack.routes.js)
+    const visible = rows.filter(r => {
+      const visOK = donator ? true : (r.visibility || 'true') !== 'false';
+      const langOK = !r.language || r.language === '' || r.language.toLowerCase() === localeClean;
+      return visOK && langOK;
+    });
 
     // Build nemesis map: hero_set_code → nemesis_set_code
     // 1. Use explicit parent_code if available

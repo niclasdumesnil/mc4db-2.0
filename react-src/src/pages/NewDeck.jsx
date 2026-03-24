@@ -116,11 +116,21 @@ export default function NewDeck() {
   const [sort, setSort] = useState('alpha-asc'); // 'alpha-asc'|'alpha-desc'|'date-asc'|'date-desc'
   const [creating, setCreating] = useState(null); // hero code being created
 
+  // Re-fetch heroes when locale changes
+  const [locale, setLocale] = useState(() => localStorage.getItem('mc_locale') || 'en');
+  useEffect(() => {
+    function onLocaleChange() {
+      setLocale(localStorage.getItem('mc_locale') || 'en');
+    }
+    window.addEventListener('mc_locale_changed', onLocaleChange);
+    return () => window.removeEventListener('mc_locale_changed', onLocaleChange);
+  }, []);
+
   // Load heroes and user packs in parallel
   useEffect(() => {
     const heroUrl = userId
-      ? `/api/public/heroes?user_id=${userId}`
-      : '/api/public/heroes';
+      ? `/api/public/heroes?user_id=${userId}&locale=${locale}`
+      : `/api/public/heroes?locale=${locale}`;
 
     const promises = [fetch(heroUrl).then(r => r.json())];
 
@@ -153,7 +163,7 @@ export default function NewDeck() {
         setError('Network error, please refresh.');
         setLoading(false);
       });
-  }, [userId]);
+  }, [userId, locale]);
 
   // Reset theme filter when switching tabs
   useEffect(() => {

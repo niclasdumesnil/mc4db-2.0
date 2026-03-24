@@ -210,6 +210,7 @@ export default function CardListDisplay({ cards, mode = 'checklist', sort, onSor
                 className="cl-grid-img"
                 locale={locale}
                 langDir={langDir}
+                card={card}
               />
             </a>
           </div>

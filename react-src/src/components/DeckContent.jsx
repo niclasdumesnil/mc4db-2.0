@@ -277,7 +277,7 @@ export default function DeckContent({ slots, mode = 'list', heroSpecialCards = [
                         style={{ '--hover-border-color': getFactionColor(card.faction_code) }}
                       >
                         {card.quantity > 1 && <span className="dc-grid-qty">{card.quantity}x</span>}
-                        <ImageWithWebp src={card.imagesrc} alt={card.name} className="dc-grid-img" locale={locale} langDir={langDir} />
+                        <ImageWithWebp src={card.imagesrc} alt={card.name} className="dc-grid-img" locale={locale} langDir={langDir} card={card} />
                       </a>
                     </div>
                   ))}
@@ -349,7 +349,7 @@ export default function DeckContent({ slots, mode = 'list', heroSpecialCards = [
                         data-code={card.code}
                         style={{ '--hover-border-color': getFactionColor(card.faction_code) }}
                       >
-                        <ImageWithWebp src={card.imagesrc} alt={card.name} className="dc-grid-img" />
+                        <ImageWithWebp src={card.imagesrc} alt={card.name} className="dc-grid-img" card={card} />
                       </a>
                     </div>
                   )))
@@ -393,7 +393,7 @@ export default function DeckContent({ slots, mode = 'list', heroSpecialCards = [
                       style={{ '--hover-border-color': getFactionColor(card.faction_code) }}
                     >
                       {card.quantity > 1 && <span className="dc-grid-qty">{card.quantity}x</span>}
-                      <ImageWithWebp src={card.imagesrc} alt={card.name} className="dc-grid-img" locale={locale} langDir={langDir} />
+                      <ImageWithWebp src={card.imagesrc} alt={card.name} className="dc-grid-img" locale={locale} langDir={langDir} card={card} />
                     </a>
                   </div>
                 ))}
@@ -470,7 +470,7 @@ export default function DeckContent({ slots, mode = 'list', heroSpecialCards = [
                         style={{ '--hover-border-color': getFactionColor(card.faction_code) }}
                       >
                         {card.quantity > 1 && <span className="dc-grid-qty">{card.quantity}x</span>}
-                        <ImageWithWebp src={card.imagesrc} alt={card.name} className="dc-grid-img" locale={locale} langDir={langDir} />
+                        <ImageWithWebp src={card.imagesrc} alt={card.name} className="dc-grid-img" locale={locale} langDir={langDir} card={card} />
                       </a>
                     </div>
                   ))}

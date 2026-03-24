@@ -1,9 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 
-export default function ImageWithWebp({ src, id, alt, className, locale, langDir = '', preferWebpOnly = false }) {
-  if (!src) return null;
-
-  let effectiveSrc = src;
+export default function ImageWithWebp({ src, id, alt, className, locale, langDir = '', preferWebpOnly = false, card }) {
+  let effectiveSrc = src || '';
   try {
     if (langDir && langDir.toUpperCase() === 'FR' && /\/EN\//i.test(src)) {
       effectiveSrc = src.replace(/\/EN\//i, '/FR/');
@@ -26,46 +24,50 @@ export default function ImageWithWebp({ src, id, alt, className, locale, langDir
   const packCodePart = (langMatch && langMatch[3]) ? `/${langMatch[3]}` : '';
   const hasLangFolder = Boolean(langMatch);
 
-  const origWebp = (baseRoot + packCodePart + '/' + filename).replace(/\.(jpe?g|png)$/i, '.webp');
+  const origWebp = effectiveSrc.replace(/\.(jpe?g|png)$/i, '.webp');
   const frBase = `${baseRoot}/FR${packCodePart}/${filename}`;
   const frWebp = frBase.replace(/\.(jpe?g|png)$/i, '.webp');
   const enBase = `${baseRoot}/EN${packCodePart}/${filename}`;
   const enWebp = enBase.replace(/\.(jpe?g|png)$/i, '.webp');
-  
+
   const lc = (locale || '').toString().toLowerCase();
   const isFrench = lc === 'qc' || lc.startsWith('fr') || (langDir && langDir.toUpperCase() === 'FR');
 
   const candidates = useMemo(() => {
     const list = [];
-    if (hasLangFolder) {
-      if (langDir && langDir.toUpperCase() === 'FR' && !base.match(/\/FR$/i)) {
+    if (filename) {
+      if (isFrench) {
         list.push(frWebp);
-      }
-      if (isFrench) {
-        if (!list.includes(frWebp)) list.push(frWebp);
-        if (!list.includes(origWebp)) list.push(origWebp);
       } else {
-        list.push(origWebp);
-      }
-    } else {
-      if (isFrench) {
-        list.push(frWebp, origWebp);
-      } else {
-        list.push(origWebp);
+        list.push(enWebp);
       }
     }
+
+    if (!effectiveSrc || effectiveSrc.startsWith('/bundles/cards')) {
+      if (isFrench) {
+        list.push(`/bundles/cards/FR/missing.webp`);
+      } else {
+        list.push(`/bundles/cards/EN/missing.webp`);
+      }
+    }
+
     // Only keeping unique WebP candidates.
     return [...new Set(list)].filter(Boolean);
-  }, [src, locale, frWebp, origWebp, langDir]);
+  }, [frWebp, enWebp, isFrench, baseRoot]);
   useEffect(() => {
     // noop - keep console debug in original when running in browser
   }, [src, locale, langDir, candidates]);
 
-  const [idx, setIdx] = useState(0);
-  const current = candidates[idx] || (preferWebpOnly ? '' : src);
+  const [idx, setIdx] = useState(-1);
+  const current = idx >= 0 ? candidates[idx] : ''; // Wait for verification before setting src
+
+  useEffect(() => {
+    // Reset index when candidates change
+    setIdx(-1);
+  }, [candidates]);
 
   const handleError = () => {
-    if (idx < candidates.length - 1) setIdx((i) => i + 1);
+    if (idx >= 0 && idx < candidates.length - 1) setIdx((i) => i + 1);
   };
 
   useEffect(() => {
@@ -101,6 +103,9 @@ export default function ImageWithWebp({ src, id, alt, className, locale, langDir
           if (r) { if (!cancelled) setIdx(i); break; }
         } catch (e) {}
       }
+      
+      // If none worked, fallback to the last candidate (missing.webp)
+      if (!cancelled) setIdx(candidates.length - 1);
     })();
 
     return () => { cancelled = true; };
@@ -108,20 +113,8 @@ export default function ImageWithWebp({ src, id, alt, className, locale, langDir
 
   const imgClassName = `${className ? className + ' ' : ''}tw-rounded-3xl`;
 
-  return (
-    <picture>
-      {isFrench ? (
-        <>
-          <source srcSet={frWebp} type="image/webp" />
-          <source srcSet={enWebp} type="image/webp" />
-        </>
-      ) : (
-        <>
-          <source srcSet={enWebp} type="image/webp" />
-          <source srcSet={origWebp} type="image/webp" />
-        </>
-      )}
-      <img id={id} src={current || ''} alt={alt} className={imgClassName} onError={handleError} />
-    </picture>
-  );
+  // Provide a 1x1 transparent SVG as a clean placeholder while resolving
+  const placeholder = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxIiBoZWlnaHQ9IjEiPjwvc3ZnPg==';
+
+  return <img id={id} src={current || placeholder} alt={alt} className={imgClassName} onError={handleError} />;
 }

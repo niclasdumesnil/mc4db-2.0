@@ -452,8 +452,10 @@ export default function Sets() {
   const loadSets = useCallback(() => {
     setSetsLoading(true);
     const userId = currentUserId();
-    const params = userId ? `?user_id=${userId}` : '';
-    fetch(`/api/public/sets${params}`)
+    const params = new URLSearchParams();
+    if (userId) params.set('user_id', userId);
+    params.set('locale', locale);
+    fetch(`/api/public/sets?${params.toString()}`)
       .then(r => { if (!r.ok) throw new Error(); return r.json(); })
       .then(data => {
         setSetsData({
@@ -463,7 +465,7 @@ export default function Sets() {
         setSetsLoading(false);
       })
       .catch(() => setSetsLoading(false));
-  }, []);
+  }, [locale]);
 
   useEffect(() => {
     loadSets();

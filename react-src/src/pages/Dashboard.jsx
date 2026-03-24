@@ -22,7 +22,7 @@ export default function Dashboard() {
     if (!id) return;
     Promise.all([
       fetch(`/api/public/user/${id}`).then(r => r.json()),
-      fetch(`/api/public/packs?user_id=${id}`).then(r => r.json()),
+      fetch(`/api/public/packs?user_id=${id}&locale=${localStorage.getItem('mc_locale') || 'en'}`).then(r => r.json()),
     ])
     .then(([userData, packsData]) => {
       if (userData?.ok) setUser(userData.user);
@@ -38,7 +38,7 @@ export default function Dashboard() {
     // Fetch user and packs at the top level
     Promise.all([
       fetch(`/api/public/user/${id}`).then(res => res.json()),
-      fetch(`/api/public/packs?user_id=${id}`).then(res => res.json())
+      fetch(`/api/public/packs?user_id=${id}&locale=${localStorage.getItem('mc_locale') || 'en'}`).then(res => res.json())
     ])
     .then(([userData, packsData]) => {
       if (userData?.ok) setUser(userData.user);
@@ -46,6 +46,14 @@ export default function Dashboard() {
       setLoading(false);
     })
     .catch(() => setLoading(false));
+  }, [id]);
+
+  useEffect(() => {
+    function onLocaleChange() {
+      refreshUser();
+    }
+    window.addEventListener('mc_locale_changed', onLocaleChange);
+    return () => window.removeEventListener('mc_locale_changed', onLocaleChange);
   }, [id]);
 
   return (
