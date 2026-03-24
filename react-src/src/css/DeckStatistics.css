@@ -1,10 +1,10 @@
 /* ── DeckStatistics panel — boîte visuelle pour DeckView ─── */
 .deck-stats {
-  background: #0f1e35;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--st-surface);
+  border: 1px solid var(--st-border);;
   border-radius: 12px;
   overflow: hidden;
-  color: #dbeafa;
+  color: var(--st-title);
   font-family: 'Inter', system-ui, sans-serif;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
   min-width: 0;
@@ -15,7 +15,7 @@
 .ds-totals {
   display: flex;
   gap: 12px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid var(--st-border);;
   padding-bottom: 16px;
 }
 
@@ -24,8 +24,8 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--st-surface-2);;
+  border: 1px solid var(--st-border);;
   border-radius: 10px;
   padding: 12px 8px 8px;
   gap: 2px;
@@ -34,13 +34,13 @@
 .ds-total-value {
   font-size: 1.7rem;
   font-weight: 800;
-  color: #fff;
+  color: var(--st-title);
   line-height: 1;
 }
 
 .ds-total-label {
   font-size: 0.72rem;
-  color: #8a99af;
+  color: var(--st-muted);
   text-transform: uppercase;
   letter-spacing: 0.08em;
   font-weight: 500;
@@ -49,7 +49,7 @@
 /* ── Section title ─────────────────────────────────── */
 .ds-section-title {
   font-size: 0.72rem;
-  color: #8a99af;
+  color: var(--st-muted);
   text-transform: uppercase;
   letter-spacing: 0.1em;
   font-weight: 600;
@@ -87,7 +87,7 @@
 
 .ds-type-name {
   font-size: 0.82rem;
-  color: #c8d8f0;
+  color: var(--st-text);
   width: 76px;
   flex-shrink: 0;
   white-space: nowrap;
@@ -113,7 +113,7 @@
 
 .ds-type-bar-wrap {
   flex: 1;
-  background: rgba(255, 255, 255, 0.07);
+  background: var(--st-surface-2);;
   border-radius: 3px;
   height: 6px;
   overflow: hidden;
@@ -130,7 +130,7 @@
 .ds-type-count {
   font-size: 0.8rem;
   font-weight: 700;
-  color: #8a99af;
+  color: var(--st-muted);
   width: 20px;
   text-align: right;
   flex-shrink: 0;
@@ -147,8 +147,8 @@
   display: flex;
   align-items: center;
   gap: 5px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--st-surface-2);;
+  border: 1px solid var(--st-border);;
   border-radius: 6px;
   padding: 5px 10px;
 }
@@ -161,7 +161,7 @@
 .ds-res-count {
   font-size: 0.85rem;
   font-weight: 700;
-  color: #dbeafa;
+  color: var(--st-title);
 }
 
 /* ── Cost curve ────────────────────────────────────── */
@@ -183,7 +183,7 @@
 
 .ds-cost-count {
   font-size: 0.68rem;
-  color: #8a99af;
+  color: var(--st-muted);
   font-weight: 600;
   line-height: 1;
 }
@@ -197,7 +197,7 @@
 
 .ds-cost-label {
   font-size: 0.7rem;
-  color: #8a99af;
+  color: var(--st-muted);
   font-weight: 600;
   line-height: 1;
 }

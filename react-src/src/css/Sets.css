@@ -5,12 +5,12 @@
    ══════════════════════════════════════════════════════════════ */
 
 :root {
-  --sets-bg:         #f8f9fa;
-  --sets-surface:    #111d35;
-  --sets-border:     rgba(255, 255, 255, 0.08);
-  --sets-text:       #e2e8f0;
-  --sets-muted:      #94a3b8;
-  --sets-accent:     #3b82f6;
+  --sets-bg: var(--st-bg);
+  --sets-surface: var(--st-surface);
+  --sets-border: var(--st-border);
+  --sets-text: var(--st-title);
+  --sets-muted: var(--st-text);
+  --sets-accent: var(--st-accent);
   --sets-identity-w: 220px;
   --sets-stats-w:    320px;
   --sets-topbar-h:   auto;
@@ -196,7 +196,7 @@
   left: 0;
   width: 600px;
   z-index: 200;
-  background: #0f1c34;
+  background: var(--st-surface-2);
   border: 1px solid var(--sets-border);
   border-radius: 6px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
@@ -228,12 +228,12 @@
 
 .sets-topbar-dropdown-search {
   width: 100%;
-  background: rgba(255,255,255,0.05);
+  background: var(--st-search-bg, rgba(128, 128, 128, 0.05));
   border: 1px solid var(--sets-border);
   border-radius: 6px;
   padding: 4px 24px 4px 28px;
   font-size: 0.8rem;
-  color: var(--sets-fg);
+  color: var(--st-title);
   outline: none;
   transition: border-color 0.15s;
 }
@@ -250,7 +250,7 @@
   padding: 2px 3px;
   border-radius: 3px;
 }
-.sets-topbar-dropdown-search-clear:hover { color: var(--sets-fg); }
+.sets-topbar-dropdown-search-clear:hover { color: var(--st-title); }
 
 /* Items scroll area */
 .sets-topbar-dropdown-items {
@@ -757,7 +757,7 @@
   white-space: nowrap;
 }
 
-.sets-source-btn:hover { color: var(--sets-fg); background: rgba(255,255,255,0.06); }
+.sets-source-btn:hover { color: var(--st-title); background: var(--st-surface-3, rgba(128, 128, 128, 0.06)); }
 
 .sets-source-btn--active {
   background: var(--sets-accent);
@@ -818,12 +818,12 @@
 }
 
 .sets-search-input {
-  background: rgba(255,255,255,0.05);
+  background: var(--st-search-bg, rgba(128, 128, 128, 0.05));
   border: 1px solid var(--sets-border);
   border-radius: 8px;
   padding: 5px 28px 5px 28px;
   font-size: 0.82rem;
-  color: var(--sets-fg);
+  color: var(--st-title);
   width: 200px;
   transition: border-color 0.15s, background 0.15s, width 0.25s;
   outline: none;
@@ -848,7 +848,7 @@
   border-radius: 3px;
   transition: color 0.12s;
 }
-.sets-search-clear:hover { color: var(--sets-fg); }
+.sets-search-clear:hover { color: var(--st-title); }
 
 /* ── Cost filter pill ────────────────────────────────────────────────────── */
 
@@ -898,7 +898,7 @@
   margin: 0;
   font-weight: 600;
   font-size: 0.85rem;
-  color: var(--sets-fg);
+  color: var(--st-title);
 }
 
 .sets-identity-guide-text {
@@ -952,7 +952,7 @@
   top: 12px;
   right: 12px;
   z-index: 1;
-  background: rgba(255,255,255,0.06);
+  background: var(--st-surface-3, rgba(128, 128, 128, 0.06));
   border: 1px solid var(--sets-border);
   color: var(--sets-muted);
   width: 28px;
@@ -964,7 +964,7 @@
   font-size: 0.82rem;
   transition: background 0.12s, color 0.12s;
 }
-.sets-modal-close:hover { background: rgba(255,255,255,0.1); color: var(--sets-fg); }
+.sets-modal-close:hover { background: rgba(255,255,255,0.1); color: var(--st-title); }
 
 .sets-modal-body {
   padding: 4px;

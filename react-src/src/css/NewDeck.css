@@ -238,14 +238,14 @@
   align-items: center;
   justify-content: center;
   height: 100px;
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--st-surface-2);
   color: #334155;
   font-size: 1.6rem;
 }
 
 /* ── Hero card (kept for reference, image section replaced) ─── */
 .ndeck-hero-card {
-  background: #10203a;
+  background: var(--st-surface-2);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 12px;
   overflow: visible;              /* allows hover-preview to float above */
@@ -265,7 +265,7 @@
 .ndeck-hero-card:hover {
   transform: translateY(-3px);
   box-shadow: 0 12px 28px rgba(0, 0, 0, 0.45);
-  border-color: rgba(255, 255, 255, 0.15);
+  border-color: var(--st-border);
 }
 
 /* Card body: image left + info right */
@@ -403,3 +403,15 @@
 .ndeck-error {
   color: #c0392b;
 }
+
+.deck-hero-badge { font-size: 0.8rem; font-weight: 600; color: #222; text-transform: none; letter-spacing: 0.04em; }
+
+/* Hero badge colors */
+.deck-hero-badge { --hero-title-color: #222; }
+html.dark .deck-hero-badge { --hero-title-color: #fff; }
+
+
+/* Ensure tags are clearly visible */
+.deck-filters__tag-btn { opacity: 0.8 !important; filter: grayscale(0) !important; }
+.deck-filters__tag-btn--active { opacity: 1 !important; transform: scale(1.1); box-shadow: 0 0 0 2px var(--st-accent); }
+.deck-tag-icon { opacity: 0.9 !important; }

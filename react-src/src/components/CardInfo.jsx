@@ -33,17 +33,13 @@ function CardProps({ card }) {
     propsElement = (
       <div className="mc-card-props">
         {t === 'ally' && (
-          <>
-            <div>
-              Health: <FormattedValue value={card.health} star={card.health_star} />.
-            </div>
-            <div>
-              Attack: <FormattedValue value={card.attack} star={card.attack_star} />
-              <CostIcons count={card.attack_cost} />.{' '}
-              Thwart: <FormattedValue value={card.thwart} star={card.thwart_star} />
-              <CostIcons count={card.thwart_cost} />.
-            </div>
-          </>
+          <div>
+            Thwart: <FormattedValue value={card.thwart} star={card.thwart_star} />
+            <CostIcons count={card.thwart_cost} />.{' '}
+            Attack: <FormattedValue value={card.attack} star={card.attack_star} />
+            <CostIcons count={card.attack_cost} />.{' '}
+            Health: <FormattedValue value={card.health} star={card.health_star} />.
+          </div>
         )}
       </div>
     );
@@ -85,14 +81,11 @@ function CardProps({ card }) {
   else if (['minion', 'villain', 'leader', 'player_minion'].includes(t)) {
     propsElement = (
       <div className="mc-card-props">
-        Attack: <FormattedValue value={card.attack} star={card.attack_star} />.{' '}
-        Scheme: <FormattedValue value={card.scheme} star={card.scheme_star} />.{' '}
-        Health: <FormattedValue
-          value={card.health}
-          star={card.health_star}
-          perHero={card.health_per_hero}
-          perGroup={card.health_per_group}
-        />.
+        <div>
+          Scheme: <FormattedValue value={card.scheme} star={card.scheme_star} />.
+          {' '}Attack: <FormattedValue value={card.attack} star={card.attack_star} />.
+          {' '}Health: <FormattedValue value={card.health} star={card.health_star} perHero={card.health_per_hero} perGroup={card.health_per_group} />.
+        </div>
       </div>
     );
   }
@@ -171,18 +164,21 @@ function CardProps({ card }) {
   );
 }
 
-function BoostSquares({ card }) {
+export function BoostSquares({ card }) {
   const boostCount = Math.max(0, parseInt(card.boost ?? 0, 10));
   const hasStar = !!card.boost_star;
   if (boostCount === 0 && !hasStar) return null;
   return (
-    <div className="tw-flex tw-flex-wrap tw-gap-1 tw-mt-1">
-      {hasStar && (
-        <span className="cl-res-icon cl-res-icon--boost" title="Boost ★">★</span>
-      )}
-      {Array.from({ length: boostCount }, (_, i) => (
-        <span key={i} className="cl-res-icon icon-boost cl-res-icon--boost" title="Boost" />
-      ))}
+    <div className="tw-flex tw-items-center tw-gap-1 tw-mt-1">
+      <span style={{ fontSize: '13px', color: '#94a3b8' }}>Boost:</span>
+      <div className="tw-flex tw-flex-wrap tw-gap-1">
+        {hasStar && (
+          <span className="cl-res-icon cl-res-icon--boost" title="Boost ★">★</span>
+        )}
+        {Array.from({ length: boostCount }, (_, i) => (
+          <span key={i} className="cl-res-icon icon-boost cl-res-icon--boost" title="Boost" />
+        ))}
+      </div>
     </div>
   );
 }

@@ -487,9 +487,8 @@ function ScenarioStatsSidebar({ scenario, onDeselect }) {
   useEffect(() => {
     setEncounterCards(null);
     if (!scenario) { setActiveSet(null); setCachedCards(null); setMainSchemeCards([]); return; }
-    // Activate first set
-    const first = sets.length > 0 ? sets[0].code : null;
-    setActiveSet(first);
+    // Activate encounter (Scenario) tab by default instead of the villain set
+    setActiveSet('__encounter__');
     // Fetch main scheme cards for briefing section
     if (scenario.villain_set_code) {
       const userId = currentUserId();
@@ -552,7 +551,6 @@ function ScenarioStatsSidebar({ scenario, onDeselect }) {
   // When Encounter tab is activated, aggregate cards from all sets
   useEffect(() => {
     if (activeSet !== '__encounter__' || !scenario || sets.length === 0) return;
-    if (encounterCards !== null) return; // already loaded
     setLoadingEncounter(true);
 
     const userId = currentUserId();

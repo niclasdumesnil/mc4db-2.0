@@ -98,7 +98,7 @@ export default function DeckStatistics({ slots = [], packsRequired, activeCost =
 
       {/* — Affinités (Factions) — */}
       <div className="set-stats-section">
-        <p className="set-stats-section-title">Affinities</p>
+        <p className="set-stats-section-title">Categories</p>
         <table className="set-stats-table">
           <tbody>
             {stats.factions.map(({ code, count }) => {

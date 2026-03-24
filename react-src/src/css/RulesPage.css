@@ -1,3 +1,48 @@
+
+:root {
+  --rules-toc-bg: #f8fafc;
+  --rules-content-bg: #ffffff;
+  --rules-border: rgba(0, 0, 0, 0.1);
+  --rules-title: #0f172a;
+  --rules-text: #334155;
+  --rules-subheading: #2563eb;
+  --rules-toc-text: #475569;
+  --rules-toc-hover-bg: rgba(0, 0, 0, 0.05);
+  --rules-toc-hover-text: #0f172a;
+  --rules-toc-active-bg: rgba(37, 99, 235, 0.1);
+  --rules-toc-active-text: #2563eb;
+  --rules-search-bg: #ffffff;
+  --rules-search-border: rgba(0, 0, 0, 0.15);
+  --rules-search-text: #334155;
+  --rules-search-ph: #64748b;
+  --rules-wn-bg: rgba(220, 38, 38, 0.05);
+  --rules-wn-border: rgba(220, 38, 38, 0.4);
+  --rules-wn-text: #dc2626;
+  --rules-wn-version-bg: rgba(220, 38, 38, 0.12);
+}
+
+html.dark {
+  --rules-toc-bg: #0b1829;
+  --rules-content-bg: #0f1e35;
+  --rules-border: rgba(255, 255, 255, 0.07);
+  --rules-title: #dbeafa;
+  --rules-text: #c8d8f0;
+  --rules-subheading: #9ec6f5;
+  --rules-toc-text: #8fafc8;
+  --rules-toc-hover-bg: rgba(255, 255, 255, 0.06);
+  --rules-toc-hover-text: #dbeafa;
+  --rules-toc-active-bg: rgba(96, 165, 250, 0.12);
+  --rules-toc-active-text: #60a5fa;
+  --rules-search-bg: rgba(255, 255, 255, 0.06);
+  --rules-search-border: rgba(255, 255, 255, 0.12);
+  --rules-search-text: #c8d8f0;
+  --rules-search-ph: #8a99af;
+  --rules-wn-bg: rgba(248, 113, 113, 0.05);
+  --rules-wn-border: rgba(248, 113, 113, 0.4);
+  --rules-wn-text: #f87171;
+  --rules-wn-version-bg: rgba(248, 113, 113, 0.12);
+}
+
 /* ══════════════════════════════════════════════════
    RulesPage  –  Layout 2 colonnes
    ══════════════════════════════════════════════════ */
@@ -23,8 +68,8 @@
   min-width: 260px;
   max-height: calc(100vh - 100px);
   overflow-y: auto;
-  background: #0b1829;
-  border-right: 1px solid rgba(255, 255, 255, 0.07);
+  background: var(--rules-toc-bg);
+  border-right: 1px solid var(--rules-border);
   padding: 24px 16px 32px;
   scrollbar-width: thin;
   scrollbar-color: rgba(255,255,255,0.12) transparent;
@@ -34,7 +79,7 @@
 .rules-toc-title {
   font-size: 1rem;
   font-weight: 700;
-  color: #dbeafa;
+  color: var(--rules-title);
   margin: 0 0 14px 0;
   text-align: center;
 }
@@ -46,17 +91,17 @@
 
 .rules-search {
   width: 100%;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: var(--rules-search-bg);
+  border: 1px solid var(--rules-search-border);
   border-radius: 8px;
-  color: #c8d8f0;
+  color: var(--rules-text);
   font-size: 0.85rem;
   padding: 7px 12px;
   outline: none;
   box-sizing: border-box;
   transition: border-color 0.2s;
 }
-.rules-search::placeholder { color: #8a99af; }
+.rules-search::placeholder { color: var(--rules-search-ph); }
 .rules-search:focus { border-color: rgba(96, 165, 250, 0.5); }
 
 /* ── Boutons nav ───────────────────────────────────── */
@@ -70,7 +115,7 @@
   flex: 1;
   background: transparent;
   border: 1px solid rgba(255, 255, 255, 0.15);
-  color: #8a99af;
+  color: var(--rules-search-ph);
   font-size: 0.78rem;
   padding: 5px 8px;
   border-radius: 6px;
@@ -78,7 +123,7 @@
   transition: background 0.2s, color 0.2s;
   white-space: nowrap;
 }
-.rules-toc-btn:hover { background: rgba(255,255,255,0.06); color: #dbeafa; }
+.rules-toc-btn:hover { background: var(--rules-search-bg); color: var(--rules-title); }
 
 /* ── Liste alphabétique ────────────────────────────── */
 .rules-toc-nav-list {
@@ -94,7 +139,7 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  color: #8a99af;
+  color: var(--rules-search-ph);
   padding: 4px 0 2px 4px;
 }
 
@@ -110,7 +155,7 @@
   text-align: left;
   background: transparent;
   border: none;
-  color: #8fafc8;
+  color: var(--rules-toc-text);
   font-size: 0.82rem;
   padding: 4px 8px;
   border-radius: 5px;
@@ -118,15 +163,14 @@
   transition: background 0.15s, color 0.15s;
   line-height: 1.4;
 }
-.rules-toc-item:hover { background: rgba(255,255,255,0.06); color: #dbeafa; }
+.rules-toc-item:hover { background: var(--rules-search-bg); color: var(--rules-title); }
 .rules-toc-item.active {
-  background: rgba(96, 165, 250, 0.12);
-  color: #60a5fa;
+  background: var(--rules-toc-active-bg); color: var(--rules-toc-active-text);
   font-weight: 600;
 }
 
 .rules-toc-empty {
-  color: #8a99af;
+  color: var(--rules-search-ph);
   font-size: 0.85rem;
   text-align: center;
   padding: 12px 0;
@@ -140,25 +184,25 @@
   min-width: 0;
   padding: 32px 40px 60px;
   overflow-y: auto;
-  background: #0f1e35;
+  background: var(--rules-content-bg);
 }
 
 /* ── Introduction ──────────────────────────────────── */
 .rules-intro {
   margin-bottom: 40px;
   padding-bottom: 24px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  border-bottom: 1px solid var(--rules-border);
 }
 
 .rules-main-title {
   font-size: 2.5rem;
   font-weight: 400;
-  color: #fff;
+  color: var(--rules-title);
   margin: 0 0 12px 0;
 }
 
 .rules-intro-text {
-  color: #8a99af;
+  color: var(--rules-search-ph);
   font-size: 0.95rem;
   line-height: 1.7;
   max-width: 720px;
@@ -168,7 +212,7 @@
 .rules-entry {
   padding: 0 0 28px 0;
   margin-bottom: 28px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid var(--rules-border);
   scroll-margin-top: 96px;
 }
 .rules-entry:last-child {
@@ -178,7 +222,7 @@
 .rules-entry-title {
   font-size: 1.25rem;
   font-weight: 700;
-  color: #dbeafa;
+  color: var(--rules-title);
   margin: 0 0 10px 0;
 }
 
@@ -188,7 +232,7 @@
 }
 
 .rules-entry-paragraph {
-  color: #c8d8f0;
+  color: var(--rules-text);
   font-size: 0.95rem;
   line-height: 1.75;
   margin: 0 0 10px 0;
@@ -199,13 +243,13 @@
 
 /* Inline sub-heading  e.g. "Constant Abilities —" */
 .rules-subheading {
-  color: #9ec6f5;
+  color: var(--rules-subheading);
   font-weight: 700;
 }
 
 /* Bullet list */
 .rules-entry-list {
-  color: #c8d8f0;
+  color: var(--rules-text);
   font-size: 0.95rem;
   line-height: 1.75;
   margin: 0 0 10px 0;
@@ -234,8 +278,8 @@
 /* ── What's New ────────────────────────────────────── */
 .rules-whats-new {
   margin-top: 14px;
-  background: rgba(96, 165, 250, 0.05);
-  border-left: 3px solid rgba(96, 165, 250, 0.4);
+  background: var(--rules-wn-bg);
+  border-left: 3px solid var(--rules-wn-border);
   border-radius: 0 8px 8px 0;
   padding: 10px 14px;
   max-width: 820px;
@@ -246,7 +290,7 @@
   text-transform: uppercase;
   letter-spacing: 0.08em;
   font-weight: 700;
-  color: #60a5fa;
+  color: var(--rules-wn-text);
   margin: 0 0 8px 0;
 }
 
@@ -261,8 +305,8 @@
 .rules-wn-version {
   font-size: 0.74rem;
   font-weight: 700;
-  color: #60a5fa;
-  background: rgba(96, 165, 250, 0.12);
+  color: var(--rules-wn-text);
+  background: var(--rules-wn-version-bg);
   border-radius: 4px;
   padding: 1px 6px;
   white-space: nowrap;
@@ -277,7 +321,7 @@
 
 /* ── Loading ───────────────────────────────────────── */
 .rules-loading {
-  color: #8a99af;
+  color: var(--rules-search-ph);
   font-size: 1rem;
   text-align: center;
   padding: 60px 0;
@@ -296,7 +340,7 @@
     width: 100%;
     max-height: 280px;
     border-right: none;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+    border-bottom: 1px solid var(--rules-border);
   }
   .rules-content { padding: 24px 16px 40px; }
 }

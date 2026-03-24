@@ -180,9 +180,11 @@ export function TooltipContent({ card, isLink = false }) {
             </div>
 
             <div className="card-tooltip__body">
-                <div className="card-tooltip__text-box">
-                    <CardText card={card} showSpoilers={false} />
-                </div>
+                {card.text && (
+                    <div className="card-tooltip__text-box">
+                        <CardText card={card} showSpoilers={false} />
+                    </div>
+                )}
 
                 <div className="card-tooltip__footer">
                     {card.pack_name} #{card.position}

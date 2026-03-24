@@ -46,8 +46,8 @@
 
 /* ── Deck card ───────────────────────────────── */
 .deck-card {
-  background: #10203a;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--st-surface);
+  border: 1px solid var(--st-border);
   border-radius: 12px;
   overflow: hidden;
   display: flex;
@@ -58,7 +58,7 @@
 .deck-card:hover {
   transform: translateY(-4px);
   box-shadow: 0 15px 30px rgba(0, 0, 0, 0.5);
-  border-color: rgba(255, 255, 255, 0.2);
+  border-color: var(--st-border-hover);
 }
 
 /* ── Header ─────────────────────────────────── */
@@ -95,13 +95,7 @@
   text-overflow: ellipsis;
 }
 
-.deck-hero-name {
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: rgba(255, 255, 255, 0.85);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
+
 
 /* Vignette héros à droite du header — déborde légèrement en haut et à droite */
 .deck-header .card-thumbnail--wide-hero {
@@ -124,7 +118,7 @@
   justify-content: space-between;
   align-items: flex-start;
   gap: 8px;
-  background: rgba(255, 255, 255, 0.02);
+  background: var(--st-surface-2);
   flex: 1;
   /* pousse le footer en bas quel que soit le contenu */
 }
@@ -155,7 +149,7 @@
 .deck-hero-badge {
   font-weight: 600;
   font-size: 0.85rem;
-  color: #cfe6ff;
+  
 }
 
 /* Stats déplacées sur la ligne héros (droite) — encart pill */
@@ -168,7 +162,7 @@
   white-space: nowrap;
   margin-left: auto;
   background: rgba(0, 0, 0, 0.30);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border: 1px solid var(--st-border);
   border-radius: 6px;
   padding: 3px 10px;
 }
@@ -268,9 +262,9 @@
   width: 28px;
   height: 28px;
   border-radius: 6px;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  background: rgba(120, 120, 120, 0.25);
-  color: #b0bec5;
+  border: 1px solid var(--st-border);
+  background: var(--st-surface-2);
+  color: var(--st-text);
   font-size: 0.85rem;
   cursor: pointer;
   transition: background 0.15s, border-color 0.15s, color 0.15s;
@@ -280,8 +274,8 @@
 }
 
 .deck-action-btn:hover:not(:disabled) {
-  background: rgba(140, 140, 140, 0.45);
-  border-color: rgba(255, 255, 255, 0.3);
+  background: var(--st-border);
+  border-color: var(--st-border-hover);
   color: #fff;
 }
 
@@ -330,8 +324,8 @@
   height: 36px;
   padding: 0 10px;
   border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--st-border);
+  background: var(--st-surface-2);
   color: #9fb4d8;
   font-size: 0.9rem;
   font-weight: 600;
@@ -342,7 +336,7 @@
 
 .deck-pagination__btn:hover:not(:disabled) {
   background: rgba(255, 255, 255, 0.12);
-  border-color: rgba(255, 255, 255, 0.3);
+  border-color: var(--st-border-hover);
   color: #fff;
 }
 
@@ -378,8 +372,8 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
-  background: #0f1e33;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--st-surface-2);
+  border: 1px solid var(--st-border);
   border-radius: 10px;
   padding: 14px 18px;
 }
@@ -396,7 +390,7 @@
   flex: 0 0 72px;
   font-size: 0.68rem;
   font-weight: 700;
-  text-transform: uppercase;
+  text-transform: none;
   letter-spacing: 0.08em;
   color: #7a8fa8;
   text-align: right;
@@ -423,10 +417,10 @@
 
 .deck-filters__select {
   width: 100%;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: var(--st-surface-2);
+  border: 1px solid var(--st-border);
   border-radius: 6px;
-  color: #ccc;
+  color: var(--st-title, #111);
   font-size: 0.82rem;
   padding: 5px 8px;
   cursor: pointer;
@@ -435,12 +429,12 @@
 
 .deck-filters__select:focus {
   outline: none;
-  border-color: rgba(255, 255, 255, 0.3);
+  border-color: var(--st-border-hover);
 }
 
 .deck-filters__select option {
-  background: #1a2a40;
-  color: #ccc;
+  background: var(--st-surface);
+  color: var(--st-title, #111);
 }
 
 /* Aspect buttons */
@@ -477,9 +471,10 @@
 }
 
 .deck-filters__aspect-btn--all.deck-filters__aspect-btn--active {
+  color: #fff !important;
   border-color: #475569;
   background: #475569;
-  color: #fff;
+  color: var(--st-title, #111);
 }
 
 .deck-filters__aspect-dot {
@@ -533,8 +528,8 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: var(--st-surface-2);
+  border: 1px solid var(--st-border);
   border-radius: 6px;
   color: #c9d6ea;
   font-size: 0.82rem;
@@ -548,7 +543,7 @@
 
 .deck-filters__btn:hover {
   background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 0.3);
+  border-color: var(--st-border-hover);
   color: #fff;
 }
 
@@ -588,8 +583,8 @@
 
 .deck-filters__import-input {
   flex: 1;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: var(--st-surface-2);
+  border: 1px solid var(--st-border);
   border-radius: 4px;
   padding: 6px 10px;
   color: #e2e8f0;
@@ -646,3 +641,14 @@
     justify-content: space-between;
   }
 }
+
+
+/* Hero badge colors */
+.deck-hero-badge { --hero-title-color: #222; }
+html.dark .deck-hero-badge { --hero-title-color: #fff; }
+
+
+/* Ensure tags are clearly visible */
+.deck-filters__tag-btn { opacity: 0.8 !important; filter: grayscale(0) !important; }
+.deck-filters__tag-btn--active { opacity: 1 !important; transform: scale(1.1); box-shadow: 0 0 0 2px var(--st-accent); }
+.deck-tag-icon { opacity: 0.9 !important; }

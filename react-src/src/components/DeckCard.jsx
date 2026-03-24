@@ -96,7 +96,7 @@ export default function DeckCard({
         <div className="deck-body-left">
           <div className="deck-hero-row">
             <div className="deck-hero-row-left">
-              <span className="deck-hero-badge">{deck.hero_name}</span>
+              <span className="deck-hero-badge" style={{ color: isFFG ? 'var(--hero-title-color, #222)' : 'var(--st-accent-hover)', fontWeight: 700, textTransform: 'capitalize' }}>{deck.hero_name}</span>
               {isFFG && <span className="mc-badge mc-badge-official">Official</span>}
               {!isFFG && creator && String(creator).split(/[,&]/).map(c => c.trim()).filter(Boolean).map((c, i) => <span key={i} className="mc-badge mc-badge-creator">{c}</span>)}
               {statusBadgeClass && <span className={`mc-badge ${statusBadgeClass}`}>{statusKey}</span>}

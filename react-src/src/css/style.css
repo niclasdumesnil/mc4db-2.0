@@ -79,7 +79,7 @@
 .mc-badge-official { background: rgba(0, 0, 0, 0.35);        color: #ccc;    border-color: rgba(200,200,200,0.35); }
 .mc-badge-current  { background: rgba(180, 186, 195, 0.15);  color: #bac0ca; border-color: rgba(180,186,195,0.4); }
 .mc-badge-fanmade  { background: rgba(18, 120, 216, 0.15);   color: #6db3f2; border-color: rgba(18,120,216,0.45); }
-.mc-badge-creator  { background: rgba(18, 120, 216, 0.15);   color: #93caff; border-color: rgba(18,120,216,0.45); }
+.mc-badge-creator {  background: rgba(18, 120, 216, 0.15);    color: var(--st-accent-hover);  border-color: rgba(18,120,216,0.45);  }
 /* Pack environment / status badges */
 .mc-badge-alpha    { background: rgba(155, 96,  7, 0.18);    color: #d4921e; border-color: rgba(155,96,7,0.5); }
 .mc-badge-beta     { background: rgba(155, 96,  7, 0.18);    color: #d4921e; border-color: rgba(155,96,7,0.5); }
@@ -266,6 +266,215 @@
   font-family: 'marvel-icons', sans-serif;
   font-size: 12px;
   border: 1.5px solid;
+  white-space: nowrap;
+  line-height: 1.5;
+  flex-shrink: 0;
+  border: 1px solid;
+}
+/* Base badge colors tailored for LIGHT mode legibility */
+.mc-badge-official { background: rgba(0, 0, 0, 0.65); color: #fff; border-color: rgba(0, 0, 0, 0.8); }
+.mc-badge-current  { background: rgba(180, 186, 195, 0.15);  color: #64748b; border-color: rgba(180,186,195,0.6); }
+.mc-badge-fanmade  { background: rgba(18, 120, 216, 0.12);   color: #1d4ed8; border-color: rgba(18,120,216,0.45); }
+.mc-badge-creator {  background: rgba(18, 120, 216, 0.12);    color: var(--st-accent-hover);  border-color: rgba(18,120,216,0.45);  }
+/* Pack environment / status badges */
+.mc-badge-alpha    { background: rgba(180, 83, 9, 0.12);     color: #b45309; border-color: rgba(180,83,9,0.5); }
+.mc-badge-beta     { background: rgba(180, 83, 9, 0.12);     color: #b45309; border-color: rgba(180,83,9,0.5); }
+.mc-badge-released { background: rgba(21, 128, 61, 0.12);    color: #15803d; border-color: rgba(21,128,61,0.5); }
+.mc-badge-sealed   { background: rgba(21, 128, 61, 0.12);    color: #15803d; border-color: rgba(21,128,61,0.5); }
+.mc-badge-legacy   { background: rgba(107, 114, 128, 0.15);  color: #4b5563; border-color: rgba(107,114,128,0.4); }
+.mc-badge-altart   { background: rgba(22, 101, 52, 0.12);    color: #166534; border-color: rgba(22,101,52,0.5); }
+.mc-badge-private  { background: rgba(180, 83, 9, 0.12);     color: #b45309; border-color: rgba(180,83,9,0.5); }
+
+/* Restore original bright badge colors for DARK mode */
+html.dark .mc-badge-official { background: rgba(0, 0, 0, 0.35);        color: #ccc;    border-color: rgba(200,200,200,0.35); }
+html.dark .mc-badge-current  { background: rgba(180, 186, 195, 0.15);  color: #bac0ca; border-color: rgba(180,186,195,0.4); }
+html.dark .mc-badge-fanmade  { background: rgba(18, 120, 216, 0.15);   color: #6db3f2; border-color: rgba(18,120,216,0.45); }
+html.dark .mc-badge-creator {  background: rgba(18, 120, 216, 0.15);    color: var(--st-accent-hover);  border-color: rgba(18,120,216,0.45);  }
+html.dark .mc-badge-alpha    { background: rgba(155, 96,  7, 0.18);    color: #d4921e; border-color: rgba(155,96,7,0.5); }
+html.dark .mc-badge-beta     { background: rgba(155, 96,  7, 0.18);    color: #d4921e; border-color: rgba(155,96,7,0.5); }
+html.dark .mc-badge-released { background: rgba(16,  113, 22, 0.18);   color: #4dc254; border-color: rgba(16,113,22,0.5); }
+html.dark .mc-badge-sealed   { background: rgba(16,  113, 22, 0.18);   color: #4dc254; border-color: rgba(16,113,22,0.5); }
+html.dark .mc-badge-legacy   { background: rgba(107, 114,128, 0.15);   color: #9ca3af; border-color: rgba(107,114,128,0.4); }
+html.dark .mc-badge-altart   { background: rgba(22,  163, 74, 0.18);    color: #4ade80; border-color: rgba(22,163,74,0.5); }
+html.dark .mc-badge-private  { background: rgba(234, 179,  8, 0.18);    color: #fbbf24; border-color: rgba(234,179,8,0.5); }
+
+/* ── Reputation medal (shared: Profile, PublicDeck, …) ─────────────────────── */
+.rep-badge { display: inline-flex; align-items: center; gap: 5px; padding: 3px 9px 3px 4px; border-radius: 20px; font-size: 0.82rem; font-weight: 700; }
+.rep-badge--bronze { background: rgba(205,127,50,0.12);  border: 1px solid #cd7f32; color: #cd7f32; }
+.rep-badge--silver { background: rgba(192,192,192,0.12); border: 1px solid #a0a0a0; color: #c8c8c8; }
+.rep-badge--gold   { background: rgba(255,215,0,0.12);   border: 1px solid #ffd700; color: #ffd700; }
+.rep-medal { width: 18px; height: 18px; flex-shrink: 0; }
+.rep-score { font-variant-numeric: tabular-nums; }
+
+/* ── Deck tag icons ───────────────────────────────────────────────────── */
+.deck-tag-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  line-height: 1;
+  cursor: default;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.12);
+  transition: background 0.15s;
+}
+.deck-tag-icon:hover { background: rgba(255,255,255,0.14); border-color: rgba(255,255,255,0.25); }
+.deck-tag-icon--solo         { background: rgba(43,128,197,0.15);  border-color: rgba(43,128,197,0.35); }
+.deck-tag-icon--multiplayer  { background: rgba(43,128,197,0.15);  border-color: rgba(43,128,197,0.35); }
+.deck-tag-icon--beginner     { background: rgba(16,113,22,0.15);   border-color: rgba(16,113,22,0.35); }
+.deck-tag-icon--theme        { background: rgba(155,96,7,0.15);    border-color: rgba(155,96,7,0.40); }
+.deck-tag-icon--campaign     { background: rgba(73,63,100,0.18);   border-color: rgba(73,63,100,0.40); }
+.deck-tag-icon--competitive  { background: rgba(204,48,56,0.15);   border-color: rgba(204,48,56,0.35); }
+
+/* ── Card thumbnails ──────────────────────────────────────────────────────── */
+/* Set background-image inline. Base card = 300×418px.                        */
+.card-thumbnail {
+  background-repeat: no-repeat;
+  flex-shrink: 0;
+}
+
+/* ── Size variants ── */
+.card-thumbnail--1x { width: 200px; height: 200px; background-size: 300px 418px; }
+.card-thumbnail--2x { width: 100px; height: 100px; background-size: 150px 209px; }
+.card-thumbnail--3x { width:  67px; height:  67px; background-size: 100px 139px; background-position: -20px -14px; }
+.card-thumbnail--4x { width:  50px; height:  50px; background-size:  75px 105px; }
+.card-thumbnail--5x { width:  40px; height:  40px; background-size:  60px  84px; }
+
+/* ── Type positions ── */
+.card-thumbnail--1x.card-thumbnail--asset     { background-position: -51px    -31px; }
+.card-thumbnail--2x.card-thumbnail--asset     { background-position: -25.5px  -15.5px; }
+.card-thumbnail--3x.card-thumbnail--asset     { background-position: -17px    -10.3px; }
+.card-thumbnail--4x.card-thumbnail--asset     { background-position: -12.75px  -7.75px; }
+.card-thumbnail--5x.card-thumbnail--asset     { background-position: -10.2px   -6.2px; }
+
+.card-thumbnail--1x.card-thumbnail--event     { background-position: -50px    -52px; }
+.card-thumbnail--2x.card-thumbnail--event     { background-position: -25px    -26px; }
+.card-thumbnail--3x.card-thumbnail--event     { background-position: -16.7px  -17.3px; }
+.card-thumbnail--4x.card-thumbnail--event     { background-position: -12.5px  -13px; }
+.card-thumbnail--5x.card-thumbnail--event     { background-position: -10px    -10.4px; }
+
+.card-thumbnail--1x.card-thumbnail--skill     { background-position: -50px    -60px; }
+.card-thumbnail--2x.card-thumbnail--skill     { background-position: -25px    -30px; }
+.card-thumbnail--3x.card-thumbnail--skill     { background-position: -16.7px  -20px; }
+.card-thumbnail--4x.card-thumbnail--skill     { background-position: -12.5px  -15px; }
+.card-thumbnail--5x.card-thumbnail--skill     { background-position: -10px    -12px; }
+
+.card-thumbnail--1x.card-thumbnail--treachery { background-position: -92px    -26px; }
+.card-thumbnail--2x.card-thumbnail--treachery { background-position: -51px    -13px; }
+.card-thumbnail--3x.card-thumbnail--treachery { background-position: -23.3px   -2.7px; background-size: 120px 159px; }
+.card-thumbnail--4x.card-thumbnail--treachery { background-position: -20.5px   -6.5px; }
+.card-thumbnail--5x.card-thumbnail--treachery { background-position: -16.4px   -5.2px; }
+
+.card-thumbnail--1x.card-thumbnail--location  { background-position: -51px    -31px; }
+.card-thumbnail--2x.card-thumbnail--location  { background-position: -25.5px  -15.5px; }
+.card-thumbnail--3x.card-thumbnail--location  { background-position: -17px    -10.3px; }
+.card-thumbnail--4x.card-thumbnail--location  { background-position: -12.75px  -7.75px; }
+.card-thumbnail--5x.card-thumbnail--location  { background-position: -10.2px   -6.2px; }
+
+.card-thumbnail--1x.card-thumbnail--enemy     { background-position: -51px    -31px; }
+.card-thumbnail--2x.card-thumbnail--enemy     { background-position: -25.5px  -15.5px; }
+.card-thumbnail--3x.card-thumbnail--enemy     { background-position: -35px   -100.3px; background-size: 130px 169px; }
+.card-thumbnail--4x.card-thumbnail--enemy     { background-position: -12.75px  -7.75px; }
+.card-thumbnail--5x.card-thumbnail--enemy     { background-position: -10.2px   -6.2px; }
+
+/* ── Hero face crops ── */
+/* Wide — compact (card at 180×270) */
+.card-thumbnail--wide-hero {
+  width: 120px;
+  min-height: 55px;
+  background-size: 180px 270px;
+  background-position: -50px -55px;
+}
+/* Slice — high-res strip (card at 396×594) */
+.card-thumbnail--slice-hero {
+  width: 120px;
+  height: 55px;
+  background-size: 396px 594px;
+  background-position: -100px -135px;
+}
+/* Hero image for decklist header */
+.deck-list-hero-image {
+  background-position: 60% 25%;
+  background-repeat: no-repeat;
+  background-size: 130px auto;
+  border-radius: 5px;
+  bottom: 0;
+  height: 120px;
+  margin: auto;
+  width: 110px;
+  display: inline-block;
+  vertical-align: top;
+  flex-shrink: 0;
+}
+/* Fallback <img> overflow container */
+.card-thumbnail__img {
+  margin-left: -50%;
+  margin-top: -50%;
+  width: 300px;
+  height: 419px;
+}
+
+/* Full card image (detail page) */
+.img-vertical-card {
+  width: auto;
+  max-width: 419px;
+  max-height: 419px;
+  border-radius: 14px;
+}
+
+
+/* Pack type badges (card detail page) */
+.mc-pack-badges {
+  display: inline-flex;
+  gap: .4rem;
+  align-items: center;
+  margin-left: .6rem;
+}
+.mc-pack-badge,
+.mc-pack-range {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  border: 1px solid rgba(18,120,216,0.45);
+  background: rgba(18, 120, 216, 0.15);
+  color: #6db3f2;
+}
+/* Official / fanmade standalone label (no pill) */
+.mc-pack-official { color: #aaa; background: transparent; border: none; padding: 0; font-weight: 400; font-size: 0.75rem; }
+.mc-pack-fanmade  { color: #6db3f2; background: transparent; border: none; padding: 0; font-weight: 400; font-size: 0.75rem; }
+
+/* Pack type colour overrides */
+.mc-pack-badge.mc-pack-type-hero,    .mc-pack-range.mc-pack-type-hero      { background: rgba(18,120,216,0.15);  border-color: rgba(18,120,216,0.45);  color: #6db3f2; }
+.mc-pack-badge.mc-pack-type-encounter,.mc-pack-range.mc-pack-type-encounter { background: rgba(155,96,7,0.15);    border-color: rgba(155,96,7,0.45);    color: #c98a30; }
+.mc-pack-badge.mc-pack-type-scenario, .mc-pack-range.mc-pack-type-scenario  { background: rgba(73,63,100,0.2);    border-color: rgba(73,63,100,0.5);    color: #a898d8; }
+.mc-pack-badge.mc-pack-type-resource, .mc-pack-range.mc-pack-type-resource  { background: rgba(40,167,69,0.15);   border-color: rgba(40,167,69,0.45);   color: #5cb85c; }
+.mc-pack-badge.mc-pack-type-default,  .mc-pack-range.mc-pack-type-default,
+.mc-pack-badge.mc-pack-type-unknown,  .mc-pack-range.mc-pack-type-unknown   { background: rgba(107,114,128,0.15); border-color: rgba(107,114,128,0.45); color: #9ca3af; }
+.mc-pack-badge.mc-pack-fanmade,       .mc-pack-range.mc-pack-fanmade        { background: rgba(18,120,216,0.15);  border-color: rgba(18,120,216,0.45);  color: #6db3f2; }
+.mc-pack-badge.mc-pack-official,      .mc-pack-range.mc-pack-official       { background: rgba(0,0,0,0.35);       border-color: rgba(200,200,200,0.35); color: #ccc; }
+.pack-nav-btn:hover{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.35);color:#fff}
+.pack-nav-btn--prev .pack-nav-label,.pack-nav-btn--next .pack-nav-label{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.pack-nav-arrow{flex-shrink:0;font-size:1.1rem;line-height:1}
+
+/* ── Shared checklist resource icons (used by CardListDisplay) ── */
+.cl-res-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 3px;
+  font-family: 'marvel-icons', sans-serif;
+  font-size: 12px;
+  border: 1.5px solid;
   line-height: 1;
   flex-shrink: 0;
 }
@@ -273,7 +482,7 @@
 .cl-res-icon.icon-physical { color: #dc3545; border-color: #dc3545; }
 .cl-res-icon.icon-mental   { color: #007bff; border-color: #007bff; }
 .cl-res-icon.icon-wild     { color: #28a745; border-color: #28a745; }
-.cl-res-icon--boost        { color: #e2e8f0; border-color: #64748b; }
+.cl-res-icon--boost { color: var(--st-title, #334155); border-color: var(--st-muted, #94a3b8); }
 .cl-res-empty { color: var(--st-text-muted, #64748b); font-size: 0.85rem; }
 
 /* ── Faction Sprite (Icons) ── */
@@ -292,3 +501,123 @@
   vertical-align: middle;
   margin-right: 4px;
 }
+
+/* ── Dark Mode Overrides ─────────────────────────────────────────────── */
+html.dark body {
+  background-color: #0f172a !important; /* slate-900 */
+  color: #f1f5f9 !important; /* slate-100 */
+}
+
+/* Base CSS Variables for components that use them (like Stories, CardList) */
+html.dark {
+  --st-search-bg: rgba(255, 255, 255, 0.05);
+  --st-surface-3: rgba(255, 255, 255, 0.06);
+
+  --st-bg: #0f172a;
+  --st-text: #f1f5f9;
+  --st-surface: #1e293b;
+  --cl-bg: #0f172a;
+}
+
+/* Headings and subheadings across all custom pages */
+html.dark h1, html.dark h2, html.dark h3, html.dark h4, html.dark h5, html.dark h6,
+html.dark .decks-title, 
+html.dark .stories-title, 
+html.dark .ndeck-title,
+html.dark .card-page-title,
+html.dark .dashboard-title {
+  color: #f1f5f9 !important;
+}
+
+html.dark .decks-subtitle, 
+html.dark .stories-subtitle, 
+html.dark .ndeck-subtitle,
+html.dark .card-page-subtitle,
+html.dark .dashboard-subtitle {
+  color: #94a3b8 !important;
+}
+
+/* Backgrounds - generic utility classes */
+html.dark .tw-bg-white,
+html.dark .bg-white {
+  background-color: #1e293b !important; /* slate-800 */
+}
+html.dark .tw-bg-slate-800 {
+  background-color: #0f172a !important; /* slate-900 */
+}
+html.dark .tw-bg-slate-50\/50, html.dark .tw-bg-slate-100, html.dark .tw-bg-slate-50 {
+  background-color: #1e293b !important;
+}
+
+/* Specific Page Overrides */
+html.dark .stories-page,
+html.dark .ndeck-page,
+html.dark .decks-page-container {
+  background-color: transparent !important; /* Let body show through */
+}
+
+/* Filter bars and menus */
+html.dark .deck-filters,
+html.dark .card-search,
+html.dark .ndeck-filters,
+html.dark .ndeck-tabs {
+  background-color: #1e293b !important;
+  color: #f8fafc !important;
+  border-color: #334155 !important;
+}
+
+/* Buttons and Inputs */
+html.dark .ndeck-scope-btn,
+html.dark .ndeck-theme-select,
+html.dark .ndeck-sort-btn,
+html.dark .ndeck-back,
+html.dark .stories-tab {
+  background-color: #1e293b !important;
+  color: #cbd5e1 !important;
+  border-color: #334155 !important;
+}
+
+html.dark .ndeck-scope-btn--active,
+html.dark .ndeck-sort-btn--active,
+html.dark .stories-tab--active {
+  background-color: #3b82f6 !important;
+  color: #ffffff !important;
+  border-color: #3b82f6 !important;
+}
+
+/* Text Colors */
+html.dark .tw-text-slate-800, 
+html.dark .tw-text-slate-700,
+html.dark .tw-text-slate-900 {
+  color: #f8fafc !important; /* slate-50 */
+}
+html.dark .tw-text-slate-500,
+html.dark .tw-text-slate-600 {
+  color: #94a3b8 !important; /* slate-400 */
+}
+
+/* Borders */
+html.dark .tw-border-slate-200,
+html.dark .tw-border-slate-300 {
+  border-color: #334155 !important; /* slate-700 */
+}
+
+/* Inputs / Form interactions */
+html.dark input, html.dark textarea, html.dark select {
+  background-color: #1e293b;
+  color: #f8fafc;
+  border-color: #334155;
+}
+html.dark input::placeholder {
+  color: #64748b;
+}
+
+/* Custom Header background */
+html.dark .mc-nav-bg {
+  background: #060b19 !important; /* Even darker for the header in dark mode */
+}
+
+html.dark .deck-filters__select, html.dark .ndeck-filters__select, html.dark .deck-filters__select option { color: #f1f5f9 !important; }
+
+/* Force deck names inside DeckCard to always be dark, as they sit on a light aspect banner */
+html.dark h3.deck-name, html.dark .deck-name { color: #111 !important; }

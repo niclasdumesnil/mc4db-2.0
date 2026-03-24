@@ -1,12 +1,12 @@
 /* ── Card List Page ───────────────────────────────────────────── */
 
 :root {
-  --cl-bg: #0d1629;
-  --cl-surface: #111d35;
-  --cl-border: rgba(255, 255, 255, 0.08);
-  --cl-text: #e2e8f0;
-  --cl-text-muted: #94a3b8;
-  --cl-accent: #3b82f6;
+  --cl-bg: var(--st-bg);
+  --cl-surface: var(--st-surface);
+  --cl-border: var(--st-border);
+  --cl-text: var(--st-title);
+  --cl-text-muted: var(--st-text);
+  --cl-accent: var(--st-accent);
 }
 
 /* ── Outer layout ────────────────────────────────── */
@@ -100,7 +100,7 @@
 
 .cardlist-theme-btn--active {
   background: rgba(99, 102, 241, 0.18);
-  color: #a5b4fc;
+  color: var(--st-accent-hover, #a5b4fc);
   border-color: rgba(99, 102, 241, 0.5);
   font-weight: 600;
 }
@@ -138,7 +138,7 @@
 .cardlist-mode-btn--active {
   background: rgba(59, 130, 246, 0.18);
   border-color: rgba(59, 130, 246, 0.5);
-  color: #93c5fd;
+  color: var(--st-accent-hover, #93c5fd);
 }
 
 /* ── Main area (left = list, right = filters) ────── */
@@ -298,7 +298,7 @@
 .cardlist-order-btn--desc {
   background: #3b82f62e;
   border-color: #3b82f680;
-  color: #93c5fd;
+  color: var(--st-accent-hover, #93c5fd);
 }
 
 .cardlist-showdup-btn {
@@ -438,7 +438,7 @@
 .cardlist-pagination-btn--active {
   background: rgba(59, 130, 246, 0.25);
   border-color: rgba(59, 130, 246, 0.6);
-  color: #93c5fd;
+  color: var(--st-accent-hover, #93c5fd);
   font-weight: 700;
 }
 
@@ -515,7 +515,7 @@
 }
 
 .cl-card-name a:hover {
-  color: #93c5fd;
+  color: var(--st-accent-hover, #93c5fd);
   text-decoration: underline;
 }
 
@@ -541,7 +541,7 @@
 .cl-unique-icon {
   font-family: 'marvel-icons', sans-serif;
   font-size: 0.85rem;
-  color: #ffffff;
+  color: var(--st-title, inherit);
   flex-shrink: 0;
   line-height: 1;
   margin-right: 1px;
@@ -790,7 +790,7 @@
 .card-search__res-qty-btn--active {
   background: rgba(59, 130, 246, 0.2);
   border-color: rgba(59, 130, 246, 0.5);
-  color: #93c5fd;
+  color: var(--st-accent-hover, #93c5fd);
   font-weight: 700;
 }
 
@@ -845,7 +845,7 @@
 .card-search__radio-btn--active {
   background: rgba(59, 130, 246, 0.2);
   border-color: rgba(59, 130, 246, 0.5);
-  color: #93c5fd;
+  color: var(--st-accent-hover, #93c5fd);
   font-weight: 700;
 }
 
@@ -1010,7 +1010,7 @@
 .card-search__unique-toggle--active {
   background: rgba(59, 130, 246, 0.2);
   border-color: rgba(59, 130, 246, 0.5);
-  color: #93c5fd;
+  color: var(--st-accent-hover, #93c5fd);
   font-weight: 700;
 }
 
@@ -1093,7 +1093,7 @@
 .cl-card-name-btn {
   all: unset;
   cursor: pointer;
-  color: #93c5fd;
+  color: var(--st-accent-hover, #93c5fd);
   font-weight: 500;
   border-bottom: 1px dashed rgba(147,197,253,0.3);
   transition: color 0.12s, border-color 0.12s;

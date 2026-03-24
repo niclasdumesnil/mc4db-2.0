@@ -26,7 +26,18 @@
  */
 function renderSharedHeader() {
   return `
-<header id="mc-site-header" style="background:#071026;color:#fff;padding:12px 20px;position:fixed;left:0;right:0;top:0;z-index:9000;">
+<script>
+  if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+    document.documentElement.classList.add('dark');
+  } else if (localStorage.getItem('theme') === 'light') {
+    document.documentElement.classList.remove('dark');
+  } else {
+    // Default to dark mode for this site if preference isn't set, as requested
+    document.documentElement.classList.add('dark');
+    localStorage.setItem('theme', 'dark');
+  }
+</script>
+<header id="mc-site-header" class="mc-nav-bg" style="background:#071026;color:#fff;padding:12px 20px;position:fixed;left:0;right:0;top:0;z-index:9000;">
   <nav style="max-width:1100px;margin:0 auto;display:flex;align-items:center;gap:16px;">
     <a href="/" style="color:#fff;text-decoration:none;font-weight:700;font-size:18px;">MC4DB 2.0</a>
     <div style="flex:1"></div>
@@ -44,6 +55,10 @@ function renderSharedHeader() {
           title="Switch language"
           style="cursor:pointer;padding:3px 9px;border-radius:999px;font-size:11px;font-weight:700;letter-spacing:0.06em;user-select:none;transition:background .15s;"
     >EN</span>
+    <span id="mc-theme-toggle"
+          title="Toggle Dark Mode"
+          style="cursor:pointer;padding:3px 8px;border-radius:999px;font-size:14px;user-select:none;transition:background .15s;"
+    >☀️</span>
     <a id="mc-login-btn" href="#"
        style="color:#fff;background:#1f6fb6;padding:7px 14px;border-radius:6px;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;height:34px;font-size:14px;">
       Login
@@ -66,7 +81,6 @@ function renderSharedHeader() {
         var hasUser  = u && (u.id || u.userId);
 
         if (hasUser) {
-          // If we lack rich profile data, fetch it once
           if (u.id && typeof u.reputation === 'undefined') {
             fetch('/api/public/user/' + encodeURIComponent(u.id))
               .then(function(r){ return r.json(); })
@@ -116,11 +130,9 @@ function renderSharedHeader() {
         }
       }
 
-      // Wire up events
       document.addEventListener('DOMContentLoaded', _mcRenderHeader);
       window.addEventListener('mc_user_changed', _mcRenderHeader);
 
-      // Login button → open the login modal (dispatched by the React LoginMenu)
       var loginBtn = document.getElementById('mc-login-btn');
       if (loginBtn) {
         loginBtn.addEventListener('click', function(e){
@@ -129,7 +141,6 @@ function renderSharedHeader() {
         });
       }
 
-      // Logout button → clear stored user and re-render
       var logoutBtn = document.getElementById('mc-logout-btn');
       if (logoutBtn) {
         logoutBtn.addEventListener('click', function(e){
@@ -139,7 +150,6 @@ function renderSharedHeader() {
         });
       }
 
-      // Run immediately in case the DOM is already ready
       if (document.readyState !== 'loading') { _mcRenderHeader(); }
 
       // ── Locale switcher ───────────────────────────────────────────────
@@ -160,12 +170,42 @@ function renderSharedHeader() {
         window.dispatchEvent(new Event('mc_locale_changed'));
         _mcRenderLocale();
       };
+
+      // ── Theme switcher ───────────────────────────────────────────────
+      function _mcRenderTheme() {
+        var badge = document.getElementById('mc-theme-toggle');
+        if (!badge) return;
+        var isDark = document.documentElement.classList.contains('dark');
+        badge.textContent = isDark ? '☀️' : '🌙';
+        badge.style.background = isDark ? '#374151' : 'transparent';
+        badge.style.border = isDark ? '1px solid #4b5563' : '1px solid #9ca3af';
+      }
+      window._mcToggleTheme = function() {
+        var isDark = document.documentElement.classList.contains('dark');
+        if (isDark) {
+          document.documentElement.classList.remove('dark');
+          localStorage.setItem('theme', 'light');
+        } else {
+          document.documentElement.classList.add('dark');
+          localStorage.setItem('theme', 'dark');
+        }
+        _mcRenderTheme();
+      };
+
       document.addEventListener('DOMContentLoaded', function() {
         _mcRenderLocale();
-        var badge = document.getElementById('mc-locale-badge');
-        if (badge) badge.addEventListener('click', window._mcToggleLocale);
+        var lbadge = document.getElementById('mc-locale-badge');
+        if (lbadge) lbadge.addEventListener('click', window._mcToggleLocale);
+
+        _mcRenderTheme();
+        var tbadge = document.getElementById('mc-theme-toggle');
+        if (tbadge) tbadge.addEventListener('click', window._mcToggleTheme);
       });
-      if (document.readyState !== 'loading') { _mcRenderLocale(); }
+
+      if (document.readyState !== 'loading') { 
+        _mcRenderLocale(); 
+        _mcRenderTheme();
+      }
     })();
   </script>
 </header>

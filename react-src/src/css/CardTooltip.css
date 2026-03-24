@@ -2,9 +2,9 @@
   position: absolute;
   z-index: 10000;
   width: 380px;
-  background-color: var(--mc-bg-color, #1a202c);
-  color: #fff;
-  border: 1px solid #374151;
+  background-color: var(--st-surface, #1a202c);
+  color: var(--st-title, #fff);
+  border: 1px solid var(--st-border, #374151);
   /* gray-700 */
   border-left: 4px solid var(--tooltip-faction, #374151);
   /* Default fallback */
@@ -34,7 +34,7 @@
 .card-tooltip__loading {
   text-align: center;
   padding: 16px;
-  color: #9ca3af;
+  color: var(--st-muted, #9ca3af);
   font-style: italic;
 }
 
@@ -90,19 +90,19 @@
 
 .card-tooltip__type {
   font-weight: 600;
-  color: #e5e7eb;
+  color: var(--st-title, #e5e7eb);
 }
 
 .card-tooltip__traits {
   font-style: italic;
   font-weight: bold;
-  color: #d1d5db;
+  color: var(--st-text, #d1d5db);
 }
 
 .card-tooltip__stats {
   font-size: 14px;
   margin-bottom: 6px;
-  color: #d1d5db;
+  color: var(--st-text, #d1d5db);
 }
 
 .card-tooltip__stats .mc-card-props {
@@ -112,18 +112,22 @@
 }
 
 .card-tooltip__text-box {
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--st-surface-2, rgba(255, 255, 255, 0.04));
   padding: 8px 10px;
   margin-top: 4px;
   border-radius: 4px;
   font-size: 13.5px;
-  color: #e5e7eb;
+  color: var(--st-title, #e5e7eb);
 }
 
 /* Remove inherited card text border from global style.css */
 .card-tooltip .mc-card-text {
   border-left: none !important;
   padding-left: 0 !important;
+  color: inherit;
+}
+.card-tooltip .mc-card-text p {
+  color: inherit;
 }
 
 /* Override Resource Icon Display inside Tooltip to match cl-res-icon style */
@@ -137,7 +141,7 @@
 
 .card-tooltip .mc-resource-bar>span:first-child {
   font-weight: normal;
-  color: #9ca3af;
+  color: var(--st-muted, #9ca3af);
 }
 
 .card-tooltip .mc-resource-bar .icon {
@@ -186,8 +190,8 @@
 .card-tooltip__footer {
   margin-top: 8px;
   font-size: 12px;
-  color: #6b7280;
+  color: var(--st-muted, #6b7280);
   text-align: right;
-  border-top: 1px solid #374151;
+  border-top: 1px solid var(--st-border, #374151);
   padding-top: 6px;
 }
