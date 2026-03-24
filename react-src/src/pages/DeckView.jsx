@@ -276,17 +276,17 @@ export default function DeckView() {
               <span className="deck-view-aspect-name">{aspect.charAt(0).toUpperCase() + aspect.slice(1)}</span>
               {isPrivate && <span className="deck-view-private-badge">🔒 Private</span>}
               {deck.author_name && <span className="deck-view-author">by {deck.author_name}</span>}
+              {updatedAt && <span className="deck-view-updated" style={{ marginLeft: 'auto', color: 'var(--st-text-muted, #8a99af)', fontSize: '0.9em' }}>Updated {updatedAt}</span>}
             </div>
             <div className="deck-view-stats mt-2">
-              {updatedAt && <span className="deck-view-updated">Updated {updatedAt}</span>}
               {deck.likes != null && <span className="deck-view-stat">♥ {deck.likes}</span>}
               {deck.favorites != null && <span className="deck-view-stat">★ {deck.favorites}</span>}
               {deck.comments != null && <span className="deck-view-stat">💬 {deck.comments}</span>}
             </div>
             {/* Affichage des tags (Mode Edition ET Mode Lecture) */}
             {(showEditor || (deckTags && deckTags.length > 0)) && (
-              <div className="deck-view-tags-editor flex-row" style={{ marginTop: '14px', display: 'flex', alignItems: 'center', gap: '1rem', backgroundColor: 'rgba(255, 255, 255, 0.05)', padding: '6px 12px', borderRadius: '6px', width: '100%', boxSizing: 'border-box' }}>
-                <span className="deck-view-tags-label" style={{ color: '#8a99af', fontWeight: 'bold', letterSpacing: '0.05em', fontSize: '0.8rem' }}>TAGS <span style={{ color: '#444', marginLeft: '0.5rem' }}>|</span></span>
+              <div className="deck-view-tags-editor flex-row" style={{ marginTop: '14px', display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', padding: '6px 0', width: '100%', boxSizing: 'border-box' }}>
+                <span className="deck-view-tags-label" style={{ color: '#8a99af', fontWeight: 'bold', letterSpacing: '0.05em', fontSize: '0.8rem', marginRight: '4px' }}>TAGS</span>
                 <div className="deck-filters__tags" style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
                   {Object.entries(DECK_TAGS).map(([key, t]) => {
                     const currentTags = deckTags ? deckTags.split(',').map(tag => tag.trim()).filter(Boolean) : [];
@@ -299,7 +299,7 @@ export default function DeckView() {
                       <button
                         key={key}
                         className={`deck-view-tag-btn ${active ? `deck-tag-icon--${key} active` : ''}`}
-                        title={t.label}
+                        
                         style={{ cursor: showEditor ? 'pointer' : 'default' }}
                         onClick={() => {
                           if (!showEditor) return;

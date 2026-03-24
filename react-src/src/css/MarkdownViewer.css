@@ -1,5 +1,5 @@
 .markdown-viewer {
-  color: #e2e8f0;
+  color: var(--st-text);
   font-size: 14px;
   line-height: 1.6;
 }
@@ -10,7 +10,7 @@
 .markdown-viewer h4,
 .markdown-viewer h5,
 .markdown-viewer h6 {
-  color: #fff;
+  color: var(--st-text);
   margin-top: 24px;
   margin-bottom: 12px;
 }
@@ -46,20 +46,20 @@
   border-left: 4px solid #3498db;
   padding-left: 16px;
   margin-left: 0;
-  color: #94a3b8;
+  color: var(--st-text-muted);
 }
 
 .markdown-viewer code {
-  background: #1e293b;
+  background: var(--st-surface-2);
   padding: 2px 6px;
   border-radius: 4px;
   font-family: monospace;
   font-size: 0.9em;
-  color: #38bdf8;
+  color: var(--st-accent, #38bdf8);
 }
 
 .markdown-viewer pre {
-  background: #0f172a;
+  background: var(--st-surface-1);
   padding: 16px;
   border-radius: 8px;
   overflow-x: auto;

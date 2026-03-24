@@ -208,7 +208,7 @@ export default function DeckContent({ slots, mode = 'list', heroSpecialCards = [
   return (
     <div className="deck-content-container">
       {totalCards > 0 && (
-        <h4 className="side-deck-header" style={{ marginBottom: '1rem', marginTop: '0.5rem', color: '#fff', textTransform: 'uppercase' }}>
+        <h4 className="side-deck-header" style={{ marginBottom: '1rem', marginTop: '0.5rem', color: 'var(--st-title)', textTransform: 'uppercase' }}>
           MAIN DECK <span className="slot-group-count">({totalCards})</span>
         </h4>
       )}

@@ -1,10 +1,10 @@
 .markdown-editor-container {
   display: flex;
   flex-direction: column;
-  border: 1px solid #2e3b4e;
+  border: 1px solid var(--st-border-strong);
   border-radius: 8px;
   overflow: hidden;
-  background: #111a28;
+  background: var(--st-surface-1);
   margin-top: 20px;
 }
 
@@ -12,14 +12,14 @@
   display: flex;
   gap: 8px;
   padding: 8px;
-  background: #1a2436;
-  border-bottom: 1px solid #2e3b4e;
+  background: var(--st-surface-2);
+  border-bottom: 1px solid var(--st-border-strong);
 }
 
 .markdown-toolbar button {
   background: transparent;
   border: none;
-  color: #8fa1b8;
+  color: var(--st-text-muted);
   cursor: pointer;
   padding: 6px;
   border-radius: 4px;
@@ -30,15 +30,15 @@
 }
 
 .markdown-toolbar button:hover {
-  background: #2a374a;
-  color: #fff;
+  background: var(--st-surface-3);
+  color: var(--st-text);
 }
 
 .markdown-textarea {
   min-height: 200px;
   padding: 12px;
   background: transparent;
-  color: #e2e8f0;
+  color: var(--st-text);
   border: none;
   resize: vertical;
   font-family: inherit;

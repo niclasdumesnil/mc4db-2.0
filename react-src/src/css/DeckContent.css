@@ -1,10 +1,10 @@
 /* Container Principal */
 .deck-content-container {
-  background: #0f1e35;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--st-surface-1);
+  border: 1px solid var(--st-border);
   border-radius: 12px;
   padding: 24px;
-  color: #dbeafa;
+  color: var(--st-text);
   font-family: 'Inter', system-ui, sans-serif;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
 }
@@ -23,7 +23,7 @@
 /* Titres de groupes (ex: "Event (22)") */
 .slot-group-title {
   font-size: 1.05rem;
-  color: #dbeafa;
+  color: var(--st-text);
   margin: 0 0 8px 0;
   font-weight: 700;
   border-bottom: 2px solid rgba(74, 144, 226, 0.3);
@@ -33,7 +33,7 @@
 
 .slot-group-count {
   font-weight: 500;
-  color: #8a99af;
+  color: var(--st-text-muted);
   margin-left: 4px;
   font-size: 0.95rem;
 }
@@ -60,7 +60,7 @@
 }
 
 .slot-item:hover {
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--st-surface-2);
 }
 
 .slot-main-info {
@@ -76,7 +76,7 @@
 
 .slot-qty {
   font-weight: 700;
-  color: #8a99af;
+  color: var(--st-text-muted);
   width: 28px;
   flex-shrink: 0;
 }
@@ -94,7 +94,7 @@
 
 .qty-badge-label {
   font-weight: 700;
-  color: #8a99af;
+  color: var(--st-text-muted);
   font-size: 0.9rem;
   white-space: nowrap;
   transition: opacity 0.12s;
@@ -109,8 +109,8 @@
   flex-direction: row;
   align-items: center;
   gap: 2px;
-  background: #0f1c2e;
-  border: 1px solid rgba(147, 197, 253, 0.25);
+  background: var(--st-surface-3);
+  border: 1px solid var(--st-border-strong);
   border-radius: 6px;
   padding: 3px 5px;
   z-index: 20;
@@ -180,7 +180,7 @@
 
 /* Nom de la carte */
 .slot-name {
-  color: #fff;
+  color: var(--st-text);
   cursor: pointer;
   transition: color 0.2s;
   font-weight: 500;
@@ -202,11 +202,11 @@
 .deck-empty {
   text-align: center;
   padding: 40px;
-  color: #8a99af;
+  color: var(--st-text-muted);
   font-size: 1.1rem;
-  background: rgba(255, 255, 255, 0.02);
+  background: var(--st-surface-1);
   border-radius: 12px;
-  border: 1px dashed rgba(255, 255, 255, 0.1);
+  border: 1px dashed var(--st-border-strong);
 }
 
 /* Responsive */
@@ -384,7 +384,7 @@
 }
 
 .slot-transfer-btn--to-main {
-  color: #ffffff;
+  color: var(--st-title, #0f172a);
   background: rgba(255, 255, 255, 0.09);
   border-color: rgba(255, 255, 255, 0.28);
 }

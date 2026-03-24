@@ -250,16 +250,10 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  height: 26px;
-  padding: 0 10px;
-  border-radius: 6px;
-  font-size: 0.8rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s;
-  white-space: nowrap;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  position: relative;
+  background: transparent !important;
+  color: var(--st-text);
+  border: 1px solid transparent !important;
   color: #8a99af;
 }
 
@@ -820,4 +814,150 @@
   color: #f87171;
   background: rgba(248, 113, 113, 0.08);
   border-color: rgba(248, 113, 113, 0.25);
+}
+/* ── Tags (Icon only + Tooltip) ── */
+.deck-view-tags-editor {
+  /* No min-width needed as tags no longer expand inline */
+}
+.deck-view-tag-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  position: relative; /* Anchor for the tooltip */
+  background: var(--st-surface-3, rgba(255, 255, 255, 0.08));
+  color: var(--st-text);
+  border: 1px solid var(--st-border, rgba(255, 255, 255, 0.15));
+  border-radius: 4px;
+  padding: 4px;
+  cursor: pointer;
+  transition: background 0.2s;
+  overflow: visible; /* CRITICAL: Tooltip escapes button bounds */
+  width: 32px;
+  height: 32px;
+}
+
+/* Tooltip wrapper */
+.deck-view-tag-btn > span:nth-child(2) {
+  position: absolute;
+  top: -38px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--st-surface-2, #1e293b);
+  color: var(--st-text, #f8fafc);
+  border: 1px solid var(--st-border-strong, rgba(255,255,255,0.2));
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  transition: opacity 0.2s, visibility 0.2s, top 0.2s;
+  z-index: 50;
+  pointer-events: none; /* Tooltip doesn't block clicks */
+}
+
+/* Tooltip caret (triangle) */
+.deck-view-tag-btn > span:nth-child(2)::after {
+  content: '';
+  position: absolute;
+  bottom: -5px;
+  left: 50%;
+  transform: translateX(-50%) rotate(45deg);
+  width: 8px;
+  height: 8px;
+  background: var(--st-surface-2, #1e293b);
+  border-right: 1px solid var(--st-border-strong, rgba(255,255,255,0.2));
+  border-bottom: 1px solid var(--st-border-strong, rgba(255,255,255,0.2));
+}
+
+.deck-view-tag-btn:hover > span:nth-child(2) {
+  opacity: 1;
+  visibility: visible;
+  top: -42px; /* Slight float up animation on hover */
+}
+
+.deck-view-tag-btn.active {
+  background: var(--st-input-bg, rgba(255, 255, 255, 0.2));
+  border-color: var(--st-border-strong, rgba(255, 255, 255, 0.4));
+}
+.deck-view-tag-btn:hover {
+  background: var(--st-surface-3, rgba(255, 255, 255, 0.15));
+}
+
+
+/* ── Theme Specific Overrides for Maximum Banner Contrast ── */
+html:not(.dark) .deck-view-banner,
+html:not(.dark) .deck-view-toolbar {
+  background: #ffffff !important;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08) !important;
+  border: 1px solid rgba(0,0,0,0.06) !important;
+}
+html:not(.dark) .deck-view-banner-info {
+  background: rgba(241, 245, 249, 0.85) !important;
+  backdrop-filter: blur(8px) !important;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.02), 0 4px 15px rgba(0,0,0,0.05) !important;
+  border-left: 1px solid rgba(0, 0, 0, 0.05) !important;
+  border-right: 1px solid rgba(0, 0, 0, 0.05) !important;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05) !important;
+  color: #0f172a !important; /* Force text to be dark in light mode */
+}
+/* ----- NEW FIXES FOR LIGHT MODE TEXT & BORDERS ----- */
+html:not(.dark) .deck-view-banner-info .dvt-name-input,
+html:not(.dark) .dvt-name-input,
+html:not(.dark) .deck-view-banner-info .dvt-name-display,
+html:not(.dark) .deck-view-banner-info .deck-view-subtitle,
+html:not(.dark) .deck-view-title,
+html:not(.dark) .deck-view-banner-info span,
+html:not(.dark) .deck-view-banner-info div {
+  color: #0f172a !important; 
+}
+
+/* Add strong borders to Edit Buttons and Tags */
+html:not(.dark) .deck-view-action-btn,
+html:not(.dark) .deck-view-mode-btn {
+  border: 1px solid rgba(0, 0, 0, 0.2) !important;
+  color: #334155 !important; /* Force darker text for better visibility */
+  font-weight: 500 !important;
+}
+html:not(.dark) .deck-view-tag-btn {
+  border: 1px solid rgba(0, 0, 0, 0.3) !important;
+}
+
+
+html.dark .deck-view-banner,
+html.dark .deck-view-toolbar {
+  background: #1e293b !important;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.4) !important;
+  border-color: #334155 !important;
+}
+html.dark .deck-view-banner-info {
+  background: rgba(30, 41, 59, 0.85) !important; /* Elegant Grey */
+  backdrop-filter: blur(8px) !important;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.1), 0 4px 15px rgba(0,0,0,0.2) !important;
+  border-left-color: rgba(255, 255, 255, 0.1) !important;
+  border-right-color: rgba(255, 255, 255, 0.1) !important;
+  border-bottom-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+
+/* ----- TAG SELECTION STATES FOR BOTH MODES ----- */
+.deck-view-tag-btn:not(.active) {
+  opacity: 0.35 !important;
+  filter: grayscale(100%) !important;
+}
+.deck-view-tag-btn:not(.active):hover {
+  opacity: 0.75 !important;
+  filter: grayscale(50%) !important;
+}
+.deck-view-tag-btn.active {
+  opacity: 1 !important;
+  filter: grayscale(0%) !important;
+}
+
+
+/* ----- DARK MODE TAG BORDER ----- */
+html.dark .deck-view-tag-btn {
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
 }
