@@ -439,3 +439,18 @@
   margin-left: 4px;
   line-height: 1.6;
 }
+
+/* ── Dark Mode Title Fixes ─────────────────────────────────────── */
+/* Overrides global html.dark h4/h5 !important forcing titles to white */
+html.dark .hero-special-title {
+  color: #c4b5fd !important;
+}
+
+html.dark .side-deck-container .side-deck-header {
+  color: #fbbf24 !important;
+}
+
+html.dark .side-deck-container .slot-group-title {
+  color: #fde68a !important;
+  border-bottom-color: rgba(251, 191, 36, 0.25) !important;
+}
