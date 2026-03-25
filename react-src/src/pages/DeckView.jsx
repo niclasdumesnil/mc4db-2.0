@@ -9,6 +9,7 @@ import MarkdownEditor from '@components/MarkdownEditor';
 import MarkdownViewer from '@components/MarkdownViewer';
 import PrintDeckButton from '@components/PrintDeckButton';
 import ExportOctgnButton from '@components/ExportOctgnButton';
+import DeckComments from '@components/DeckComments';
 import '@css/DeckView.css';
 
 const ASPECT_LIST = ['aggression', 'justice', 'leadership', 'protection', 'determination', 'pool'];
@@ -32,6 +33,7 @@ export default function DeckView() {
     return new URLSearchParams(window.location.search).get('edit') === 'true';
   });
   const [showDescriptionPanel, setShowDescriptionPanel] = useState(false);
+  const [showCommentsPanel, setShowCommentsPanel] = useState(false);
   const [displayMode, setDisplayMode] = useState('list'); // 'list' | 'grid'
   const [liveSlots, setLiveSlots] = useState(null); // preview en temps réel
   const [liveSideSlots, setLiveSideSlots] = useState(null); // side deck preview en temps réel
@@ -43,6 +45,16 @@ export default function DeckView() {
   const [deleting, setDeleting] = useState(false);
   const [cloning, setCloning] = useState(false);
   const [publishing, setPublishing] = useState(false);
+  const [voting, setVoting] = useState(false);
+
+  const [uid, setUid] = useState(currentUserId());
+
+  useEffect(() => {
+    const handleAuthChange = () => setUid(currentUserId());
+    window.addEventListener('mc_user_changed', handleAuthChange);
+    return () => window.removeEventListener('mc_user_changed', handleAuthChange);
+  }, []);
+
   // Deck-building state
   const [deckAspect, setDeckAspect] = useState(null);
   const [deckTags, setDeckTags] = useState('');
@@ -151,7 +163,8 @@ export default function DeckView() {
         if (data.ok) {
           setDeck(data.data);
         } else {
-          setError(data.error || 'Deck not found.');
+          const errMsg = typeof data.error === 'string' ? data.error : (data.error?.message || 'Deck not found.');
+          setError(errMsg);
         }
         setLoading(false);
       })
@@ -211,6 +224,39 @@ export default function DeckView() {
     finally { setPublishing(false); }
   };
 
+  const handleToggleVote = async (type) => {
+    const userId = currentUserId();
+    if (!userId) {
+      alert('You must be logged in to vote.');
+      return;
+    }
+    if (String(deck.user_id) === String(userId)) {
+      alert('You cannot vote on your own deck.');
+      return;
+    }
+    setVoting(true);
+    try {
+      const res = await fetch(`/api/public/decks/${deckId}/vote`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_id: userId, type })
+      });
+      const data = await res.json();
+      if (data.ok) {
+        setDeck(prev => ({
+          ...prev,
+          ...(type === 'vote' ? { likes: data.nb_votes } : { favorites: data.nb_favorites })
+        }));
+      } else {
+        alert(data.error || 'Vote failed');
+      }
+    } catch (e) {
+      alert('Network error');
+    } finally {
+      setVoting(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="deck-view-container">
@@ -243,7 +289,6 @@ export default function DeckView() {
     ? new Date(deck.date_update || deck.date_creation).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
     : null;
 
-  const uid = currentUserId();
   const isOwner = isPrivate || (uid && String(deck.user_id) === String(uid));
 
   return (
@@ -269,19 +314,29 @@ export default function DeckView() {
             <div className="deck-view-title-row">
               <h1 className="deck-view-title">{liveTitle ?? deck.name}</h1>
             </div>
-            <div className="deck-view-subtitle">
+            <div className="deck-view-subtitle" style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap' }}>
               {deck.hero_name && <span className="deck-view-hero">{deck.hero_name}</span>}
               {deck.version && <span className="deck-view-version">v{deck.version}</span>}
               <span className="deck-view-aspect-dot" style={{ background: headerColor }} />
               <span className="deck-view-aspect-name">{aspect.charAt(0).toUpperCase() + aspect.slice(1)}</span>
               {isPrivate && <span className="deck-view-private-badge">🔒 Private</span>}
               {deck.author_name && <span className="deck-view-author">by {deck.author_name}</span>}
-              {updatedAt && <span className="deck-view-updated" style={{ marginLeft: 'auto', color: 'var(--st-text-muted, #8a99af)', fontSize: '0.9em' }}>Updated {updatedAt}</span>}
-            </div>
-            <div className="deck-view-stats mt-2">
-              {deck.likes != null && <span className="deck-view-stat">♥ {deck.likes}</span>}
-              {deck.favorites != null && <span className="deck-view-stat">★ {deck.favorites}</span>}
-              {deck.comments != null && <span className="deck-view-stat">💬 {deck.comments}</span>}
+              <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                {updatedAt && <span className="deck-view-updated" style={{ color: 'var(--st-text-muted, #8a99af)', fontSize: '0.9em' }}>Updated {updatedAt}</span>}
+                {!isPrivate && deck && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.9rem', color: 'var(--st-text-muted, #8a99af)' }}>
+                    <button 
+                      onClick={() => handleToggleVote('vote')} disabled={voting || isOwner} 
+                      style={{ background: 'none', border: 'none', color: 'inherit', cursor: (voting || isOwner) ? 'default' : 'pointer', padding: 0, opacity: (voting || isOwner) ? 0.5 : 1 }} title={isOwner ? "You cannot vote on your own deck" : "Like"}
+                    >🤍 {deck.likes || 0}</button>
+                    <button 
+                      onClick={() => handleToggleVote('favorite')} disabled={voting || isOwner} 
+                      style={{ background: 'none', border: 'none', color: 'inherit', cursor: (voting || isOwner) ? 'default' : 'pointer', padding: 0, opacity: (voting || isOwner) ? 0.5 : 1 }} title={isOwner ? "You cannot favorite your own deck" : "Favorite"}
+                    >⭐ {deck.favorites || 0}</button>
+                    <span title="Comments" style={{ cursor: 'pointer' }} onClick={() => setShowDescriptionPanel(false)}>💬 {deck.comments || 0}</span>
+                  </div>
+                )}
+              </div>
             </div>
             {/* Affichage des tags (Mode Edition ET Mode Lecture) */}
             {(showEditor || (deckTags && deckTags.length > 0)) && (
@@ -474,15 +529,18 @@ export default function DeckView() {
           </div>
         )}
 
-        {/* Bouton pour la description (à l'extrême droite) */}
-        {!showEditor && deck?.description_md && (
-          <div className="dvt-section" style={{ marginLeft: 'auto' }}>
-            <button
-              className={`deck-view-mode-btn${showDescriptionPanel ? ' active' : ''}`}
-              onClick={() => setShowDescriptionPanel(!showDescriptionPanel)}
-            >
-              📝 {showDescriptionPanel ? 'Hide Description' : 'Show Description'}
-            </button>
+        {/* Right side items: Description */}
+        {!showEditor && (
+          <div className="dvt-section" style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            {/* Show Description Button */}
+            {deck?.description_md && (
+              <button
+                className={`deck-view-mode-btn${showDescriptionPanel ? ' active' : ''}`}
+                onClick={() => setShowDescriptionPanel(!showDescriptionPanel)}
+              >
+                📝 {showDescriptionPanel ? 'Hide Description' : 'Show Description'}
+              </button>
+            )}
           </div>
         )}
       </div>
@@ -539,7 +597,16 @@ export default function DeckView() {
           </div>
         )}
         {!showEditor && !showDescriptionPanel && !isPrivate && (
-          <div className="deck-view-right"></div>
+          <div className="deck-view-right" style={{ flex: '0 0 450px', maxWidth: '100%' }}>
+            <DeckComments 
+              deckId={deckId} 
+              uid={uid} 
+              updateCommentCount={() => setDeck(prev => prev ? ({ 
+                ...prev, 
+                comments: (prev.comments || 0) + 1 
+              }) : null)}
+            />
+          </div>
         )}
         {showEditor && (
           <div className="deck-view-editor-panel">

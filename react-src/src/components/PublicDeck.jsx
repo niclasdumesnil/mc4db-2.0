@@ -48,9 +48,9 @@ export default function PublicDeck({ deck }) {
 
   const statsRow = (
     <>
-      <span className="stat">♥{deck.likes || 0}</span>
-      <span className="stat">★{deck.favorites || 0}</span>
-      <span className="stat">💬{deck.comments || 0}</span>
+      <span className="stat" title="Likes">🤍 {deck.likes || 0}</span>
+      <span className="stat" title="Favorites">⭐ {deck.favorites || 0}</span>
+      <span className="stat" title="Comments">💬 {deck.comments || 0}</span>
     </>
   );
 

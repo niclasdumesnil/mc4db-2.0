@@ -233,7 +233,7 @@ router.get('/decks/:id', async (req, res) => {
       .join('user as u', 'd.user_id', 'u.id')
       .join('card as c', 'd.card_id', 'c.id')
       .leftJoin('pack as p', 'c.pack_id', 'p.id')
-      .select('d.*', 'u.username as author_name', 'c.name as hero_name', 'c.code as hero_code', 'c.meta as hero_meta', 'c.octgn_id as hero_octgn_id', 'p.code as pack_code')
+      .select('d.*', 'd.nb_votes as likes', 'd.nb_favorites as favorites', 'd.nb_comments as comments', 'u.username as author_name', 'c.name as hero_name', 'c.code as hero_code', 'c.meta as hero_meta', 'c.octgn_id as hero_octgn_id', 'p.code as pack_code')
       .where('d.id', id)
       .first();
 
@@ -548,6 +548,94 @@ router.post('/user/:userId/decklists/:deckId/clone', async (req, res) => {
     return res.json({ ok: true, data: { id: newId } });
   } catch (err) {
     console.error('POST /user/:userId/decklists/:deckId/clone error', err);
+    return res.status(500).json({ error: 'Internal error' });
+  }
+});
+
+// 1I. Voter ou Favori pour un deck public
+router.post('/decks/:id/vote', async (req, res) => {
+  try {
+    const deckId = parseInt(req.params.id, 10);
+    const { user_id, type } = req.body; // type: 'vote' | 'favorite'
+    if (!user_id || !type) return res.status(400).json({ error: 'Missing user_id or type' });
+
+    const decklist = await db('decklist').where('id', deckId).first();
+    if (!decklist) return res.status(404).json({ error: 'Decklist not found' });
+    if (String(decklist.user_id) === String(user_id)) {
+      return res.status(403).json({ error: 'You cannot vote on your own deck.' });
+    }
+
+    const table = type === 'vote' ? 'vote' : 'favorite';
+    const nbField = type === 'vote' ? 'nb_votes' : 'nb_favorites';
+
+    const existing = await db(table).where({ decklist_id: deckId, user_id }).first();
+    let action = '';
+
+    if (existing) {
+      await db(table).where({ decklist_id: deckId, user_id }).delete();
+      await db('decklist').where('id', deckId).decrement(nbField, 1);
+      action = 'removed';
+    } else {
+      await db(table).insert({ decklist_id: deckId, user_id });
+      await db('decklist').where('id', deckId).increment(nbField, 1);
+      action = 'added';
+    }
+
+    const updated = await db('decklist').where('id', deckId).select(nbField).first();
+    return res.json({ ok: true, action, [nbField]: updated[nbField] });
+  } catch (err) {
+    console.error('POST /decks/:id/vote error', err);
+    return res.status(500).json({ error: 'Internal error' });
+  }
+});
+
+// 1J. Obtenir les commentaires d'un deck public
+router.get('/decks/:id/comments', async (req, res) => {
+  try {
+    const deckId = parseInt(req.params.id, 10);
+    const comments = await db('comment as c')
+      .join('user as u', 'c.user_id', 'u.id')
+      .where('c.decklist_id', deckId)
+      .andWhere('c.is_hidden', 0)
+      .select('c.id', 'c.text as text_md', 'c.date_creation', 'u.id as user_id', 'u.username as author_name', 'u.reputation as author_reputation')
+      .orderBy('c.date_creation', 'asc');
+    
+    return res.json({ ok: true, data: comments });
+  } catch (err) {
+    console.error('GET /decks/:id/comments error', err);
+    return res.status(500).json({ error: 'Internal error' });
+  }
+});
+
+// 1K. Ajouter un commentaire à un deck public
+router.post('/decks/:id/comments', async (req, res) => {
+  try {
+    const deckId = parseInt(req.params.id, 10);
+    const { user_id, text_md } = req.body;
+    if (!user_id || !text_md || !text_md.trim()) return res.status(400).json({ error: 'Missing parameters' });
+
+    const decklist = await db('decklist').where('id', deckId).first();
+    if (!decklist) return res.status(404).json({ error: 'Decklist not found' });
+
+    const [commentId] = await db('comment').insert({
+      decklist_id: deckId,
+      user_id,
+      text: text_md.trim(),
+      date_creation: new Date(),
+      is_hidden: 0
+    });
+
+    await db('decklist').where('id', deckId).increment('nb_comments', 1);
+
+    const newComment = await db('comment as c')
+      .join('user as u', 'c.user_id', 'u.id')
+      .where('c.id', commentId)
+      .select('c.id', 'c.text as text_md', 'c.date_creation', 'u.id as user_id', 'u.username as author_name', 'u.reputation as author_reputation')
+      .first();
+
+    return res.json({ ok: true, data: newComment });
+  } catch (err) {
+    console.error('POST /decks/:id/comments error', err);
     return res.status(500).json({ error: 'Internal error' });
   }
 });

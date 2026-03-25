@@ -526,10 +526,11 @@
 }
 
 .deck-description-container {
-  background: #111827;
-  border: 1px solid rgba(255, 255, 255, 0.07);
+  background: var(--st-surface-2, #111827);
+  border: 1px solid var(--st-border, rgba(255, 255, 255, 0.07));
   border-radius: 10px;
   padding: 24px;
+  color: var(--st-text, #cbd5e1);
 }
 
 /* ── States ───────────────────────────────────────── */
@@ -816,9 +817,6 @@
   border-color: rgba(248, 113, 113, 0.25);
 }
 /* ── Tags (Icon only + Tooltip) ── */
-.deck-view-tags-editor {
-  /* No min-width needed as tags no longer expand inline */
-}
 .deck-view-tag-btn {
   display: inline-flex;
   align-items: center;
@@ -914,12 +912,18 @@ html:not(.dark) .deck-view-banner-info div {
   color: #0f172a !important; 
 }
 
-/* Add strong borders to Edit Buttons and Tags */
+/* Add strong borders and light background to Edit Buttons and Tags */
 html:not(.dark) .deck-view-action-btn,
 html:not(.dark) .deck-view-mode-btn {
+  background: rgba(0, 0, 0, 0.04) !important;
   border: 1px solid rgba(0, 0, 0, 0.2) !important;
   color: #334155 !important; /* Force darker text for better visibility */
   font-weight: 500 !important;
+}
+html:not(.dark) .deck-view-mode-btn.active {
+  background: rgba(59, 130, 246, 0.15) !important;
+  border-color: rgba(59, 130, 246, 0.4) !important;
+  color: #1e3a8a !important;
 }
 html:not(.dark) .deck-view-tag-btn {
   border: 1px solid rgba(0, 0, 0, 0.3) !important;
