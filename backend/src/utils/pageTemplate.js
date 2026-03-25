@@ -50,9 +50,9 @@ function renderSharedHeader() {
     <a href="/sets" style="color:#cfe6ff;text-decoration:none;margin-right:4px;">Sets</a>
     <a href="/decklists" style="color:#cfe6ff;text-decoration:none;margin-right:4px;">Public Decks</a>
     <a id="mc-my-decks-link" href="/my-decks" style="color:#cfe6ff;text-decoration:none;margin-right:4px;display:none;">My Decks</a>
-    <a id="mc-dashboard-link" href="/dashboard" style="color:#cfe6ff;text-decoration:none;margin-right:4px;display:none;">Dashboard</a>
     <a href="/stories" style="color:#cfe6ff;text-decoration:none;margin-right:4px;">Stories</a>
     <a href="/rules" style="color:#cfe6ff;text-decoration:none;margin-right:4px;">Rules &amp; Resources</a>
+    <a id="mc-dashboard-link" href="/dashboard" style="color:#cfe6ff;text-decoration:none;margin-right:4px;display:none;">Dashboard</a>
     <span id="mc-username" style="margin-right:4px;display:none;color:#fff;font-weight:600;font-size:14px;"></span>
     <span id="mc-user-badges" style="display:none;align-items:center;gap:6px;margin-right:12px;"></span>
     <span id="mc-locale-badge"
