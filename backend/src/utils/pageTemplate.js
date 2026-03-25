@@ -38,7 +38,11 @@ function renderSharedHeader() {
   }
 </script>
 <header id="mc-site-header" class="mc-nav-bg" style="background:#071026;color:#fff;padding:12px 20px;position:fixed;left:0;right:0;top:0;z-index:9000;">
-  <nav style="max-width:1100px;margin:0 auto;display:flex;align-items:center;gap:16px;">
+  <style>
+    #mc-site-header a { white-space: nowrap; }
+    #mc-site-header nav::-webkit-scrollbar { display: none; }
+  </style>
+  <nav style="max-width:1400px;margin:0 auto;display:flex;align-items:center;gap:16px;overflow-x:auto;scrollbar-width:none;">
     <a href="/" style="color:#fff;text-decoration:none;font-weight:700;font-size:18px;">MC4DB 2.0</a>
     <div style="flex:1"></div>
     <a href="/" style="color:#cfe6ff;text-decoration:none;margin-right:4px;">Home</a>
@@ -48,7 +52,7 @@ function renderSharedHeader() {
     <a id="mc-my-decks-link" href="/my-decks" style="color:#cfe6ff;text-decoration:none;margin-right:4px;display:none;">My Decks</a>
     <a id="mc-dashboard-link" href="/dashboard" style="color:#cfe6ff;text-decoration:none;margin-right:4px;display:none;">Dashboard</a>
     <a href="/stories" style="color:#cfe6ff;text-decoration:none;margin-right:4px;">Stories</a>
-    <a href="/rules" style="color:#cfe6ff;text-decoration:none;margin-right:4px;">Rules</a>
+    <a href="/rules" style="color:#cfe6ff;text-decoration:none;margin-right:4px;">Rules &amp; Resources</a>
     <span id="mc-username" style="margin-right:4px;display:none;color:#fff;font-weight:600;font-size:14px;"></span>
     <span id="mc-user-badges" style="display:none;align-items:center;gap:6px;margin-right:12px;"></span>
     <span id="mc-locale-badge"
@@ -259,3 +263,4 @@ function renderPage({ title, description = '', url = '', image = '', body = '', 
 }
 
 module.exports = { renderSharedHeader, renderPage };
+

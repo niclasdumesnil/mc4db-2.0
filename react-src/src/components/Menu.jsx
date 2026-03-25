@@ -60,7 +60,7 @@ export default function Menu() {
         <a href="/decklists" style={{ color:'#9fb4d8' }}>Public Decks</a>
         {user && <a href="/my-decks" style={{ color:'#9fb4d8' }}>My Decks</a>}
         {user && <a href="/dashboard" style={{ color:'#9fb4d8' }}>Dashboard</a>}
-        <a href="/rules" style={{ color:'#9fb4d8' }}>Rules</a>
+        <a href="/rules" style={{ color:'#9fb4d8' }}>Rules &amp; Resources</a>
       </div>
       <div style={{ marginLeft:'auto' }}>
         {!user ? (
@@ -88,3 +88,5 @@ export default function Menu() {
     </nav>
   );
 }
+
+

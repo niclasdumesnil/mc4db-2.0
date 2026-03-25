@@ -14,7 +14,7 @@ import PublicDeckList from './pages/PublicDeckList';
 import MyDecks from './pages/MyDecks';
 import DeckView from './pages/DeckView';
 import CardList from './pages/CardList';
-import RulesPage from './pages/RulesPage';
+import Rules_ResourcesPage from './pages/RulesPage';
 import NewDeck from './pages/NewDeck';
 import Stories from './pages/Stories';
 import Sets from './pages/Sets';
@@ -157,9 +157,10 @@ try {
     else if (path === '/deck/new') PageComponent = React.createElement(NewDeck);
     else if (/^\/deck\/view\/\d+/.test(path)) PageComponent = React.createElement(DeckView);
     else if (path.startsWith('/my-decks')) PageComponent = React.createElement(MyDecks);
-    else if (path.startsWith('/rules')) PageComponent = React.createElement(RulesPage);
+    else if (path.startsWith('/rules')) PageComponent = React.createElement(Rules_ResourcesPage);
     else if (path.startsWith('/stories')) PageComponent = React.createElement(Stories);
     else if (path.startsWith('/sets')) PageComponent = React.createElement(Sets);
     if (PageComponent) appRoot.render(React.createElement(AppErrorBoundary, null, PageComponent));
   }
 } catch (e) { console.error('Failed to mount app container', e); }
+

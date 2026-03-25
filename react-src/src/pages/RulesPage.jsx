@@ -131,13 +131,80 @@ function formatInline(text) {
   return text;
 }
 
-export default function RulesPage() {
+const TABS = [
+  { key: 'rules', label: 'Rules' },
+  { key: 'rulesheets', label: 'Pack Rulesheets' },
+  { key: 'reviews', label: 'Reviews' },
+  { key: 'errata', label: 'Errata' },
+  { key: 'tips', label: 'Tips' }
+];
+
+function ComingSoonTab({ icon, label }) {
+  return (
+    <div style={{ textAlign: 'center', padding: '60px 20px', color: 'var(--st-text-muted, #8a99af)' }}>
+      <span style={{ fontSize: '3rem', opacity: 0.5, display: 'block', marginBottom: '16px' }}>{icon}</span>
+      <h3 style={{ fontSize: '1.5rem', margin: '0 0 8px 0', color: 'var(--st-title, #fff)' }}>{label}</h3>
+      <p>This section is currently under construction. Check back soon!</p>
+    </div>
+  );
+}
+
+function PackRulesheetsTab() {
+  const [files, setFiles] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch('/api/public/rulesheets')
+      .then(r => r.json())
+      .then(data => {
+        setFiles(data);
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
+  }, []);
+
+  if (loading) return <p className="rules-loading">Loading pack rulesheets…</p>;
+  if (files.length === 0) return <p className="rules-loading">No rulesheets found.</p>;
+
+  return (
+    <div className="rules-content" style={{ padding: '0 20px' }}>
+      <section className="rules-intro">
+        <h1 className="rules-main-title">Pack Rulesheets</h1>
+        <p className="rules-intro-text">
+          Download PDF or PNG inserts for official Marvel Champions expansions and packs.
+        </p>
+      </section>
+      <div className="rulesheet-list">
+        {files.map((file, i) => (
+          <div key={i} className="rulesheet-item">
+            <span className="rulesheet-item-name">{file.name}</span>
+            <a className="rulesheet-item-dl" href={file.url} download={file.filename} target="_blank" rel="noreferrer">
+              ⬇ Download {file.type.toUpperCase()}
+            </a>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export default function Rules_ResourcesPage() {
   const [entries, setEntries]       = useState([]);
   const [loading, setLoading]       = useState(true);
   const [search, setSearch]         = useState('');
   const [activeSlug, setActiveSlug] = useState('');
+  const [activeTab, setActiveTab]   = useState(() => {
+    const hash = window.location.hash.replace('#', '');
+    return TABS.some(t => t.key === hash) ? hash : 'rules';
+  });
+  
   const contentRef = useRef(null);
   const observerRef = useRef(null);
+
+  function selectTab(key) {
+    setActiveTab(key);
+    window.history.replaceState(null, '', `#${key}`);
+  }
 
   // Load all rules from the backend (scans all JSON files in en_Rules/)
   useEffect(() => {
@@ -152,7 +219,7 @@ export default function RulesPage() {
 
   // Intersection observer to highlight active TOC entry
   useEffect(() => {
-    if (!entries.length) return;
+    if (activeTab !== 'rules' || !entries.length) return;
     if (observerRef.current) observerRef.current.disconnect();
 
     observerRef.current = new IntersectionObserver(
@@ -170,7 +237,7 @@ export default function RulesPage() {
     });
 
     return () => observerRef.current?.disconnect();
-  }, [entries]);
+  }, [entries, activeTab]);
 
   const scrollTo = useCallback((slug) => {
     const el = document.getElementById(slug);
@@ -193,107 +260,130 @@ export default function RulesPage() {
     letters[l].push(e);
   });
 
-  const hasWhatsNew = entries.some(e => e.whats_new && e.whats_new.length > 0);
-
   return (
-    <div className="rules-container">
-
-      {/* LEFT: Table of Contents */}
-      <aside className="rules-toc">
-        <h2 className="rules-toc-title">Table of contents</h2>
-
-        {/* Search */}
-        <div className="rules-search-wrap">
-          <input
-            className="rules-search"
-            type="text"
-            placeholder="Search keywords…"
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-          />
-        </div>
-
-        {loading && <p className="rules-toc-empty">Loading…</p>}
-        {!loading && filtered.length === 0 && <p className="rules-toc-empty">No results.</p>}
-
-        {/* Alphabetical index */}
-        <nav className="rules-toc-nav-list">
-          {Object.keys(letters).sort().map(letter => (
-            <div key={letter} className="rules-toc-group">
-              <div className="rules-toc-letter">{letter}</div>
-              <ul>
-                {letters[letter].map(e => {
-                  const slug = slugify(e.term);
-                  return (
-                    <li key={slug}>
-                      <button
-                        className={`rules-toc-item${activeSlug === slug ? ' active' : ''}`}
-                        onClick={() => scrollTo(slug)}
-                      >
-                        {e.term}
-                      </button>
-                    </li>
-                  );
-                })}
-              </ul>
-            </div>
+    <div className="rules-page-wrapper">
+      <div className="rules-page-header">
+        <h1 className="rules-page-title">Rules & Resources</h1>
+        <nav className="rules-tabs" role="tablist">
+          {TABS.map(tab => (
+            <button
+              key={tab.key}
+              role="tab"
+              aria-selected={activeTab === tab.key}
+              className={`rules-tab${activeTab === tab.key ? ' rules-tab--active' : ''}`}
+              onClick={() => selectTab(tab.key)}
+            >
+              {tab.label}
+            </button>
           ))}
         </nav>
-      </aside>
+      </div>
 
-      {/* RIGHT: Content */}
-      <main className="rules-content" ref={contentRef}>
-        {loading && <p className="rules-loading">Loading rules…</p>}
+      {activeTab === 'rules' && (
+        <div className="rules-container">
+          {/* LEFT: Table of Contents */}
+          <aside className="rules-toc">
+            <h2 className="rules-toc-title">Table of contents</h2>
 
-        {!loading && (
-          <>
-            {/* Introduction section */}
-            <section className="rules-intro">
-              <h1 className="rules-main-title">Rules Reference</h1>
-              <p className="rules-intro-text">
-                This rules reference covers all Marvel Champions card game rules. Use the index on the left to jump to any term, or use the search field to filter.
-              </p>
-            </section>
+            {/* Search */}
+            <div className="rules-search-wrap">
+              <input
+                className="rules-search"
+                type="text"
+                placeholder="Search keywords…"
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+              />
+            </div>
 
-            {/* All entries */}
-            {filtered.map(entry => {
-              const slug = slugify(entry.term);
-              const content = getLatestContent(entry.versions);
-              const latestVersion = entry.versions?.[0]?.version || '';
-              const whatsNew = (entry.whats_new || []).filter(wn => {
-                const d = (wn.diff || '').trim();
-                return d && !/^aucune modification\b/i.test(d);
-              });
+            {loading && <p className="rules-toc-empty">Loading…</p>}
+            {!loading && filtered.length === 0 && <p className="rules-toc-empty">No results.</p>}
 
-              return (
-                <article key={slug} id={slug} className="rules-entry">
-                  <h2 className="rules-entry-title">{entry.term}</h2>
-                  <div className="rules-entry-body">
-                    <RulesContent text={content} />
-                  </div>
+            {/* Alphabetical index */}
+            <nav className="rules-toc-nav-list">
+              {Object.keys(letters).sort().map(letter => (
+                <div key={letter} className="rules-toc-group">
+                  <div className="rules-toc-letter">{letter}</div>
+                  <ul>
+                    {letters[letter].map(e => {
+                      const slug = slugify(e.term);
+                      return (
+                        <li key={slug}>
+                          <button
+                            className={`rules-toc-item${activeSlug === slug ? ' active' : ''}`}
+                            onClick={() => scrollTo(slug)}
+                          >
+                            {e.term}
+                          </button>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
+              ))}
+            </nav>
+          </aside>
 
-                  {whatsNew.length > 0 && (
-                    <div className="rules-whats-new">
-                      <h4 className="rules-whats-new-title">What's new</h4>
-                      {whatsNew.map((wn, i) => (
-                        <div key={i} className="rules-wn-item">
-                          <span className="rules-wn-version">v{wn.version}</span>
-                          <span className="rules-wn-text" dangerouslySetInnerHTML={{ __html: formatInline(wn.diff) }} />
+          {/* RIGHT: Content */}
+          <main className="rules-content" ref={contentRef}>
+            {loading && <p className="rules-loading">Loading rules…</p>}
+
+            {!loading && (
+              <>
+                {/* Introduction section */}
+                <section className="rules-intro">
+                  <h1 className="rules-main-title">Rules Reference</h1>
+                  <p className="rules-intro-text">
+                    This rules reference covers all Marvel Champions card game rules. Use the index on the left to jump to any term, or use the search field to filter.
+                  </p>
+                </section>
+
+                {/* All entries */}
+                {filtered.map(entry => {
+                  const slug = slugify(entry.term);
+                  const content = getLatestContent(entry.versions);
+                  const latestVersion = entry.versions?.[0]?.version || '';
+                  const whatsNew = (entry.whats_new || []).filter(wn => {
+                    const d = (wn.diff || '').trim();
+                    return d && !/^aucune modification\b/i.test(d);
+                  });
+
+                  return (
+                    <article key={slug} id={slug} className="rules-entry">
+                      <h2 className="rules-entry-title">{entry.term}</h2>
+                      <div className="rules-entry-body">
+                        <RulesContent text={content} />
+                      </div>
+
+                      {whatsNew.length > 0 && (
+                        <div className="rules-whats-new">
+                          <h4 className="rules-whats-new-title">What's new</h4>
+                          {whatsNew.map((wn, i) => (
+                            <div key={i} className="rules-wn-item">
+                              <span className="rules-wn-version">v{wn.version}</span>
+                              <span className="rules-wn-text" dangerouslySetInnerHTML={{ __html: formatInline(wn.diff) }} />
+                            </div>
+                          ))}
                         </div>
-                      ))}
-                    </div>
-                  )}
-                </article>
-              );
-            })}
+                      )}
+                    </article>
+                  );
+                })}
 
-            {filtered.length === 0 && !loading && (
-              <p className="rules-loading">No entries match your search.</p>
+                {filtered.length === 0 && !loading && (
+                  <p className="rules-loading">No entries match your search.</p>
+                )}
+              </>
             )}
-          </>
-        )}
-      </main>
+          </main>
+        </div>
+      )}
 
+      {activeTab === 'rulesheets' && <PackRulesheetsTab />}
+      {activeTab === 'reviews' && <ComingSoonTab icon="✍️" label="Reviews" />}
+      {activeTab === 'errata' && <ComingSoonTab icon="⚠️" label="Errata" />}
+      {activeTab === 'tips' && <ComingSoonTab icon="💡" label="Tips" />}
     </div>
   );
 }
+

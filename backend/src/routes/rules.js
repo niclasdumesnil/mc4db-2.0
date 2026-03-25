@@ -91,4 +91,36 @@ router.get('/rules', (req, res) => {
   }
 });
 
+/**
+ * GET /rulesheets
+ * Scans bundles/rulesheets/ and returns a list of PDFs and PNGs.
+ */
+router.get('/rulesheets', (req, res) => {
+  try {
+    const rulesheetsDir = path.resolve(__dirname, '../../../bundles/rulesheets');
+    if (!fs.existsSync(rulesheetsDir)) {
+      return res.json([]);
+    }
+
+    const files = fs.readdirSync(rulesheetsDir)
+      .filter(f => f.toLowerCase().endsWith('.pdf') || f.toLowerCase().endsWith('.png'))
+      .sort()
+      .map(file => {
+        // Remove extension for display name
+        const name = file.replace(/\.(pdf|png)$/i, '');
+        return {
+          name,
+          filename: file,
+          url: `/bundles/rulesheets/${encodeURIComponent(file)}`,
+          type: file.toLowerCase().endsWith('.pdf') ? 'pdf' : 'png'
+        };
+      });
+
+    res.json(files);
+  } catch (err) {
+    console.error('[rulesheets] Error:', err);
+    res.status(500).json({ error: 'Failed to load rulesheets' });
+  }
+});
+
 module.exports = router;
