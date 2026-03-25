@@ -141,9 +141,21 @@ export default function Landing() {
               
               {/* Left Column (Stats - 66%) */}
               <div style={{ flex: '2 1 600px', display: 'flex', flexDirection: 'column', gap: 24 }}>
+                 
+                 {/* Total Community Decks */}
+                 {data.total_decks > 0 && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '16px 20px', background: 'var(--st-surface-2)', border: '1px solid var(--st-border)', borderRadius: 12, boxShadow: '0 4px 12px rgba(0,0,0,0.2)' }}>
+                       <span style={{ fontSize: '2rem' }}>📚</span>
+                       <div>
+                         <div style={{ fontSize: '0.85em', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#94a3b8', fontWeight: 700, marginBottom: 4 }}>Total Community</div>
+                         <div style={{ fontSize: '1.3em', fontWeight: 600, color: '#e2e8f0' }}>{data.total_decks.toLocaleString()} Public Decks</div>
+                       </div>
+                    </div>
+                 )}
+
                  {/* Top Heroes */}
                  <div style={panelStyle}>
-                    <h2 style={titleStyle}>🏆 Top 3 Heroes (Published Decks)</h2>
+                    <h2 style={titleStyle}>🏆 Top 3 Heroes</h2>
                     <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
                        {data.top_heroes?.map((h, i) => (
                            <div key={h.code} style={badgeStyle}>
@@ -157,7 +169,7 @@ export default function Landing() {
 
                  {/* Top Cards */}
                  <div style={panelStyle}>
-                    <h2 style={titleStyle}>🌐 Top 3 Cards in Published Decks</h2>
+                    <h2 style={titleStyle}>🌐 Top 3 Cards</h2>
                     <p style={{ fontSize: '0.85em', color: '#64748b', margin: '-8px 0 12px 0' }}>Note: Resource cards are ignored in this calculation.</p>
                     <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
                        {data.top_cards?.map((c, i) => (

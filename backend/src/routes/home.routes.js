@@ -10,6 +10,13 @@ const router = Router();
 
 router.get('/home', async (req, res) => {
   try {
+    // 0. Total Public Decks
+    const totalDecksRow = await db('decklist')
+      .whereNull('next_deck')
+      .count('* as cnt')
+      .first();
+    const total_decks = Number(totalDecksRow?.cnt || 0);
+
     // 1. Top Heroes (from public decks)
     const topHeroes = await db('decklist as d')
       .join('card as c', 'd.card_id', 'c.id')
@@ -71,6 +78,7 @@ router.get('/home', async (req, res) => {
       .join('pack as p', 'c.pack_id', 'p.id')
       .whereIn('f.code', ['justice', 'leadership', 'aggression', 'protection', 'pool', 'basic'])
       .whereIn('t.code', ['event', 'support', 'upgrade', 'ally'])
+      .whereNull('c.duplicate_id')
       .where(function() {
         this.where('p.visibility', '!=', 'false').orWhereNull('p.visibility');
       })
@@ -101,6 +109,7 @@ router.get('/home', async (req, res) => {
 
     return res.json({
       ok: true,
+      total_decks,
       top_heroes: topHeroes.map(r => ({ name: r.hero_name, code: r.hero_code, count: Number(r.cnt) })),
       top_cards: topCards.map(r => ({ name: r.card_name, code: r.card_code, count: Number(r.cnt) })),
       card_of_the_day: cardOfTheDay,
