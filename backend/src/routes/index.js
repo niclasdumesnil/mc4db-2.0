@@ -13,6 +13,7 @@ const rulesRoutes = require('./rules');
 const adminRoutes = require('./admin');
 const scenariosRoutes = require('./scenarios');
 const reviewRoutes = require('./review.routes');
+const homeRoutes = require('./home.routes');
 
 const router = Router();
 
@@ -26,5 +27,6 @@ router.use(rulesRoutes);
 router.use(adminRoutes);
 router.use(scenariosRoutes);
 router.use('/reviews', reviewRoutes);
+router.use(homeRoutes);
 
 module.exports = router;
