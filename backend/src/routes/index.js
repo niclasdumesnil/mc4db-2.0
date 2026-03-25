@@ -12,6 +12,7 @@ const decksRoutes = require('./decks');
 const rulesRoutes = require('./rules');
 const adminRoutes = require('./admin');
 const scenariosRoutes = require('./scenarios');
+const reviewRoutes = require('./review.routes');
 
 const router = Router();
 
@@ -24,5 +25,6 @@ router.use(decksRoutes);
 router.use(rulesRoutes);
 router.use(adminRoutes);
 router.use(scenariosRoutes);
+router.use('/reviews', reviewRoutes);
 
 module.exports = router;

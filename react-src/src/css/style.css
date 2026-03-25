@@ -55,12 +55,12 @@
 .pack-nav-prev,.pack-nav-next{flex:1;min-width:0}
 .pack-nav-next{display:flex;justify-content:flex-end}
 .pack-nav-center{flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:2px}
-.pack-nav-pack-name{font-size:1.15rem;font-weight:600;color:#e2e8f0;white-space:nowrap;text-align:center}
-.pack-nav-position{font-size:.96rem;color:#94a3b8;text-align:center}
+.pack-nav-pack-name{font-size:1.15rem;font-weight:600;color:var(--st-title, #e2e8f0);white-space:nowrap;text-align:center}
+.pack-nav-position{font-size:.96rem;color:var(--st-text-muted, #94a3b8);text-align:center}
 .pack-nav-title-row{display:flex;align-items:center;gap:8px}
-.pack-nav-creator{display:inline-block;padding:3px 9px;border-radius:9999px;font-size:.85rem;font-weight:700;background:rgba(255,255,255,.04);color:#cbd5e1}
-.pack-nav-creator--alt{background:#2563eb;color:#fff}
-.pack-nav-btn{display:inline-flex;align-items:center;gap:6px;padding:9px 18px;border:1px solid rgba(255,255,255,.15);border-radius:9999px;background:rgba(255,255,255,.04);color:#cbd5e1;font-size:1.05rem;text-decoration:none;transition:background .18s,border-color .18s,color .18s;white-space:nowrap;max-width:280px;overflow:hidden}
+.pack-nav-creator{display:inline-block;padding:3px 9px;border-radius:9999px;font-size:.85rem;font-weight:700;background:var(--st-surface-2, rgba(255,255,255,.04));color:var(--st-text-muted, #cbd5e1)}
+.pack-nav-creator--alt{background:var(--st-accent, #2563eb);color:var(--st-title, #fff)}
+.pack-nav-btn{display:inline-flex;align-items:center;gap:6px;padding:9px 18px;border:1px solid var(--st-border, rgba(255,255,255,.15));border-radius:9999px;background:var(--st-surface-2, rgba(255,255,255,.04));color:var(--st-text, #cbd5e1);font-size:1.05rem;text-decoration:none;transition:background .18s,border-color .18s,color .18s;white-space:nowrap;max-width:280px;overflow:hidden}
 
 /* ── Badges harmonisés (official / current / fan made / creator + pack types) */
 .mc-badge {

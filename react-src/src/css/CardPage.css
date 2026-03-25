@@ -4,8 +4,8 @@
 
 .card-page {
   min-height: 100vh;
-  background-color: #0b1220;
-  color: #dbeafa;
+  background-color: var(--st-bg, #0b1220);
+  color: var(--st-text, #dbeafa);
   font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
   padding: 80px 20px 60px;
   display: flex;
@@ -18,8 +18,8 @@
   width: 100%;
   max-width: 900px;
   margin-bottom: 24px;
-  background: rgba(255,255,255,0.03);
-  border: 1px solid rgba(255,255,255,0.08);
+  background: var(--st-surface, rgba(255,255,255,0.03));
+  border: 1px solid var(--st-border, rgba(255,255,255,0.08));
   border-radius: 12px;
   padding: 8px 16px;
 }
@@ -29,8 +29,8 @@
   width: 100%;
   max-width: 900px;
   margin-bottom: 12px;
-  background: rgba(18, 120, 216, 0.07);
-  border: 1px solid rgba(18, 120, 216, 0.30);
+  background: var(--st-surface-2, rgba(18, 120, 216, 0.07));
+  border: 1px solid var(--st-border, rgba(18, 120, 216, 0.30));
   border-radius: 12px;
   padding: 12px 16px;
 }
@@ -56,11 +56,11 @@
   gap: 14px;
   min-height: 300px;
   font-size: 1.1rem;
-  color: #8a99af;
+  color: var(--st-text-muted, #8a99af);
 }
 
 .card-page-error {
-  color: #e74c3c;
+  color: var(--st-danger, #e74c3c);
 }
 
 /* Spinner */
@@ -78,13 +78,13 @@
 /* Make pack-nav buttons work as buttons too */
 .pack-nav-btn[type="button"], button.pack-nav-btn {
   cursor: pointer;
-  border: 1px solid rgba(255,255,255,.15);
-  background: rgba(255,255,255,.04);
+  border: 1px solid var(--st-border, rgba(255,255,255,.15));
+  background: var(--st-surface-2, rgba(255,255,255,.04));
 }
 button.pack-nav-btn:hover {
-  background: rgba(255,255,255,.1);
-  border-color: rgba(255,255,255,.35);
-  color: #fff;
+  background: var(--st-surface-3, rgba(255,255,255,.1));
+  border-color: var(--st-border-hover, rgba(255,255,255,.35));
+  color: var(--st-title, #fff);
 }
 
 /* Reduce pack-nav font sizes on card page */
@@ -109,12 +109,12 @@ button.pack-nav-btn:hover {
 .card-page .card-name,
 .card-page a.card-name,
 .card-page a.card-preview {
-  color: #fff;
+  color: var(--st-title, #fff);
   text-decoration: none;
 }
 .card-page a.card-name:hover,
 .card-page a.card-preview:hover {
-  color: #93c5fd;
+  color: var(--st-accent, #93c5fd);
 }
 
 
@@ -125,9 +125,9 @@ button.pack-nav-btn:hover {
 .card-frame {
   width: 100%;
   border-radius: 14px;
-  border: 1px solid rgba(255,255,255,0.12);
+  border: 1px solid var(--st-border, rgba(255,255,255,0.12));
   overflow: hidden;
-  background: #111827;
+  background: var(--st-surface, #111827);
   box-shadow: 0 8px 40px rgba(0,0,0,0.55);
 }
 
@@ -137,14 +137,14 @@ button.pack-nav-btn:hover {
   justify-content: space-between;
   align-items: center;
   padding: 10px 20px;
-  border-bottom: 1px solid rgba(0,0,0,0.25);
+  border-bottom: 1px solid var(--st-border-strong, rgba(0,0,0,0.25));
 }
 .card-frame__header-left   { display: flex; align-items: center; gap: 8px; }
 .card-frame__header-dot    { width: 8px; height: 8px; border-radius: 50%; }
 .card-frame__header-system { font-size: 13px; font-family: monospace; font-weight: 700; text-transform: uppercase; letter-spacing: .12em; }
 .card-frame__header-right  { display: flex; align-items: center; gap: 10px; }
 .card-frame__header-creator{ font-size: 13px; font-family: monospace; text-transform: uppercase; letter-spacing: .1em; }
-.card-frame__header-code   { padding: 2px 8px; background: #1e293b; border-radius: 4px; font-size: 13px; font-family: monospace; color: #94a3b8; }
+.card-frame__header-code   { padding: 2px 8px; background: var(--st-surface-2, #1e293b); border-radius: 4px; font-size: 13px; font-family: monospace; color: var(--st-text-muted, #94a3b8); }
 
 /* Body columns */
 .card-frame__body {
@@ -158,7 +158,7 @@ button.pack-nav-btn:hover {
 .card-frame__left {
   flex: 1;
   padding: 28px 28px 24px;
-  border-right: 1px solid rgba(255,255,255,0.06);
+  border-right: 1px solid var(--st-border, rgba(255,255,255,0.06));
 }
 .card-frame__right {
   width: 100%;
@@ -173,17 +173,17 @@ button.pack-nav-btn:hover {
 /* Title area */
 .card-frame__title-area  { margin-bottom: 28px; }
 .card-frame__title-row   { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
-.card-frame__name        { font-size: 1.35rem; font-weight: 900; color: #fff; text-transform: uppercase; letter-spacing: -.02em; margin: 0 0 6px; }
+.card-frame__name        { font-size: 1.35rem; font-weight: 900; color: var(--st-title, #fff); text-transform: uppercase; letter-spacing: -.02em; margin: 0 0 6px; }
 /* Badges inside the name heading must not inherit uppercase */
 .card-frame__name .mc-badge { text-transform: none; letter-spacing: 0.04em; }
-.card-frame__type-badge  { display: inline-block; font-size: 10px; font-weight: 700; padding: 3px 10px; border-radius: 4px; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.1); color: #94a3b8; }
+.card-frame__type-badge  { display: inline-block; font-size: 10px; font-weight: 700; padding: 3px 10px; border-radius: 4px; background: var(--st-surface-2, rgba(255,255,255,.05)); border: 1px solid var(--st-border, rgba(255,255,255,.1)); color: var(--st-text-muted, #94a3b8); }
 .card-frame__cost        { display: flex; flex-direction: column; align-items: flex-end; flex-shrink: 0; }
-.card-frame__cost-label  { font-size: 11px; font-family: monospace; color: #64748b; text-transform: uppercase; margin-bottom: 4px; }
-.card-frame__cost-value  { font-size: 1.6rem; font-weight: 900; color: #fff; background: #1e293b; width: 52px; height: 52px; display: flex; align-items: center; justify-content: center; border-radius: 8px; border-bottom: 3px solid #334155; }
+.card-frame__cost-label  { font-size: 11px; font-family: monospace; color: var(--st-text-muted, #64748b); text-transform: uppercase; margin-bottom: 4px; }
+.card-frame__cost-value  { font-size: 1.6rem; font-weight: 900; color: var(--st-title, #fff); background: var(--st-surface-2, #1e293b); width: 52px; height: 52px; display: flex; align-items: center; justify-content: center; border-radius: 8px; border-bottom: 3px solid var(--st-border-strong, #334155); }
 
 /* Sections */
 .card-frame__sections      { display: flex; flex-direction: column; gap: 24px; }
-.card-frame__section-label { display: flex; align-items: center; gap: 7px; margin-bottom: 8px; color: #64748b; }
+.card-frame__section-label { display: flex; align-items: center; gap: 7px; margin-bottom: 8px; color: var(--st-text-muted, #64748b); }
 .card-frame__section-label h3 {
   font-size: 14px;
   font-family: monospace;
@@ -191,19 +191,19 @@ button.pack-nav-btn:hover {
   text-transform: uppercase;
   letter-spacing: .12em;
   margin: 0;
-  color: #94a3b8;
+  color: var(--st-text-muted, #94a3b8);
 }
 .card-frame__section-label svg {
   width: 16px;
   height: 14px;
 }
 .card-frame__section-box {
-  background: #070e1a;
-  border: 1px solid rgba(255,255,255,.09);
+  background: var(--st-surface-2, #070e1a);
+  border: 1px solid var(--st-border, rgba(255,255,255,.09));
   border-radius: 8px;
   padding: 16px;
   font-size: 14px;
-  color: #cbd5e1;
+  color: var(--st-text, #cbd5e1);
   line-height: 1.7;
 }
 .card-frame__section-box--mb { margin-bottom: 16px; }
@@ -219,17 +219,17 @@ button.pack-nav-btn:hover {
   border: 1px solid rgba(239,68,68,.2);
   border-radius: 8px;
   padding: 14px;
-  color: #fca5a5;
+  color: var(--st-danger, #fca5a5);
   font-size: 0.95rem;
 }
 
 /* Image & promo */
-.card-frame__image-wrap { border-radius: 24px; overflow: hidden; border: 1px solid #334155; box-shadow: 0 4px 20px rgba(0,0,0,.4); margin-bottom: 16px; }
+.card-frame__image-wrap { border-radius: 24px; overflow: hidden; border: 1px solid var(--st-border-strong, #334155); box-shadow: 0 4px 20px rgba(0,0,0,.4); margin-bottom: 16px; }
 .card-frame__promo      { margin-top: auto; }
 
 /* Back panel */
-.card-frame__back-panel { border-top: 2px solid rgba(255,255,255,.08); }
-.card-frame__back-label { padding: 10px 28px 0; font-size: 13px; font-family: monospace; text-transform: uppercase; letter-spacing: .12em; color: #475569; font-weight: 700; }
+.card-frame__back-panel { border-top: 2px solid var(--st-border, rgba(255,255,255,.08)); }
+.card-frame__back-label { padding: 10px 28px 0; font-size: 13px; font-family: monospace; text-transform: uppercase; letter-spacing: .12em; color: var(--st-text-muted, #475569); font-weight: 700; }
 
 
 /* ==========================================
@@ -241,10 +241,10 @@ button.pack-nav-btn:hover {
 .mc-card-panel {
   overflow: hidden;
   border-radius: .5rem;
-  border: 1px solid rgb(70 76 92);
+  border: 1px solid var(--st-border-strong, rgb(70 76 92));
   box-shadow: 0 10px 15px -3px rgb(0 0 0 / .1), 0 4px 6px -4px rgb(0 0 0 / .1);
-  background-color: #1e293b;
-  color: #fff;
+  background-color: var(--st-surface, #1e293b);
+  color: var(--st-text, #fff);
 }
 /* Remove border/shadow on card page (card-frame is the shell) */
 .card-page .mc-card-panel {
@@ -302,7 +302,7 @@ button.pack-nav-btn:hover {
   padding-left: .75rem;
   font-size: 16px !important;
   line-height: 1.7;
-  color: #cbd5e1;
+  color: var(--st-text, #cbd5e1);
 }
 .mc-card-text p {
   font-size: 16px !important;
@@ -501,44 +501,7 @@ button.pack-nav-btn:hover {
   background: #1a5a90;
   box-shadow: inset 0 2px 4px rgba(0,0,0,.3);
 }
-
-
-/* ==========================================
-   PACK INFO
-   ========================================== */
-
-.mc-card-pack {
-  margin-top: .5rem;
-  padding-top: .5rem;
-  border-top: none;
-  font-size: 14px !important;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  gap: .5rem;
-}
-.mc-card-pack .mc-pack-name {
-  color: #e2e8f0;
-}
-.mc-card-pack .mc-pack-num {
-  background: transparent;
-  color: #e2e8f0;
-  padding: 0;
-  border-radius: 0;
-  font-weight: 700;
-  margin-left: .4rem;
-  font-size: 14px !important;
-}
-
-.mc-card-illustrator-name {
-  font-size: 14px !important;
-  font-style: italic;
-  color: #94a3b8;
-}
-
-/* Pack badges → voir style.css */
-
-/* ==========================================
+/* ==========================================
    CARD FOOTER
    ========================================== */
 

@@ -38,6 +38,7 @@ export default function ImageWithWebp({ src, id, alt, className, locale, langDir
     if (filename) {
       if (isFrench) {
         list.push(frWebp);
+        list.push(enWebp);
       } else {
         list.push(enWebp);
       }
@@ -117,5 +118,5 @@ export default function ImageWithWebp({ src, id, alt, className, locale, langDir
   // Provide a 1x1 transparent SVG as a clean placeholder while resolving
   const placeholder = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxIiBoZWlnaHQ9IjEiPjwvc3ZnPg==';
 
-  return <img id={id} src={current || placeholder} alt={alt} className={imgClassName} onError={handleError} />;
+  return <img id={id} src={current || placeholder} data-resolved-src={current} alt={alt} className={imgClassName} onError={handleError} />;
 }

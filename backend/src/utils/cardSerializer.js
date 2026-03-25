@@ -214,9 +214,8 @@ function serializeCard(row, opts = {}) {
   }
 
   // API-specific transformations
+  card.id = row.id; // Expose DB id for review relations
   if (api) {
-    delete card.id;
-
     // Decode JSON-string fields
     card.meta = safeJsonParse(row.meta);
     card.deck_requirements = safeJsonParse(row.deck_requirements);
@@ -228,8 +227,6 @@ function serializeCard(row, opts = {}) {
         delete card[key];
       }
     }
-  } else {
-    card.id = row.id;
   }
 
   return card;

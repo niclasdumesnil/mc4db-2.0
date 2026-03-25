@@ -99,12 +99,8 @@ export default function CardPromo({ card, locale, isBack = false }) {
         const candidateBases = [];
         if (packCode) {
           candidateBases.push(`${cardsBase}/${btn.dir}/${packCode}`);
-          candidateBases.push(`${cardsBase}/${srcLangDir}/${btn.dir}/${packCode}`);
-          candidateBases.push(`${cardsBase}/EN/${btn.dir}/${packCode}`);
         }
         candidateBases.push(`${cardsBase}/${btn.dir}`);
-        candidateBases.push(`${cardsBase}/${srcLangDir}/${btn.dir}`);
-        candidateBases.push(`${cardsBase}/EN/${btn.dir}`);
         let found = false;
         outer: for (const base of candidateBases) {
           for (const ext of exts) {
@@ -175,8 +171,12 @@ export default function CardPromo({ card, locale, isBack = false }) {
     const imgEl = getCardImageElement();
     if (!imgEl) return;
     setChosenSrcMap((prev) => {
+      let currentSrc = imgEl.getAttribute('data-resolved-src') || imgEl.getAttribute('src');
+      if (currentSrc && currentSrc.startsWith('data:')) {
+         currentSrc = imagesrc; // Fallback to database URL
+      }
       if (!prev || prev['__orig'] === undefined) {
-        const newMap = { ...(prev || {}), ['__orig']: imgEl.getAttribute('src') };
+        const newMap = { ...(prev || {}), ['__orig']: currentSrc };
         writeCache(card.code, newMap);
         return newMap;
       }
@@ -197,7 +197,11 @@ export default function CardPromo({ card, locale, isBack = false }) {
           delete s.dataset.mcOrigSrcset;
         }
       });
-      imgEl.setAttribute('src', chosenSrcMap['__orig'] || imagesrc);
+      let revertUrl = imgEl.getAttribute('data-resolved-src') || chosenSrcMap['__orig'];
+      if (!revertUrl || revertUrl.startsWith('data:')) {
+         revertUrl = imagesrc;
+      }
+      imgEl.setAttribute('src', revertUrl);
       setActiveDir(null);
       return;
     }
@@ -212,12 +216,8 @@ export default function CardPromo({ card, locale, isBack = false }) {
     const candidateBases = [];
     if (packCode) {
       candidateBases.push(`${cardsBase}/${dir}/${packCode}`);
-      candidateBases.push(`${cardsBase}/${srcLangDir}/${dir}/${packCode}`);
-      candidateBases.push(`${cardsBase}/EN/${dir}/${packCode}`);
     }
     candidateBases.push(`${cardsBase}/${dir}`);
-    candidateBases.push(`${cardsBase}/${srcLangDir}/${dir}`);
-    candidateBases.push(`${cardsBase}/EN/${dir}`);
 
     for (const base of candidateBases) {
       for (const ext of exts) {
