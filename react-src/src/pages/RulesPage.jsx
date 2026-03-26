@@ -262,7 +262,7 @@ export default function Rules_ResourcesPage() {
             <h2 className="rules-toc-title">Table of contents</h2>
 
             {/* Search */}
-            <div className="rules-search-wrap">
+            <div className="rules-search-wrap" style={{ position: 'relative' }}>
               <input
                 className="rules-search"
                 type="text"
@@ -270,6 +270,15 @@ export default function Rules_ResourcesPage() {
                 value={search}
                 onChange={e => setSearch(e.target.value)}
               />
+              {search && (
+                <button 
+                  className="rules-search-clear" 
+                  onClick={() => setSearch('')}
+                  title="Clear search"
+                >
+                  &times;
+                </button>
+              )}
             </div>
 
             {loading && <p className="rules-toc-empty">Loading…</p>}
