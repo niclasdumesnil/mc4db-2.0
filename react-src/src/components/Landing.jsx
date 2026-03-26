@@ -56,8 +56,10 @@ function GroupedFaces({ cards, mode = 'hero' }) {
                  </a>
               ))}
             </div>
-            <div style={{ marginTop: 8, fontSize: '0.8em', color: '#cbd5e1', textAlign: 'center', maxWidth: 160, fontWeight: 500, lineHeight: 1.2 }}>
-              {group.names.join(' / ')}
+            <div style={{ marginTop: 8, fontSize: '0.8em', color: 'var(--st-text)', textAlign: 'center', maxWidth: 160, fontWeight: 500, lineHeight: 1.2 }}>
+              <a href={`/sets?set=${group.cards[0]?.set_code || group.cards[0]?.pack_code}`} style={{ color: 'inherit', textDecoration: 'none' }} onMouseEnter={e => e.target.style.textDecoration='underline'} onMouseLeave={e => e.target.style.textDecoration='none'}>
+                {group.names.join(' / ')}
+              </a>
             </div>
          </div>
       ))}
@@ -94,8 +96,8 @@ export default function Landing() {
   }, []);
 
   const panelStyle = {
-    background: '#071026',
-    border: '1px solid #1e293b',
+    background: 'var(--st-surface-1)',
+    border: '1px solid var(--st-border)',
     borderRadius: 8,
     padding: 24,
     display: 'flex',
@@ -108,19 +110,19 @@ export default function Landing() {
     fontWeight: 700,
     textTransform: 'uppercase',
     letterSpacing: '0.05em',
-    color: '#94a3b8',
-    borderBottom: '1px solid #1e293b',
+    color: 'var(--st-text)',
+    borderBottom: '1px solid var(--st-border)',
     paddingBottom: 8,
   };
 
   const badgeStyle = {
     padding: '8px 12px',
-    background: '#0f172a',
+    background: 'var(--st-surface-3)',
     borderRadius: 8,
     display: 'flex',
     alignItems: 'center',
     gap: 8,
-    border: '1px solid #1e293b'
+    border: '1px solid var(--st-border)'
   };
 
   return (
@@ -135,7 +137,7 @@ export default function Landing() {
         </header>
 
         {loading ? (
-           <div style={{ padding: 40, textAlign: 'center', color: '#8b9bb4' }}>Loading statistics...</div>
+           <div style={{ padding: 40, textAlign: 'center', color: 'var(--st-text-muted)' }}>Loading statistics...</div>
         ) : data ? (
            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 24, alignItems: 'flex-start' }}>
               
@@ -147,8 +149,8 @@ export default function Landing() {
                     <div style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '16px 20px', background: 'var(--st-surface-2)', border: '1px solid var(--st-border)', borderRadius: 12, boxShadow: '0 4px 12px rgba(0,0,0,0.2)' }}>
                        <span style={{ fontSize: '2rem' }}>📚</span>
                        <div>
-                         <div style={{ fontSize: '0.85em', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#94a3b8', fontWeight: 700, marginBottom: 4 }}>Total Community</div>
-                         <div style={{ fontSize: '1.3em', fontWeight: 600, color: '#e2e8f0' }}>{data.total_decks.toLocaleString()} Public Decks</div>
+                         <div style={{ fontSize: '0.85em', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--st-text-muted)', fontWeight: 700, marginBottom: 4 }}>Total Community</div>
+                         <div style={{ fontSize: '1.3em', fontWeight: 600, color: 'var(--st-title)' }}>{data.total_decks.toLocaleString()} Public Decks</div>
                        </div>
                     </div>
                  )}
@@ -159,9 +161,9 @@ export default function Landing() {
                     <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
                        {data.top_heroes?.map((h, i) => (
                            <div key={h.code} style={badgeStyle}>
-                              <span style={{ color: ['#ffd700', '#c0c0c0', '#cd7f32'][i] || '#fff', fontWeight: 'bold' }}>#{i+1}</span>
-                              <a href={`/card/${h.code}`} className="card-tip" data-code={h.code} style={{ color: '#cfe6ff', textDecoration: 'none', fontWeight: 600 }}>{h.name}</a>
-                              <span style={{ color: '#8b9bb4', fontSize: '0.85em', marginLeft: 'auto' }}>{h.count} decks</span>
+                              <span style={{ color: ['#ffd700', '#c0c0c0', '#cd7f32'][i] || 'var(--st-title)', fontWeight: 'bold' }}>#{i+1}</span>
+                              <a href={`/card/${h.code}`} className="card-tip" data-code={h.code} style={{ color: 'var(--st-title)', textDecoration: 'none', fontWeight: 600 }}>{h.name}</a>
+                              <span style={{ color: 'var(--st-text-muted)', fontSize: '0.85em', marginLeft: 'auto' }}>{h.count} decks</span>
                            </div>
                        ))}
                     </div>
@@ -170,13 +172,13 @@ export default function Landing() {
                  {/* Top Cards */}
                  <div style={panelStyle}>
                     <h2 style={titleStyle}>🌐 Top 3 Cards</h2>
-                    <p style={{ fontSize: '0.85em', color: '#64748b', margin: '-8px 0 12px 0' }}>Note: Resource cards are ignored in this calculation.</p>
+                    <p style={{ fontSize: '0.85em', color: 'var(--st-text-muted)', margin: '-8px 0 12px 0' }}>Note: Resource cards are ignored in this calculation.</p>
                     <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
                        {data.top_cards?.map((c, i) => (
                            <div key={c.code} style={{...badgeStyle, flex: '1 1 100%'}}>
-                              <span style={{ color: ['#ffd700', '#c0c0c0', '#cd7f32'][i] || '#fff', fontWeight: 'bold' }}>#{i+1}</span>
-                              <a href={`/card/${c.code}`} className="card-tip" data-code={c.code} style={{ color: '#cfe6ff', textDecoration: 'none', fontWeight: 600 }}>{c.name}</a>
-                              <span style={{ color: '#8b9bb4', fontSize: '0.85em', marginLeft: 'auto' }}>{c.count} decks</span>
+                              <span style={{ color: ['#ffd700', '#c0c0c0', '#cd7f32'][i] || 'var(--st-title)', fontWeight: 'bold' }}>#{i+1}</span>
+                              <a href={`/card/${c.code}`} className="card-tip" data-code={c.code} style={{ color: 'var(--st-title)', textDecoration: 'none', fontWeight: 600 }}>{c.name}</a>
+                              <span style={{ color: 'var(--st-text-muted)', fontSize: '0.85em', marginLeft: 'auto' }}>{c.count} decks</span>
                            </div>
                        ))}
                     </div>
@@ -198,19 +200,19 @@ export default function Landing() {
                               style={{ width: 220, borderRadius: 10, boxShadow: '0 4px 12px rgba(0,0,0,0.5)' }} 
                             />
                          </a>
-                         <div style={{ marginTop: 16, padding: '12px 24px', background: 'rgba(255,255,255,0.05)', borderRadius: 8, border: '1px solid rgba(255,255,255,0.1)' }}>
+                         <div style={{ marginTop: 16, padding: '12px 24px', background: 'rgba(128,128,128,0.05)', borderRadius: 8, border: '1px solid var(--st-border)' }}>
                             {data.card_of_the_day_deck ? (
                                <>
-                                 <div style={{ fontSize: '0.85em', color: '#94a3b8', marginBottom: 4 }}>Random deck:</div>
-                                 <a href={`/decklist/view/${data.card_of_the_day_deck.id}`} style={{ color: '#cfe6ff', textDecoration: 'none', fontWeight: 600 }}>{data.card_of_the_day_deck.name}</a>
+                                 <div style={{ fontSize: '0.85em', color: 'var(--st-text-muted)', marginBottom: 4 }}>Random deck:</div>
+                                 <a href={`/decklist/view/${data.card_of_the_day_deck.id}`} style={{ color: 'var(--st-title)', textDecoration: 'none', fontWeight: 600 }}>{data.card_of_the_day_deck.name}</a>
                                </>
                             ) : (
-                               <div style={{ fontSize: '0.9em', color: '#ffb4b4' }}>Be the first to create a deck with this card!</div>
+                               <div style={{ fontSize: '0.9em', color: '#ef4444' }}>Be the first to create a deck with this card!</div>
                             )}
                          </div>
                       </div>
                     ) : (
-                      <div style={{ padding: 40, color: '#64748b' }}>No aspect cards available.</div>
+                      <div style={{ padding: 40, color: 'var(--st-text-muted)' }}>No aspect cards available.</div>
                     )}
                  </div>
               </div>
@@ -220,13 +222,13 @@ export default function Landing() {
               <div style={{ flex: '1 1 100%' }}>
                  <div style={panelStyle}>
                     <h2 style={{...titleStyle, borderBottom: 'none', display: 'flex', alignItems: 'baseline', flexWrap: 'wrap', gap: 12, marginBottom: 12}}>
-                      <span>📦 Last Release: <a href={`/card-list?cardset=${data.last_release.pack_code}`} style={{ color: '#fff', textDecoration: 'underline' }}>{data.last_release.pack_name}</a></span>
+                      <span>📦 Last Release: <a href={`/card-list?pack=${data.last_release.pack_code}`} style={{ color: 'var(--st-title)', textDecoration: 'underline' }}>{data.last_release.pack_name}</a></span>
                       
                       {data.last_release.creator && data.last_release.creator !== 'FFG' && (
-                        <span className="mc-badge mc-badge-creator" style={{ padding: '2px 6px', borderRadius: 4, fontSize: '0.8em', transform: 'translateY(-2px)' }}>{data.last_release.creator}</span>
+                        <span className="mc-badge mc-badge-creator" style={{ padding: '2px 6px', borderRadius: 4, fontSize: '0.8em', transform: 'translateY(-2px)', textTransform: 'none' }}>{data.last_release.creator}</span>
                       )}
 
-                      <span style={{ fontSize: '0.7em', color: '#94a3b8', marginLeft: 'auto', fontWeight: 'normal' }}>
+                      <span style={{ fontSize: '0.7em', color: 'var(--st-text-muted)', marginLeft: 'auto', fontWeight: 'normal' }}>
                          {data.last_release.size ? `${data.last_release.size} cards` : null}
                          {data.last_release.size && data.last_release.date_release ? ' • ' : null}
                          {data.last_release.date_release ? formatReleaseDate(data.last_release.date_release) : null}
@@ -234,15 +236,15 @@ export default function Landing() {
                     </h2>
                     
                     {data.last_release.heroes?.length > 0 && (
-                      <div style={{ marginTop: 0, background: 'rgba(255,255,255,0.02)', padding: '16px 20px', borderRadius: 8 }}>
-                         <h4 style={{ margin: '0 0 12px 0', fontSize: '0.85em', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Heroes</h4>
+                      <div style={{ marginTop: 0, background: 'rgba(128,128,128,0.05)', padding: '16px 20px', borderRadius: 8 }}>
+                         <h4 style={{ margin: '0 0 12px 0', fontSize: '0.85em', color: 'var(--st-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Heroes</h4>
                          <GroupedFaces cards={data.last_release.heroes} mode="hero" />
                       </div>
                     )}
 
                     {data.last_release.villains?.length > 0 && (
-                      <div style={{ marginTop: 8, background: 'rgba(255,255,255,0.02)', padding: '16px 20px', borderRadius: 8 }}>
-                         <h4 style={{ margin: '0 0 12px 0', fontSize: '0.85em', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Villains</h4>
+                      <div style={{ marginTop: 8, background: 'rgba(128,128,128,0.05)', padding: '16px 20px', borderRadius: 8 }}>
+                         <h4 style={{ margin: '0 0 12px 0', fontSize: '0.85em', color: 'var(--st-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Villains</h4>
                          <GroupedFaces cards={data.last_release.villains} mode="villain" />
                       </div>
                     )}

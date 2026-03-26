@@ -196,7 +196,18 @@ export default function CardList() {
   const [totalSumCurrentOfficial, setTotalSumCurrentOfficial] = useState(0);
   const [totalAltArts, setTotalAltArts] = useState(0);
   const [mode, setMode] = useState(() => getSessionItem('display_mode', 'checklist'));
-  const initialFilters = useMemo(() => getSessionItem('cardlist_filters', _INIT_FILTERS), []);
+  const initialFilters = useMemo(() => {
+    const session = getSessionItem('cardlist_filters', _INIT_FILTERS);
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const pack = params.get('pack') || params.get('cardset');
+      if (pack) {
+        window.history.replaceState(null, '', window.location.pathname);
+        return { ..._INIT_FILTERS, pack };
+      }
+    } catch (err) {}
+    return session;
+  }, []);
   const [filters, setFilters] = useState(initialFilters);
   const [attributes, setAttributes] = useState({ types: [], subtypes: [], illustrators: [] });
   const [selectedTheme, setSelectedTheme] = useState('all');

@@ -53,12 +53,13 @@ router.get('/home', async (req, res) => {
       const packCards = await db('card as c')
         .join('type as t', 'c.type_id', 't.id')
         .join('pack as p', 'c.pack_id', 'p.id')
+        .leftJoin('cardset as cs', 'c.set_id', 'cs.id')
         .where('c.pack_id', lastPack.id)
         .where(function() {
           this.where('p.visibility', '!=', 'false').orWhereNull('p.visibility');
         })
         .whereIn('t.code', ['hero', 'alter_ego', 'villain'])
-        .select('c.code', 'c.name', 't.code as type_code', 'p.code as pack_code')
+        .select('c.code', 'c.name', 't.code as type_code', 'p.code as pack_code', 'cs.code as set_code')
         .orderBy('c.code', 'asc');
 
       const mappedCards = packCards.map(c => ({

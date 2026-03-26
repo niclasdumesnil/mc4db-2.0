@@ -384,6 +384,24 @@ function HorizontalSetsBar({ setsData, setsLoading, selectedSet, onSelect }) {
         {/* Spacer */}
         <div style={{ flex: 1 }} />
 
+        {selectedSet && (
+           <button 
+             className="sets-source-btn"
+             style={{
+                marginRight: 16,
+                background: 'rgba(239, 68, 68, 0.1)',
+                color: '#ef4444',
+                borderColor: 'rgba(239, 68, 68, 0.2)',
+             }}
+             onMouseEnter={e => e.currentTarget.style.background = 'rgba(239, 68, 68, 0.2)'}
+             onMouseLeave={e => e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)'}
+             title="Clear selected set"
+             onClick={() => onSelect(null)}
+           >
+             ✕ Clear
+           </button>
+        )}
+
         {/* Sort Controls */}
         <div className="sets-sort-controls">
           <span className="sets-sort-label">Sort by:</span>
@@ -462,6 +480,25 @@ export default function Sets() {
           official: { hero: [], villain: [], modular: [], standard: [], expert: [], ...((data.official) || {}) },
           fanmade:  { hero: [], villain: [], modular: [], standard: [], expert: [], ...((data.fanmade)  || {}) },
         });
+        
+        // Auto-select set from URL if present
+        const searchParams = new URLSearchParams(window.location.search);
+        const urlSet = searchParams.get('set') || searchParams.get('pack');
+        if (urlSet) {
+           const off = data.official || {};
+           const fm = data.fanmade || {};
+           const allSets = [
+             ...(off.hero||[]), ...(off.villain||[]), ...(off.modular||[]), ...(off.standard||[]), ...(off.expert||[]),
+             ...(fm.hero||[]), ...(fm.villain||[]), ...(fm.modular||[]), ...(fm.standard||[]), ...(fm.expert||[])
+           ];
+           const match = allSets.find(s => s.code === urlSet || s.pack_code === urlSet);
+           if (match) {
+             setSelectedSet(match);
+             // Clear the params from the URL to avoid locking
+             window.history.replaceState({}, '', window.location.pathname);
+           }
+        }
+        
         setSetsLoading(false);
       })
       .catch(() => setSetsLoading(false));
