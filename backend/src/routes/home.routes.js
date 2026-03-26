@@ -17,6 +17,12 @@ router.get('/home', async (req, res) => {
       .first();
     const total_decks = Number(totalDecksRow?.cnt || 0);
 
+    // 0.5 Total Private Decks
+    const totalPrivateDecksRow = await db('deck')
+      .count('* as cnt')
+      .first();
+    const total_private_decks = Number(totalPrivateDecksRow?.cnt || 0);
+
     // 1. Top Heroes (from public decks)
     const topHeroes = await db('decklist as d')
       .join('card as c', 'd.card_id', 'c.id')
@@ -159,6 +165,7 @@ router.get('/home', async (req, res) => {
     return res.json({
       ok: true,
       total_decks,
+      total_private_decks,
       total_official_cards,
       total_fanmade_cards,
       top_heroes: topHeroes.map(r => ({ name: r.hero_name, code: r.hero_code, count: Number(r.cnt) })),

@@ -137,148 +137,162 @@ export default function Landing() {
         <header className="stories-header" style={{ marginBottom: 32 }}>
           <h1 className="stories-title">Welcome to MC4DB 2.0</h1>
           <p className="stories-subtitle">
-            A modern fan-made database for Marvel Champions cards — browse cards, check promos, and manage your dashboard.
+            A modern fan-made database for Marvel Champions cards — browse cards, check promos, and build deck.
           </p>
         </header>
 
         {loading ? (
            <div style={{ padding: 40, textAlign: 'center', color: 'var(--st-text-muted)' }}>Loading statistics...</div>
         ) : data ? (
-           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 24, alignItems: 'flex-start' }}>
+           <div style={{ display: 'flex', flexDirection: 'column', gap: 24, padding: '0 24px', maxWidth: 1200, margin: '0 auto' }}>
               
-              {/* Left Column (Stats - 66%) */}
-              <div style={{ flex: '2 1 600px', display: 'flex', flexDirection: 'column', gap: 24 }}>
-                 
-                 {/* Total Community Decks */}
-                 {data.total_decks > 0 && (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '16px 20px', background: 'var(--st-surface-2)', border: '1px solid var(--st-border)', borderRadius: 12, boxShadow: '0 4px 12px rgba(0,0,0,0.2)' }}>
-                       <span style={{ fontSize: '2rem' }}>📚</span>
-                       <div style={{ flex: 1 }}>
-                         <div style={{ fontSize: '0.85em', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--st-text-muted)', fontWeight: 700, marginBottom: 4 }}>Total Community</div>
-                         <div style={{ fontSize: '1.3em', fontWeight: 600, color: 'var(--st-title)' }}>{data.total_decks.toLocaleString()} Public Decks</div>
+              {/* Row 1: Left (Community + Heroes) / Right (Top Cards) */}
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 24 }}>
+                 {/* Left Column */}
+                 <div style={{ flex: '2 1 600px', display: 'flex', flexDirection: 'column', gap: 24 }}>
+                    {/* Total Community */}
+                    {data.total_decks > 0 && (
+                       <div style={{ display: 'flex', alignItems: 'center', boxSizing: 'border-box', gap: 16, padding: '16px 20px', background: 'var(--st-surface-2)', border: '1px solid var(--st-border)', borderRadius: 12, boxShadow: '0 4px 12px rgba(0,0,0,0.2)' }}>
+                          <span style={{ fontSize: '2rem' }}>📚</span>
+                          <div style={{ flex: 1 }}>
+                            <div style={{ fontSize: '0.85em', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--st-text-muted)', fontWeight: 700, marginBottom: 4 }}>Total Community</div>
+                            <div style={{ display: 'flex', alignItems: 'baseline', gap: 24, flexWrap: 'wrap' }}>
+                               <div style={{ fontSize: '1.3em', fontWeight: 600, color: 'var(--st-title)' }}>{data.total_decks.toLocaleString()} Public Decks</div>
+                               <div style={{ fontSize: '1.05em', fontWeight: 500, color: 'var(--st-text-muted)' }}>🔒 {data.total_private_decks?.toLocaleString() || 0} Private Decks</div>
+                            </div>
+                          </div>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: 4, textAlign: 'left', borderLeft: '1px solid var(--st-border)', paddingLeft: 16 }}>
+                            <div style={{ fontSize: '0.85em', color: 'var(--st-text-muted)' }}><strong style={{ color: 'var(--st-title)' }}>{data.total_official_cards?.toLocaleString() || 0}</strong> Official cards</div>
+                            <div style={{ fontSize: '0.85em', color: 'var(--st-text-muted)' }}><strong style={{ color: 'var(--st-title)' }}>{data.total_fanmade_cards?.toLocaleString() || 0}</strong> Fan-made cards</div>
+                          </div>
                        </div>
-                       <div style={{ display: 'flex', flexDirection: 'column', gap: 4, textAlign: 'left', borderLeft: '1px solid var(--st-border)', paddingLeft: 16 }}>
-                         <div style={{ fontSize: '0.85em', color: 'var(--st-text-muted)' }}><strong style={{ color: 'var(--st-title)' }}>{data.total_official_cards?.toLocaleString() || 0}</strong> Official cards</div>
-                         <div style={{ fontSize: '0.85em', color: 'var(--st-text-muted)' }}><strong style={{ color: 'var(--st-title)' }}>{data.total_fanmade_cards?.toLocaleString() || 0}</strong> Fan-made cards</div>
+                    )}
+                    
+                    {/* Top 3 Heroes */}
+                    <div style={panelStyle}>
+                       <h2 style={titleStyle}>🏆 Top 3 Heroes</h2>
+                       <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+                          {data.top_heroes?.map((h, i) => (
+                              <div key={h.code} style={badgeStyle}>
+                                 <span style={{ color: ['#ffd700', '#c0c0c0', '#cd7f32'][i] || 'var(--st-title)', fontWeight: 'bold' }}>#{i+1}</span>
+                                 <a href={`/card/${h.code}`} className="card-tip" data-code={h.code} style={{ color: 'var(--st-title)', textDecoration: 'none', fontWeight: 600 }}>{h.name}</a>
+                                 <span style={{ color: 'var(--st-text-muted)', fontSize: '0.85em', marginLeft: 'auto' }}>{h.count} decks</span>
+                              </div>
+                          ))}
                        </div>
-                    </div>
-                 )}
-
-                 {/* Top Heroes */}
-                 <div style={panelStyle}>
-                    <h2 style={titleStyle}>🏆 Top 3 Heroes</h2>
-                    <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-                       {data.top_heroes?.map((h, i) => (
-                           <div key={h.code} style={badgeStyle}>
-                              <span style={{ color: ['#ffd700', '#c0c0c0', '#cd7f32'][i] || 'var(--st-title)', fontWeight: 'bold' }}>#{i+1}</span>
-                              <a href={`/card/${h.code}`} className="card-tip" data-code={h.code} style={{ color: 'var(--st-title)', textDecoration: 'none', fontWeight: 600 }}>{h.name}</a>
-                              <span style={{ color: 'var(--st-text-muted)', fontSize: '0.85em', marginLeft: 'auto' }}>{h.count} decks</span>
-                           </div>
-                       ))}
                     </div>
                  </div>
 
-                 {/* Deck of the Week */}
-                 {data.deck_of_the_week && (
-                    <div style={panelStyle}>
-                       <h2 style={titleStyle}>🏆 Deck of the Week</h2>
-                       <DeckCard 
-                          deck={data.deck_of_the_week} 
-                          onClick={() => window.location.href = `/decklist/view/${data.deck_of_the_week.id}`}
-                          statsRow={
-                            <>
-                              <span className="stat" title="Likes">🤍 {data.deck_of_the_week.likes || 0}</span>
-                              <span className="stat" title="Favorites">⭐ {data.deck_of_the_week.favorites || 0}</span>
-                              <span className="stat" title="Comments">💬 {data.deck_of_the_week.comments || 0}</span>
-                            </>
-                          }
-                          footerLeft={
-                            <div className="author-info">
-                              <span className="by">by</span>
-                              <span className="author-name">{data.deck_of_the_week.author_name}</span>
-                              <RepBadge reputation={data.deck_of_the_week.author_reputation} />
-                            </div>
-                          }
-                          actionButtons={
-                            <div className="deck-date" style={{ marginLeft: '4px' }}>
-                              {new Date(data.deck_of_the_week.date_creation).toLocaleDateString(locale, { month: 'short', day: 'numeric', year: 'numeric' })}
-                            </div>
-                          }
-                       />
+                 {/* Right Column */}
+                 <div style={{ flex: '1 1 300px' }}>
+                    <div style={{...panelStyle, boxSizing: 'border-box'}}>
+                       <h2 style={titleStyle}>🌐 Top 3 Cards</h2>
+                       <p style={{ fontSize: '0.85em', color: 'var(--st-text-muted)', margin: '-8px 0 12px 0' }}>Note: Resource cards are ignored in this calculation.</p>
+                       <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+                          {data.top_cards?.map((c, i) => (
+                              <div key={c.code} style={{...badgeStyle, flex: '1 1 100%'}}>
+                                 <span style={{ color: ['#ffd700', '#c0c0c0', '#cd7f32'][i] || 'var(--st-title)', fontWeight: 'bold' }}>#{i+1}</span>
+                                 <a href={`/card/${c.code}`} className="card-tip" data-code={c.code} style={{ color: 'var(--st-title)', textDecoration: 'none', fontWeight: 600 }}>{c.name}</a>
+                                 <span style={{ color: 'var(--st-text-muted)', fontSize: '0.85em', marginLeft: 'auto' }}>{c.count} decks</span>
+                              </div>
+                          ))}
+                       </div>
                     </div>
-                 )}
-
-                 {/* Deck of the Day */}
-                 {data.card_of_the_day_deck && (
-                    <div style={panelStyle}>
-                       <h2 style={titleStyle}>📆 Deck of the Day</h2>
-                       <DeckCard 
-                          deck={data.card_of_the_day_deck} 
-                          onClick={() => window.location.href = `/decklist/view/${data.card_of_the_day_deck.id}`}
-                          statsRow={
-                            <>
-                              <span className="stat" title="Likes">🤍 {data.card_of_the_day_deck.likes || 0}</span>
-                              <span className="stat" title="Favorites">⭐ {data.card_of_the_day_deck.favorites || 0}</span>
-                              <span className="stat" title="Comments">💬 {data.card_of_the_day_deck.comments || 0}</span>
-                            </>
-                          }
-                          footerLeft={
-                            <div className="author-info">
-                              <span className="by">by</span>
-                              <span className="author-name">{data.card_of_the_day_deck.author_name}</span>
-                              <RepBadge reputation={data.card_of_the_day_deck.author_reputation} />
-                            </div>
-                          }
-                          actionButtons={
-                            <div className="deck-date" style={{ marginLeft: '4px' }}>
-                              {new Date(data.card_of_the_day_deck.date_creation).toLocaleDateString(locale, { month: 'short', day: 'numeric', year: 'numeric' })}
-                            </div>
-                          }
-                       />
-                    </div>
-                 )}
+                 </div>
               </div>
 
-              {/* Right Column (Content - 33%) */}
-              <div style={{ flex: '1 1 300px', display: 'flex', flexDirection: 'column', gap: 24 }}>
+              {/* Row 2: Left (Deck of the Day + Week) / Right (Card of the Day) */}
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 24 }}>
+                 {/* Left Column */}
+                 <div style={{ flex: '2 1 600px', display: 'flex', flexDirection: 'column', gap: 24 }}>
+                    <div style={panelStyle}>
+                       <h2 style={titleStyle}>📆 Deck of the Day</h2>
+                       {data.card_of_the_day_deck ? (
+                          <DeckCard 
+                             deck={data.card_of_the_day_deck} 
+                             onClick={() => window.location.href = `/decklist/view/${data.card_of_the_day_deck.id}`}
+                             statsRow={
+                               <>
+                                 <span className="stat" title="Likes">🤍 {data.card_of_the_day_deck.likes || 0}</span>
+                                 <span className="stat" title="Favorites">⭐ {data.card_of_the_day_deck.favorites || 0}</span>
+                                 <span className="stat" title="Comments">💬 {data.card_of_the_day_deck.comments || 0}</span>
+                               </>
+                             }
+                             footerLeft={
+                               <div className="author-info">
+                                 <span className="by">by</span>
+                                 <span className="author-name">{data.card_of_the_day_deck.author_name}</span>
+                                 <RepBadge reputation={data.card_of_the_day_deck.author_reputation} />
+                               </div>
+                             }
+                             actionButtons={
+                               <div className="deck-date" style={{ marginLeft: '4px' }}>
+                                 {new Date(data.card_of_the_day_deck.date_creation).toLocaleDateString(locale, { month: 'short', day: 'numeric', year: 'numeric' })}
+                               </div>
+                             }
+                          />
+                       ) : (
+                          <div style={{ padding: '24px 0', textAlign: 'center', color: 'var(--st-text-muted)', fontSize: '0.95em' }}>
+                             <span style={{ fontSize: '1.5em', display: 'block', marginBottom: 8 }}>😢</span>
+                             Be the first to create a public deck with this card!
+                          </div>
+                       )}
+                    </div>
+
+                    {data.deck_of_the_week && (
+                       <div style={panelStyle}>
+                          <h2 style={titleStyle}>🏆 Deck of the Week</h2>
+                          <DeckCard 
+                             deck={data.deck_of_the_week} 
+                             onClick={() => window.location.href = `/decklist/view/${data.deck_of_the_week.id}`}
+                             statsRow={
+                               <>
+                                 <span className="stat" title="Likes">🤍 {data.deck_of_the_week.likes || 0}</span>
+                                 <span className="stat" title="Favorites">⭐ {data.deck_of_the_week.favorites || 0}</span>
+                                 <span className="stat" title="Comments">💬 {data.deck_of_the_week.comments || 0}</span>
+                               </>
+                             }
+                             footerLeft={
+                               <div className="author-info">
+                                 <span className="by">by</span>
+                                 <span className="author-name">{data.deck_of_the_week.author_name}</span>
+                                 <RepBadge reputation={data.deck_of_the_week.author_reputation} />
+                               </div>
+                             }
+                             actionButtons={
+                               <div className="deck-date" style={{ marginLeft: '4px' }}>
+                                 {new Date(data.deck_of_the_week.date_creation).toLocaleDateString(locale, { month: 'short', day: 'numeric', year: 'numeric' })}
+                               </div>
+                             }
+                          />
+                       </div>
+                    )}
+                 </div>
                  
-                 {/* Card of the Day */}
-                 <div style={{ ...panelStyle, alignItems: 'center', textAlign: 'center' }}>
-                    <h2 style={{...titleStyle, width: '100%', textAlign: 'left'}}>🌟 Card of the Day</h2>
-                    {data.card_of_the_day ? (
-                      <div style={{ marginTop: 8 }}>
-                         <a href={`/card/${data.card_of_the_day.code}`}>
-                            <ImageWithWebp 
-                              src={data.card_of_the_day.imagesrc || `/bundles/cards/${data.card_of_the_day.code}.png`} 
-                              alt="Card of the Day" 
-                              locale={locale}
-                              langDir={langDir}
-                              style={{ width: 220, borderRadius: 10, boxShadow: '0 4px 12px rgba(0,0,0,0.5)' }} 
-                            />
-                         </a>
-                      </div>
-                     ) : (
-                       <div style={{ padding: 40, color: 'var(--st-text-muted)' }}>No aspect cards available.</div>
-                     )}
-                  </div>
+                 {/* Right Column */}
+                 <div style={{ flex: '1 1 300px' }}>
+                    <div style={{ ...panelStyle, boxSizing: 'border-box', alignItems: 'center', textAlign: 'center', display: 'flex', flexDirection: 'column' }}>
+                       <h2 style={{...titleStyle, width: '100%', textAlign: 'left'}}>🌟 Card of the Day</h2>
+                       <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px 0' }}>
+                          {data.card_of_the_day ? (
+                             <a href={`/card/${data.card_of_the_day.code}`}>
+                                <ImageWithWebp 
+                                  src={data.card_of_the_day.imagesrc || `/bundles/cards/${data.card_of_the_day.code}.png`} 
+                                  alt="Card of the Day" 
+                                  locale={locale}
+                                  langDir={langDir}
+                                  style={{ width: '100%', maxWidth: 220, borderRadius: 10, boxShadow: '0 4px 12px rgba(0,0,0,0.5)' }} 
+                                />
+                             </a>
+                          ) : (
+                            <div style={{ padding: 20, color: 'var(--st-text-muted)' }}>No aspect cards available.</div>
+                          )}
+                       </div>
+                    </div>
+                 </div>
+              </div>
 
-                  {/* Top Cards */}
-                  <div style={panelStyle}>
-                     <h2 style={titleStyle}>🌐 Top 3 Cards</h2>
-                     <p style={{ fontSize: '0.85em', color: 'var(--st-text-muted)', margin: '-8px 0 12px 0' }}>Note: Resource cards are ignored in this calculation.</p>
-                     <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-                        {data.top_cards?.map((c, i) => (
-                            <div key={c.code} style={{...badgeStyle, flex: '1 1 100%'}}>
-                               <span style={{ color: ['#ffd700', '#c0c0c0', '#cd7f32'][i] || 'var(--st-title)', fontWeight: 'bold' }}>#{i+1}</span>
-                               <a href={`/card/${c.code}`} className="card-tip" data-code={c.code} style={{ color: 'var(--st-title)', textDecoration: 'none', fontWeight: 600 }}>{c.name}</a>
-                               <span style={{ color: 'var(--st-text-muted)', fontSize: '0.85em', marginLeft: 'auto' }}>{c.count} decks</span>
-                            </div>
-                        ))}
-                     </div>
-                  </div>
-               </div>
-
-              {/* Last Release (Full Width Row) */}
+              {/* Row 3: Last Release (Full Width Row) */}
               {data.last_release && (
               <div style={{ flex: '1 1 100%' }}>
                  <div style={panelStyle}>
