@@ -169,13 +169,20 @@ function SetBanner({ identityCards = [], fallbackCard, mode, onModeChange, selec
         {/* Left: hero / alter_ego / villain (or fallback) */}
         <div className="shb-faces shb-faces--left">
           {effectiveLeftFaces.map((c, i) => (
-            <img
+            <a
               key={c.code}
-              className={`ndeck-face ndeck-face--${['a', 'b', 'c'][i] || 'c'}`}
-              src={c.imagesrc}
-              alt={c.name}
-              loading="lazy"
-            />
+              href={`/card/${c.code}`}
+              className={`ndeck-face ndeck-face--${['a', 'b', 'c'][i] || 'c'} card-tip`}
+              data-code={c.code}
+              style={{ display: 'block' }}
+            >
+              <img
+                src={c.imagesrc || `/bundles/cards/${c.code}.png`}
+                alt={c.name}
+                loading="lazy"
+                style={{ width: '100%', height: '100%', objectFit: 'contain', borderRadius: 'inherit' }}
+              />
+            </a>
           ))}
         </div>
 
@@ -185,13 +192,20 @@ function SetBanner({ identityCards = [], fallbackCard, mode, onModeChange, selec
         {/* Right: main scheme */}
         <div className="shb-faces shb-faces--right">
           {schemeFaces.map((c, i) => (
-            <img
+            <a
               key={c.code}
-              className={`ndeck-face ndeck-face--scheme ndeck-face--${['a', 'b', 'c'][i] || 'c'}`}
-              src={c.imagesrc}
-              alt={c.name}
-              loading="lazy"
-            />
+              href={`/card/${c.code}`}
+              className={`ndeck-face ndeck-face--scheme ndeck-face--${['a', 'b', 'c'][i] || 'c'} card-tip`}
+              data-code={c.code}
+              style={{ display: 'block' }}
+            >
+              <img
+                src={c.imagesrc || `/bundles/cards/${c.code}.png`}
+                alt={c.name}
+                loading="lazy"
+                style={{ width: '100%', height: '100%', objectFit: 'contain', borderRadius: 'inherit' }}
+              />
+            </a>
           ))}
         </div>
       </div>
