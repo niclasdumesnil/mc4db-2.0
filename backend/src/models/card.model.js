@@ -89,9 +89,10 @@ async function findTranslation(code, locale) {
 
 async function getAttributes(locale = 'en') {
   const TypeModel = require('./type.model');
+  const SubtypeModel = require('./subtype.model');
   const [types, subtypes, rawIllustrators] = await Promise.all([
     TypeModel.findAll(locale),
-    db('Subtype').select('code', 'name').orderBy('name'),
+    SubtypeModel.findAll(locale),
     db('card').distinct('illustrator').whereNotNull('illustrator').whereNot('illustrator', '').pluck('illustrator'),
   ]);
 
@@ -107,8 +108,9 @@ async function getAttributes(locale = 'en') {
   const facMap = await require('./faction.model').getTranslationMap(locale);
   const typeMap = await TypeModel.getTranslationMap(locale);
   const packMap = await require('./pack.model').getTranslationMap(locale);
+  const subtypeMap = await SubtypeModel.getTranslationMap(locale);
 
-  return { types, subtypes, illustrators, factions: facMap, typesMap: typeMap, packsMap: packMap };
+  return { types, subtypes, illustrators, factions: facMap, typesMap: typeMap, packsMap: packMap, subtypesMap: subtypeMap };
 }
 
 async function getHeroes(donator, userId, locale = 'en') {
@@ -400,6 +402,7 @@ async function fetchTranslationsForSearch(cards, localeClean) {
   const facMap = await require('./faction.model').getTranslationMap(localeClean);
   const typesMap = await require('./type.model').getTranslationMap(localeClean);
   const packsMap = await require('./pack.model').getTranslationMap(localeClean);
+  const subtypesMap = await require('./subtype.model').getTranslationMap(localeClean);
 
   return cards.map(r => {
     const updated = { ...r };
@@ -413,6 +416,7 @@ async function fetchTranslationsForSearch(cards, localeClean) {
     if (updated.faction2_code && facMap[updated.faction2_code]) updated.faction2_name = facMap[updated.faction2_code];
     if (typesMap[updated.type_code]) updated.type_name = typesMap[updated.type_code];
     if (packsMap[updated.pack_code]) updated.pack_name = packsMap[updated.pack_code];
+    if (subtypesMap[updated.subtype_code]) updated.subtype_name = subtypesMap[updated.subtype_code];
     return updated;
   });
 }

@@ -30,7 +30,8 @@ async function applyTranslation(card, locale) {
   const typesMap = await TypeModel.getTranslationMap(locale);
   const PackModel = require('../models/pack.model');
   const packsMap = await PackModel.getTranslationMap(locale);
-
+  const SubtypeModel = require('../models/subtype.model');
+  const subtypesMap = await SubtypeModel.getTranslationMap(locale);
 
   if (card.faction_code && facMap[card.faction_code]) {
     card.faction_name = facMap[card.faction_code];
@@ -43,6 +44,9 @@ async function applyTranslation(card, locale) {
   }
   if (card.pack_code && packsMap[card.pack_code]) {
     card.pack_name = packsMap[card.pack_code];
+  }
+  if (card.subtype_code && subtypesMap[card.subtype_code]) {
+    card.subtype_name = subtypesMap[card.subtype_code];
   }
 
   return card;
