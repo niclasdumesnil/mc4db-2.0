@@ -292,7 +292,7 @@ function renderSharedFooter() {
 </style>
 <footer class="mc-site-footer">
   <div style="max-width: 800px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px;">
-    <p style="margin:0;">Based on ThronesDB by Alsciende. Modified by Zzorba and Kam for Marvel Champions. Fanmade version refactored by Merlin.<br/>If you like my work you could buy me a coffee to help support the cost of this server.</p>
+    <p style="margin:0;">Based on ThronesDB by Alsciende. Modified by Zzorba and Kam for Marvel Champions. Fanmade version refactored by Merlin.<br/>If you like my work you could <a href="https://www.buymeacoffee.com/merlindumesnil" target="_blank" rel="noopener noreferrer" style="display: inline-block; vertical-align: middle; margin: 0 4px;"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-green.png" alt="Buy Me A Coffee" style="height: 24px !important; width: 87px !important; display: block;" /></a> to help support the cost of this server.</p>
     <p style="margin:0;">The images of the official cards in english are available thanks to <a href="https://github.com/UnicornSnuggler/Cerebro" target="_blank" rel="noopener noreferrer">Unicorn and its Cerebro</a>.<br/>
     Please join <a href="https://discord.gg/pYmv9Vud" target="_blank" rel="noopener noreferrer">Marvel Champions LCG Homebrew</a> for more contents.</p>
     <p style="font-size: 0.75rem; opacity: 0.7; margin:0;">The information presented on this site about Marvel Champions: The Card Game, both literal and graphical, is copyrighted by Fantasy Flight Games for contents. All custom contents are copyrighted accordingly to related sources. This website is not produced, endorsed, supported, or affiliated with Fantasy Flight Games.</p>
