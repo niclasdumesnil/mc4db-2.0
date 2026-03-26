@@ -368,7 +368,11 @@ export default function CardList() {
   }, []);
 
   return (
-    <div className="cardlist-page">
+    <div className="cardlist-page page-wrapper">
+      <div className="page-header">
+        <h1 className="page-title">Cards Database</h1>
+        <p className="page-subtitle">Search, filter, and explore all characters, encounters, and player cards.</p>
+      </div>
       <div className="cardlist-page-inner">
 
         {/* ── Top: Pack filter ── */}

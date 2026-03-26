@@ -628,7 +628,11 @@ export default function Sets() {
   }
 
   return (
-    <div className="sets-page">
+    <div className="sets-page page-wrapper">
+      <div className="page-header">
+        <h1 className="page-title">Sets & Expansions</h1>
+        <p className="page-subtitle">Browse and explore official and fan-made sets.</p>
+      </div>
 
       <header className="sets-topbar-wrapper">
         <HorizontalSetsBar

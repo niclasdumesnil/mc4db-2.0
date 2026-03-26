@@ -200,12 +200,12 @@ export default function MyDecks() {
   }
 
   return (
-    <div className="decks-page-container">
+    <div className="decks-page-container page-wrapper">
       <div className="decks-page-top">
-        <header className="decks-page-header">
+        <header className="page-header">
           <div>
-            <h1 className="decks-title">My Decks</h1>
-            <p className="decks-subtitle">
+            <h1 className="page-title">My Decks</h1>
+            <p className="page-subtitle">
               Your private deck collection
               {!loading && totalItems > 0 && (
                 <span className="decks-count"> &mdash; {totalItems} deck{totalItems > 1 ? 's' : ''}</span>

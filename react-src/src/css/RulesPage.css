@@ -344,19 +344,11 @@ html.dark {
 
 
 /* --------------------------------------------------
-   Rules Page Wrapper & Tabs
+   Rulesheet Downloads
    -------------------------------------------------- */
-.rules-page-wrapper { max-width: 1400px; margin: 60px auto 60px; padding: 0 20px; }
-.rules-page-header { margin-bottom: 16px; }
-.rules-page-title { font-size: 2.2rem; font-weight: 300; color: var(--rules-title); margin: 0 0 16px 0; }
-.rules-tabs { display: flex; gap: 8px; border-bottom: 1px solid var(--rules-border); padding-bottom: 12px; flex-wrap: wrap; }
-.rules-tab { background: transparent; border: 1px solid transparent; color: var(--rules-toc-text); font-size: 1.05rem; font-weight: 600; padding: 8px 16px; border-radius: 6px; cursor: pointer; transition: all 0.2s ease; }
-.rules-tab:hover { background: var(--rules-toc-hover-bg); color: var(--rules-toc-hover-text); }
-.rules-tab--active { background: var(--rules-toc-active-bg); border: 1px solid rgba(59, 130, 246, 0.3); color: var(--rules-toc-active-text); }
 .rulesheet-list { display: flex; flex-direction: column; gap: 12px; margin-top: 24px; max-width: 800px; }
 .rulesheet-item { display: flex; align-items: center; justify-content: space-between; background: var(--rules-toc-bg); border: 1px solid var(--rules-border); padding: 16px 20px; border-radius: 8px; transition: border-color 0.2s; }
 .rulesheet-item:hover { border-color: rgba(96, 165, 250, 0.4); }
 .rulesheet-item-name { color: var(--rules-title); font-size: 1.1rem; font-weight: 600; }
 .rulesheet-item-dl { color: #3b82f6; text-decoration: none; font-weight: 500; display: flex; align-items: center; gap: 8px; background: rgba(59, 130, 246, 0.1); padding: 8px 12px; border-radius: 6px; transition: background 0.2s; }
 .rulesheet-item-dl:hover { background: rgba(59, 130, 246, 0.2); }
-

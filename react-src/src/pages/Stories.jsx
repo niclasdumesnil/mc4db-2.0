@@ -1076,24 +1076,24 @@ export default function Stories() {
   }
 
   return (
-    <div className="stories-page">
+    <div className="stories-page page-wrapper">
       <div className="stories-inner">
         {/* Page header */}
-        <header className="stories-header">
-          <h1 className="stories-title">Stories</h1>
-          <p className="stories-subtitle">
+        <header className="page-header">
+          <h1 className="page-title">Stories</h1>
+          <p className="page-subtitle">
             Explore challenge cards, curated scenarios, campaigns and free-play setups.
           </p>
         </header>
 
         {/* Tab bar */}
-        <nav className="stories-tabs" role="tablist">
+        <nav className="page-tabs" role="tablist">
           {TABS.map(tab => (
             <button
               key={tab.key}
               role="tab"
               aria-selected={activeTab === tab.key}
-              className={`stories-tab${activeTab === tab.key ? ' stories-tab--active' : ''}`}
+              className={`page-tab${activeTab === tab.key ? ' page-tab--active' : ''}`}
               onClick={() => selectTab(tab.key)}
             >
               {tab.label}

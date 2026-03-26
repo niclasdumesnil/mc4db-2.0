@@ -131,12 +131,12 @@ export default function Landing() {
   };
 
   return (
-    <div className="stories-page">
-      <div className="stories-inner" style={{ maxWidth: 1200, margin: '0 auto', padding: '80px 16px 40px 16px' }}>
+    <div className="landing-page page-wrapper">
+      <div className="landing-inner">
         {/* Banner */}
-        <header className="stories-header" style={{ marginBottom: 32 }}>
-          <h1 className="stories-title">Welcome to MC4DB 2.0</h1>
-          <p className="stories-subtitle">
+        <header className="page-header">
+          <h1 className="page-title">Welcome to MC4DB 2.0</h1>
+          <p className="page-subtitle">
             A modern fan-made database for Marvel Champions cards — browse cards, check promos, and build decks.
           </p>
         </header>
@@ -144,7 +144,7 @@ export default function Landing() {
         {loading ? (
            <div style={{ padding: 40, textAlign: 'center', color: 'var(--st-text-muted)' }}>Loading statistics...</div>
         ) : data ? (
-           <div style={{ display: 'flex', flexDirection: 'column', gap: 24, padding: '0 24px', maxWidth: 1200, margin: '0 auto' }}>
+           <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
               
               {/* Row 1: Left (Community + Heroes) / Right (Top Cards) */}
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 24 }}>

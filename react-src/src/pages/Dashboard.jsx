@@ -57,11 +57,11 @@ export default function Dashboard() {
   }, [id]);
 
   return (
-    <div className="db-container">
+    <div className="db-container page-wrapper">
       <main className="db-wrapper">
-        <header className="db-header">
-          <h1 className="db-title">Dashboard</h1>
-          <p className="db-subtitle">Overview of your account, collections, and settings</p>
+        <header className="page-header">
+          <h1 className="page-title">Dashboard</h1>
+          <p className="page-subtitle">Overview of your account, collections, and settings</p>
         </header>
 
         {/* Handling States */}

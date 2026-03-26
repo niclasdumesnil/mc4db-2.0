@@ -261,16 +261,16 @@ export default function Rules_ResourcesPage() {
   });
 
   return (
-    <div className="rules-page-wrapper">
-      <div className="rules-page-header">
-        <h1 className="rules-page-title">Rules & Resources</h1>
-        <nav className="rules-tabs" role="tablist">
+    <div className="rules-page-wrapper page-wrapper">
+      <div className="page-header">
+        <h1 className="page-title">Rules & Resources</h1>
+        <nav className="page-tabs" role="tablist">
           {TABS.map(tab => (
             <button
               key={tab.key}
               role="tab"
               aria-selected={activeTab === tab.key}
-              className={`rules-tab${activeTab === tab.key ? ' rules-tab--active' : ''}`}
+              className={`page-tab${activeTab === tab.key ? ' page-tab--active' : ''}`}
               onClick={() => selectTab(tab.key)}
             >
               {tab.label}

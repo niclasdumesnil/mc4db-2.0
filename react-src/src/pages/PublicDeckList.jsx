@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import PublicDeck from '@components/PublicDeck';
 import DeckFilters from '@components/DeckFilters';
 import { extractHeroes } from '@utils/dataUtils';
@@ -91,11 +91,11 @@ export default function PublicDeckList() {
   const hasFilters = filters.hero || filters.aspects.length > 0 || filters.tags.length > 0;
 
   return (
-    <div className="decks-page-container">
+    <div className="decks-page-container page-wrapper">
       <div className="decks-page-top">
-        <header className="decks-page-header">
-          <h1 className="decks-title">Public Decklists</h1>
-          <p className="decks-subtitle">
+        <header className="page-header">
+          <h1 className="page-title">Public Decklists</h1>
+          <p className="page-subtitle">
             Discover and try the best community decks
             {!loading && totalItems > 0 && (
               <span className="decks-count"> &mdash; {totalItems} deck{totalItems > 1 ? 's' : ''}</span>

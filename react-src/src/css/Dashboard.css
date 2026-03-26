@@ -30,11 +30,10 @@
   --alpha-20: rgba(0, 0, 0, 0.2);
   --alpha-25: rgba(0, 0, 0, 0.25);
   --alpha-30: rgba(0, 0, 0, 0.3);
-  --alpha-35: rgba(0, 0, 0, 0.35);
+  --alpha-35: rgba(255, 255, 255, 0.35);
 }
 
 html.dark {
-  /* DARK MODE */
   --bg-dark: #0f172a;
   --panel-bg: #1e293b;
   --panel-border: var(--alpha-08);
@@ -66,33 +65,22 @@ html.dark {
 
 .db-container {
   min-height: 100vh;
-  background-color: var(--bg-dark);
-  padding: 80px 20px 40px 20px;
   display: flex;
   justify-content: center;
-  color: var(--text-main);
-  font-family: 'Inter', sans-serif;
 }
 
-/* Élargi pour supporter 3 colonnes */
 .db-wrapper {
   width: 100%;
-  max-width: 1400px; 
   display: flex;
   flex-direction: column;
   gap: 30px;
 }
-
-.db-header { margin-bottom: 10px; }
-.db-title { font-size: 2.5rem; font-weight: 400; color: var(--panel-title); margin: 0 0 4px; }
-.db-subtitle { color: var(--text-muted); font-size: 1rem; margin-top: 8px; margin-bottom: 24px; }
 
 /* ==========================================
    GRID SYSTEM (3 COLUMNS)
    ========================================== */
 .db-grid {
   display: grid;
-  /* 1fr (Profile) | 2fr (Collection is wider) | 1fr (Parameters) */
   grid-template-columns: 320px 1fr 320px; 
   gap: 25px;
   align-items: start;
