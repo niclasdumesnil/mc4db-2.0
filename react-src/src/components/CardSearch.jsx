@@ -257,9 +257,31 @@ export default function CardSearch({ filters, onChange, types = [], subtypes = [
         </div>
       </Section>
 
-      <Section label="Text" defaultOpen={false}
+      <Section label="TEXT" defaultOpen={false}
         active={!!(filters.text || filters.flavor)}
         onReset={() => set({ text: '', flavor: '' })}
+      >
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          <input
+            className="card-search__input"
+            type="text"
+            placeholder="Card text…"
+            value={filters.text || ''}
+            onChange={e => set({ text: e.target.value })}
+          />
+          <input
+            className="card-search__input"
+            type="text"
+            placeholder="Flavor text…"
+            value={filters.flavor || ''}
+            onChange={e => set({ flavor: e.target.value })}
+          />
+        </div>
+      </Section>
+
+      <Section label="CATEGORIE" defaultOpen={true}
+        active={!!(filters.factions && filters.factions.length > 0)}
+        onReset={clearAllFactions}
       >
         <div className="deck-filters__aspects" style={{ flexWrap: 'wrap' }}>
           <button
