@@ -53,6 +53,24 @@ export default function MyDecks() {
   const [filters, setFilters] = useState(EMPTY_FILTERS);
   const [heroes, setHeroes] = useState({ ffg: [], fanmade: [] });
   const [error, setError] = useState(null);
+  const [deckLimit, setDeckLimit] = useState(null);
+  const limitReached = deckLimit !== null && totalItems >= deckLimit;
+
+  useEffect(() => {
+    if (!id) return;
+    fetch(`/api/public/user/${id}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.ok && data.user) {
+          const u = data.user;
+          const limit = 2 * (200 + Math.floor((u.reputation || 0) / 10)) + (u.published_decks_count || 0);
+          setDeckLimit(limit);
+        }
+      })
+      .catch(console.error);
+  }, [id]);
+
+
 
   // Charge tous les decks une seule fois pour construire la liste des héros disponibles
   useEffect(() => {
@@ -208,7 +226,7 @@ export default function MyDecks() {
             <p className="page-subtitle">
               Your private deck collection
               {!loading && totalItems > 0 && (
-                <span className="decks-count"> &mdash; {totalItems} deck{totalItems > 1 ? 's' : ''}</span>
+                <span className="decks-count"> &mdash; {totalItems}{deckLimit !== null ? ` / ${deckLimit}` : ''} deck{totalItems > 1 ? 's' : ''}</span>
               )}
             </p>
           </div>
@@ -217,12 +235,20 @@ export default function MyDecks() {
         <DeckFilters filters={filters} onChange={handleFilters} heroes={heroes}>
           {/* Action Buttons inside Filters */}
           <div className="deck-filters__actions">
-            <a href="/deck/new" className="deck-filters__btn deck-filters__btn-primary">
-              New Deck
-            </a>
+            {limitReached ? (
+              <span className="deck-filters__btn deck-filters__btn-primary" style={{ opacity: 0.5, cursor: 'not-allowed' }}>
+                New Deck
+              </span>
+            ) : (
+              <a href="/deck/new" className="deck-filters__btn deck-filters__btn-primary">
+                New Deck
+              </a>
+            )}
             <button
-              onClick={() => setShowImport(!showImport)}
+              onClick={() => !limitReached && setShowImport(!showImport)}
               className="deck-filters__btn"
+              style={{ opacity: limitReached ? 0.5 : 1, cursor: limitReached ? 'not-allowed' : 'pointer' }}
+              disabled={limitReached}
             >
               Import Deck
             </button>
