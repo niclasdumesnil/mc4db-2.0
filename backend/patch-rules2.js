@@ -1,17 +1,23 @@
-const { Router } = require('express');
 const fs = require('fs');
-const path = require('path');
+let code = fs.readFileSync('c:/github/mc4db-2.0/backend/src/routes/rules.js', 'utf8');
 
-const router = Router();
+const oldRouterGetRulesStart = `router.get('/rules', (req, res) => {`;
+const oldRouterGetRulesEnd = `    res.json(entries);
+  } catch (err) {
+    console.error('[rules] Error:', err);
+    res.status(500).json({ error: 'Failed to load rules' });
+  }
+});`;
 
-const RULES_DIR = path.resolve(__dirname, '../../../bundles/data/en_Rules');
+const chunkStart = code.indexOf(oldRouterGetRulesStart);
+const chunkEnd = code.indexOf(oldRouterGetRulesEnd, chunkStart) + oldRouterGetRulesEnd.length;
 
-/**
- * GET /rules
- * Scans RULES_DIR for all *.json files, merges their entries,
- * deduplicates by term (latest version wins), sorts alphabetically.
- */
-router.get('/rules', (req, res) => {
+if (chunkStart === -1 || chunkEnd <= chunkStart) {
+   console.error("Could not find /rules logic");
+   process.exit(1);
+}
+
+const newLogic = `router.get('/rules', (req, res) => {
   try {
     const locale = (req.query.locale || 'en').toUpperCase();
     const baseDir = path.resolve(__dirname, '../../../bundles/rules');
@@ -37,7 +43,7 @@ router.get('/rules', (req, res) => {
            rulesById[entry.id] = { ...entry };
         }
       } catch (e) { 
-        console.warn(`[rules] Failed to parse ${file}:`, e.message); 
+        console.warn(\`[rules] Failed to parse \${file}:\`, e.message); 
       }
     }
 
@@ -45,7 +51,6 @@ router.get('/rules', (req, res) => {
     if (locale !== 'EN') {
       const locDir = path.join(baseDir, locale);
       if (fs.existsSync(locDir)) {
-        const localIds = new Set();
         const locFiles = fs.readdirSync(locDir).filter(f => f.endsWith('.json')).sort();
         for (const file of locFiles) {
           try {
@@ -53,16 +58,10 @@ router.get('/rules', (req, res) => {
             if (!Array.isArray(data)) continue;
             for (const entry of data) {
               if (!entry.id) continue;
-              
-              const hasLocalTerm = typeof entry.term === 'string' && entry.term.trim() !== '';
-              if (hasLocalTerm) {
-                localIds.add(entry.id);
-              }
-              
               if (rulesById[entry.id]) {
                 const base = rulesById[entry.id];
                 // Override term if provided
-                if (hasLocalTerm) base.term = entry.term;
+                if (entry.term && entry.term.trim()) base.term = entry.term;
                 
                 // Merge versions by version number
                 if (entry.versions && entry.versions.length > 0) {
@@ -88,23 +87,14 @@ router.get('/rules', (req, res) => {
             }
           } catch(e) {}
         }
-        
-        // Remove rules that don't exist in the local translation
-        for (const id of Object.keys(rulesById)) {
-           if (!localIds.has(id)) {
-               delete rulesById[id];
-           }
-        }
       }
     }
-
-    const sortLocale = req.query.locale ? req.query.locale.toLowerCase() : 'en';
 
     // Sort by term for the frontend
     const entries = Object.values(rulesById).sort((a, b) => {
        const aTerm = typeof a.term === 'string' ? a.term : '';
        const bTerm = typeof b.term === 'string' ? b.term : '';
-       return aTerm.localeCompare(bTerm, sortLocale);
+       return aTerm.localeCompare(bTerm);
     });
 
     res.json(entries);
@@ -112,53 +102,9 @@ router.get('/rules', (req, res) => {
     console.error('[rules] Error:', err);
     res.status(500).json({ error: 'Failed to load rules' });
   }
-});
+});`;
 
-/**
- * GET /rulesheets
- * Scans bundles/rulesheets/ and returns a list of PDFs and PNGs.
- */
-router.get('/rulesheets', (req, res) => {
-  try {
-    const locale = (req.query.locale || 'en').toUpperCase();
-    const baseDir = path.resolve(__dirname, '../../../bundles/rulesheets');
-    let rulesheetsDir = path.join(baseDir, locale);
-    let subUrl = locale;
+code = code.substring(0, chunkStart) + newLogic + code.substring(chunkEnd);
 
-    if (!fs.existsSync(rulesheetsDir)) {
-      if (locale !== 'EN' && fs.existsSync(path.join(baseDir, 'EN'))) {
-         rulesheetsDir = path.join(baseDir, 'EN');
-         subUrl = 'EN';
-      } else {
-         rulesheetsDir = baseDir;
-         subUrl = '';
-      }
-    }
-
-    if (!fs.existsSync(rulesheetsDir)) {
-      return res.json([]);
-    }
-
-    const files = fs.readdirSync(rulesheetsDir)
-      .filter(f => f.toLowerCase().endsWith('.pdf') || f.toLowerCase().endsWith('.png'))
-      .sort()
-      .map(file => {
-        // Remove extension for display name
-        const name = file.replace(/\.(pdf|png)$/i, '').replace(/_/g, ' ');
-        const urlStr = subUrl ? `/bundles/rulesheets/${subUrl}/${encodeURIComponent(file)}` : `/bundles/rulesheets/${encodeURIComponent(file)}`;
-        return {
-          name,
-          filename: file,
-          url: urlStr,
-          type: file.toLowerCase().endsWith('.pdf') ? 'pdf' : 'png'
-        };
-      });
-
-    res.json(files);
-  } catch (err) {
-    console.error('[rulesheets] Error:', err);
-    res.status(500).json({ error: 'Failed to load rulesheets' });
-  }
-});
-
-module.exports = router;
+fs.writeFileSync('c:/github/mc4db-2.0/backend/src/routes/rules.js', code);
+console.log('Successfully updated /rules endpoint');

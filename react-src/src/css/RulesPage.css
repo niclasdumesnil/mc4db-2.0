@@ -352,3 +352,73 @@ html.dark {
 .rulesheet-item-name { color: var(--rules-title); font-size: 1.1rem; font-weight: 600; }
 .rulesheet-item-dl { color: #3b82f6; text-decoration: none; font-weight: 500; display: flex; align-items: center; gap: 8px; background: rgba(59, 130, 246, 0.1); padding: 8px 12px; border-radius: 6px; transition: background 0.2s; }
 .rulesheet-item-dl:hover { background: rgba(59, 130, 246, 0.2); }
+.red { color: #f87171 !important; }
+
+/* Translated App Colors */
+.red, .rules-wn-text .red { color: #f87171 !important; }
+
+.blue, .rules-wn-text .blue {
+  display: block;
+  margin-top: 14px; margin-bottom: 14px;
+  background: rgba(96, 165, 250, 0.1);
+  border-left: 3px solid #60a5fa;
+  padding: 10px 14px;
+  border-radius: 0 8px 8px 0;
+  color: #a8bcd4 !important;
+}
+.blue::before, .rules-wn-text .blue::before {
+  content: 'FANMADE';
+  display: block;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+  color: #60a5fa;
+  margin-bottom: 8px;
+}
+
+/* See Also Links */
+.rules-see-also {
+  margin-top: 14px;
+  font-size: 0.85rem;
+  color: var(--rules-search-ph);
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.rules-see-also strong {
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-right: 4px;
+}
+.rules-see-also-link {
+  color: var(--rules-title);
+  text-decoration: none;
+  display: inline-block;
+  margin-left: 4px;
+  padding: 2px 6px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 4px;
+  transition: background 0.2s;
+  cursor: pointer;
+}
+.rules-see-also-link:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.rules-entry-paragraph ul {
+  list-style-type: disc;
+  padding-left: 1.5em;
+  margin: 10px 0;
+}
+.rules-entry-paragraph ul ul {
+  list-style-type: circle;
+}
+.rules-entry-paragraph ol {
+  list-style-type: decimal;
+  padding-left: 1.5em;
+  margin: 10px 0;
+}
+.rules-entry-paragraph li {
+  margin-bottom: 6px;
+}

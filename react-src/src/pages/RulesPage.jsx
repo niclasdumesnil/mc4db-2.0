@@ -19,53 +19,7 @@ function getLatestContent(versions) {
 // Renders structured content: bullet lists, sub-headings (bold em-dash lines), paragraphs
 function RulesContent({ text }) {
   if (!text) return null;
-
-  const lines = text.split('\n');
-  const elements = [];
-  let bulletBuffer = [];
-  let key = 0;
-
-  const flushBullets = () => {
-    if (bulletBuffer.length > 0) {
-      elements.push(
-        <ul key={key++} className="rules-entry-list">
-          {bulletBuffer.map((item, i) => (
-            <li key={i} dangerouslySetInnerHTML={{ __html: item }} />
-          ))}
-        </ul>
-      );
-      bulletBuffer = [];
-    }
-  };
-
-  for (const line of lines) {
-    const trimmed = line.trim();
-    if (!trimmed) continue;
-
-    if (trimmed.startsWith('- ')) {
-      // Bullet point
-      bulletBuffer.push(formatInline(trimmed.slice(2)));
-    } else {
-      flushBullets();
-      // Sub-heading: "Word(s) — rest of line" where the heading part is a label
-      const subHeadMatch = trimmed.match(/^([A-Z][^—]+—)\s*(.+)$/);
-      if (subHeadMatch) {
-        elements.push(
-          <p key={key++} className="rules-entry-paragraph">
-            <strong className="rules-subheading">{subHeadMatch[1].trim()}</strong>{' '}
-            <span dangerouslySetInnerHTML={{ __html: formatInline(subHeadMatch[2]) }} />
-          </p>
-        );
-      } else {
-        elements.push(
-          <p key={key++} className="rules-entry-paragraph"
-            dangerouslySetInnerHTML={{ __html: formatInline(trimmed) }} />
-        );
-      }
-    }
-  }
-  flushBullets();
-  return <>{elements}</>;
+  return <div className="rules-entry-paragraph" dangerouslySetInnerHTML={{ __html: formatInline(text) }} />;
 }
 
 // Map icon names to CSS classes from ChampionsIcons.ttf (marvel-icons font)
@@ -153,15 +107,26 @@ function PackRulesheetsTab() {
   const [files, setFiles] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const [locale, setLocale] = useState(() => localStorage.getItem('mc_locale') || window.__MC_LOCALE__ || 'en');
+
   useEffect(() => {
-    fetch('/api/public/rulesheets')
+    function onLocaleChange() {
+      setLocale(localStorage.getItem('mc_locale') || 'en');
+    }
+    window.addEventListener('mc_locale_changed', onLocaleChange);
+    return () => window.removeEventListener('mc_locale_changed', onLocaleChange);
+  }, []);
+
+  useEffect(() => {
+    setLoading(true);
+    fetch(`/api/public/rulesheets?locale=${locale}`)
       .then(r => r.json())
       .then(data => {
         setFiles(data);
         setLoading(false);
       })
       .catch(() => setLoading(false));
-  }, []);
+  }, [locale]);
 
   if (loading) return <p className="rules-loading">Loading pack rulesheets…</p>;
   if (files.length === 0) return <p className="rules-loading">No rulesheets found.</p>;
@@ -206,16 +171,27 @@ export default function Rules_ResourcesPage() {
     window.history.replaceState(null, '', `#${key}`);
   }
 
-  // Load all rules from the backend (scans all JSON files in en_Rules/)
+  const [locale, setLocale] = useState(() => localStorage.getItem('mc_locale') || window.__MC_LOCALE__ || 'en');
+
   useEffect(() => {
-    fetch('/api/public/rules')
+    function onLocaleChange() {
+      setLocale(localStorage.getItem('mc_locale') || 'en');
+    }
+    window.addEventListener('mc_locale_changed', onLocaleChange);
+    return () => window.removeEventListener('mc_locale_changed', onLocaleChange);
+  }, []);
+
+  // Load rules from the backend (scans JSON files)
+  useEffect(() => {
+    setLoading(true);
+    fetch(`/api/public/rules?locale=${locale}`)
       .then(r => r.json())
       .then(data => {
-        setEntries(data);
+        setEntries(data || []);
         setLoading(false);
       })
       .catch(() => setLoading(false));
-  }, []);
+  }, [locale]);
 
   // Intersection observer to highlight active TOC entry
   useEffect(() => {
@@ -310,7 +286,7 @@ export default function Rules_ResourcesPage() {
                       return (
                         <li key={slug}>
                           <button
-                            className={`rules-toc-item${activeSlug === slug ? ' active' : ''}`}
+                            className="rules-toc-item"
                             onClick={() => scrollTo(slug)}
                           >
                             {e.term}
@@ -355,6 +331,7 @@ export default function Rules_ResourcesPage() {
                         <RulesContent text={content} />
                       </div>
 
+                      
                       {whatsNew.length > 0 && (
                         <div className="rules-whats-new">
                           <h4 className="rules-whats-new-title">What's new</h4>
@@ -364,6 +341,22 @@ export default function Rules_ResourcesPage() {
                               <span className="rules-wn-text" dangerouslySetInnerHTML={{ __html: formatInline(wn.diff) }} />
                             </div>
                           ))}
+                        </div>
+                      )}
+
+                      {entry.see_also && entry.see_also.length > 0 && (
+                        <div className="rules-see-also">
+                          <strong>See also:</strong>
+                          {entry.see_also.map(seeId => {
+                            const targetObj = entries.find(x => x.id === seeId);
+                            const displayName = targetObj ? targetObj.term : seeId;
+                            const targetSlug = slugify(displayName);
+                            return (
+                              <a key={seeId} className="rules-see-also-link" onClick={() => scrollTo(targetSlug)}>
+                                {displayName}
+                              </a>
+                            );
+                          })}
                         </div>
                       )}
                     </article>
