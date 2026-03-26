@@ -15,17 +15,36 @@ const router = Router();
 /** Translation fields that may be overlaid from the card_translation table */
 const TRANS_FIELDS = ['name', 'subname', 'text', 'flavor', 'traits', 'errata'];
 
-/**
- * Apply card_translation overlay to a serialized card object.
- * Mutates `card` in-place and returns it.
- */
 async function applyTranslation(card, locale) {
   if (!locale || locale === 'en') return card;
   const trans = await Card.findTranslation(card.code, locale);
-  if (!trans) return card;
-  for (const f of TRANS_FIELDS) {
-    if (trans[f] != null && trans[f] !== '') card[f] = trans[f];
+  if (trans) {
+    for (const f of TRANS_FIELDS) {
+      if (trans[f] != null && trans[f] !== '') card[f] = trans[f];
+    }
   }
+
+  const FactionModel = require('../models/faction.model');
+  const facMap = await FactionModel.getTranslationMap(locale);
+  const TypeModel = require('../models/type.model');
+  const typesMap = await TypeModel.getTranslationMap(locale);
+  const PackModel = require('../models/pack.model');
+  const packsMap = await PackModel.getTranslationMap(locale);
+
+
+  if (card.faction_code && facMap[card.faction_code]) {
+    card.faction_name = facMap[card.faction_code];
+  }
+  if (card.faction2_code && facMap[card.faction2_code]) {
+    card.faction2_name = facMap[card.faction2_code];
+  }
+  if (card.type_code && typesMap[card.type_code]) {
+    card.type_name = typesMap[card.type_code];
+  }
+  if (card.pack_code && packsMap[card.pack_code]) {
+    card.pack_name = packsMap[card.pack_code];
+  }
+
   return card;
 }
 
@@ -63,7 +82,8 @@ router.get('/cards/', async (req, res, next) => {
  */
 router.get('/cards/attributes', async (req, res, next) => {
   try {
-    const attributes = await Card.getAttributes();
+    const locale = (req.query.locale || 'en').toLowerCase();
+    const attributes = await Card.getAttributes(locale);
     res.json(attributes);
   } catch (err) {
     next(err);
@@ -83,7 +103,10 @@ router.get('/heroes', async (req, res, next) => {
     const { user_id, locale = 'en' } = req.query;
     const donator = await isUserDonator(user_id);
 
-    const rows = await Card.getHeroes(donator, user_id, locale.toLowerCase());
+    let rows = await Card.getHeroes(donator, user_id, locale.toLowerCase());
+    if (locale && locale.toLowerCase() !== 'en' && rows.length > 0) {
+      rows = await Card.fetchTranslationsForSearch(rows, locale.toLowerCase());
+    }
 
     const heroes = rows.map(row => ({
       code: row.code,

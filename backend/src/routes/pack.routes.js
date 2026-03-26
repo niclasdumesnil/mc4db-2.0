@@ -24,6 +24,7 @@ router.get('/packs/', async (req, res, next) => {
 
     const rows = await Pack.findAll();
     const cardCounts = await Pack.countCardsByPack();
+    const packsMap = await Pack.getTranslationMap(locClean);
 
     const visibleRows = rows.filter(row => {
       const visOK = donator ? true : (row.visibility || 'true') !== 'false';
@@ -32,7 +33,7 @@ router.get('/packs/', async (req, res, next) => {
     });
 
     const packs = visibleRows.map((row) => ({
-      name: row.name,
+      name: packsMap[row.code] || row.name,
       code: row.code,
       position: row.position,
       available: row.date_release

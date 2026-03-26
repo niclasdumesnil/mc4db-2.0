@@ -132,7 +132,7 @@ function Section({ label, defaultOpen = true, active = false, onReset, children 
  *   subtypes  — array of { code, name }
  *   illustrators — array of strings
  */
-export default function CardSearch({ filters, onChange, types = [], subtypes = [], illustrators = [], themes = [], selectedTheme = 'all', onThemeChange }) {
+export default function CardSearch({ filters, onChange, types = [], subtypes = [], illustrators = [], themes = [], selectedTheme = 'all', onThemeChange, factions = {} }) {
   const set = (patch) => onChange({ ...filters, ...patch });
 
   const toggleFaction = (code) => {
@@ -279,7 +279,7 @@ export default function CardSearch({ filters, onChange, types = [], subtypes = [
         </div>
       </Section>
 
-      <Section label="CATEGORIE" defaultOpen={true}
+      <Section label="CATEGORY" defaultOpen={true}
         active={!!(filters.factions && filters.factions.length > 0)}
         onReset={clearAllFactions}
       >
@@ -294,6 +294,7 @@ export default function CardSearch({ filters, onChange, types = [], subtypes = [
           {[...CATEGORIES, ...AFFINITIES].map(f => {
             const active = (filters.factions || []).includes(f.code);
             const color = getFactionColor(f.code);
+            const translatedLabel = factions[f.code] || f.label;
             return (
               <button
                 key={f.code}
@@ -303,10 +304,10 @@ export default function CardSearch({ filters, onChange, types = [], subtypes = [
                   background: active ? color : `${color}18`,
                   color: active ? '#fff' : `${color}cc`,
                 }}
-                title={f.label}
+                title={translatedLabel}
                 onClick={() => toggleFaction(f.code)}
               >
-                {f.label}
+                {translatedLabel}
               </button>
             );
           })}

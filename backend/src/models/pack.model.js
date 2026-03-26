@@ -51,4 +51,34 @@ async function countCardsByPack() {
   return map;
 }
 
-module.exports = { findAll, findByCode, countCardsByPack };
+const packTranslationCache = {};
+
+async function getTranslationMap(locale) {
+  const loc = (locale || 'en').toLowerCase();
+  
+  // For english, we could map from baseQuery but typically we just return an empty map 
+  // and handle fallback. Let's do a full map to be consistent.
+  if (loc === 'en') {
+    if (!packTranslationCache['en']) {
+      const rows = await findAll();
+      packTranslationCache['en'] = Object.fromEntries(rows.map(r => [r.code, r.name]));
+    }
+    return packTranslationCache['en'];
+  }
+
+  if (!packTranslationCache[loc]) {
+    const rows = await db('pack as p')
+      .leftJoin('ext_translations as et', function() {
+        this.on('p.id', '=', 'et.foreign_key')
+            .andOn('et.object_class', '=', db.raw('?', ['AppBundle\\Entity\\Pack']))
+            .andOn('et.field', '=', db.raw('?', ['name']))
+            .andOn('et.locale', '=', db.raw('?', [loc]));
+      })
+      .select('p.code', db.raw('COALESCE(et.content, p.name) as name'));
+    
+    packTranslationCache[loc] = Object.fromEntries(rows.map(r => [r.code, r.name]));
+  }
+  return packTranslationCache[loc];
+}
+
+module.exports = { findAll, findByCode, countCardsByPack, getTranslationMap };

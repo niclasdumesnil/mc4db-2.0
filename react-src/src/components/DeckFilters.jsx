@@ -1,5 +1,6 @@
 import React from 'react';
 import { getFactionColor, DECK_TAGS } from '@utils/dataUtils';
+import { useFactions } from '../hooks/useFactions';
 
 // Aspects jouables uniquement (pas encounter/hero/basic)
 const ASPECTS = ['leadership', 'aggression', 'protection', 'justice', 'pool', 'determination', 'basic'];
@@ -15,6 +16,7 @@ const ASPECT_LABELS = {
 };
 
 export default function DeckFilters({ filters, onChange, heroes, children }) {
+  const factionsMap = useFactions();
   const ffgHeroes = heroes?.ffg || [];
   const fanmadeHeroes = heroes?.fanmade || [];
 
@@ -91,10 +93,10 @@ export default function DeckFilters({ filters, onChange, heroes, children }) {
                   background: active ? color : `${color}18`,
                   color: active ? '#fff' : `${color}cc`,
                 }}
-                title={ASPECT_LABELS[code]}
+                title={factionsMap[code] || ASPECT_LABELS[code]}
                 onClick={() => toggleAspect(code)}
               >
-                {ASPECT_LABELS[code]}
+                {factionsMap[code] || ASPECT_LABELS[code]}
               </button>
             );
           })}

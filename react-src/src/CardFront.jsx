@@ -45,7 +45,7 @@ export default function CardFront({ card, showSpoilers, locale, langDir, preferW
 				<div className="card-frame__header-left">
 					<div className="card-frame__header-dot" style={{ backgroundColor: headerTextColor }} />
 					<span className="card-frame__header-system">
-						{'System.'}{card.faction_code || 'basic'}{' // Online'}
+						{'System.'}{((card.faction_name || card.faction_code || 'basic').toUpperCase())}{' // Online'}
 					</span>
 				</div>
 				<div className="card-frame__header-right">

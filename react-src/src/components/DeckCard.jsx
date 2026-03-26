@@ -52,6 +52,8 @@ export function RepBadge({ reputation }) {
   );
 }
 
+import { useFactions } from '../hooks/useFactions';
+
 export default function DeckCard({
   deck,
   onClick,
@@ -59,6 +61,7 @@ export default function DeckCard({
   footerLeft,
   statsRow
 }) {
+  const factions = useFactions();
   let aspect = 'basic';
   try {
     const meta = typeof deck.meta === 'string' ? JSON.parse(deck.meta) : deck.meta;
@@ -119,7 +122,7 @@ export default function DeckCard({
             })}
             <div className="deck-aspect-row">
               <span className="deck-aspect-dot" style={{ background: headerColor }} />
-              <span className="deck-aspect-name">{aspect.charAt(0).toUpperCase() + aspect.slice(1)}</span>
+              <span className="deck-aspect-name">{factions[aspect] || aspect.charAt(0).toUpperCase() + aspect.slice(1)}</span>
             </div>
           </div>
         </div>

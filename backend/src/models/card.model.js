@@ -87,9 +87,10 @@ async function findTranslation(code, locale) {
     .first();
 }
 
-async function getAttributes() {
+async function getAttributes(locale = 'en') {
+  const TypeModel = require('./type.model');
   const [types, subtypes, rawIllustrators] = await Promise.all([
-    db('type').select('code', 'name').orderBy('name'),
+    TypeModel.findAll(locale),
     db('Subtype').select('code', 'name').orderBy('name'),
     db('card').distinct('illustrator').whereNotNull('illustrator').whereNot('illustrator', '').pluck('illustrator'),
   ]);
@@ -103,7 +104,11 @@ async function getAttributes() {
   }
   const illustrators = [...illustratorSet].sort((a, b) => a.localeCompare(b));
 
-  return { types, subtypes, illustrators };
+  const facMap = await require('./faction.model').getTranslationMap(locale);
+  const typeMap = await TypeModel.getTranslationMap(locale);
+  const packMap = await require('./pack.model').getTranslationMap(locale);
+
+  return { types, subtypes, illustrators, factions: facMap, typesMap: typeMap, packsMap: packMap };
 }
 
 async function getHeroes(donator, userId, locale = 'en') {
@@ -392,13 +397,22 @@ async function fetchTranslationsForSearch(cards, localeClean) {
   const transMap = Object.fromEntries(transRows.map(t => [t.code, t]));
   const TRANS_FIELDS = ['name', 'subname', 'text', 'flavor', 'traits', 'errata'];
   
+  const facMap = await require('./faction.model').getTranslationMap(localeClean);
+  const typesMap = await require('./type.model').getTranslationMap(localeClean);
+  const packsMap = await require('./pack.model').getTranslationMap(localeClean);
+
   return cards.map(r => {
-    const t = transMap[r.code];
-    if (!t) return r;
     const updated = { ...r };
-    for (const f of TRANS_FIELDS) {
-      if (t[f] != null && t[f] !== '') updated[f] = t[f];
+    const t = transMap[r.code];
+    if (t) {
+      for (const f of TRANS_FIELDS) {
+        if (t[f] != null && t[f] !== '') updated[f] = t[f];
+      }
     }
+    if (facMap[updated.faction_code]) updated.faction_name = facMap[updated.faction_code];
+    if (updated.faction2_code && facMap[updated.faction2_code]) updated.faction2_name = facMap[updated.faction2_code];
+    if (typesMap[updated.type_code]) updated.type_name = typesMap[updated.type_code];
+    if (packsMap[updated.pack_code]) updated.pack_name = packsMap[updated.pack_code];
     return updated;
   });
 }

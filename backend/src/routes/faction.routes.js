@@ -13,7 +13,8 @@ const router = Router();
  */
 router.get('/factions/', async (req, res, next) => {
   try {
-    const rows = await Faction.findAll();
+    const locale = (req.query.locale || 'en').toLowerCase();
+    const rows = await Faction.findAll(locale);
 
     const factions = rows.map((row) => ({
       code: row.code,

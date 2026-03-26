@@ -2,6 +2,8 @@ import React, { useState, useEffect, useMemo, useCallback, useImperativeHandle, 
 import AvailableCardList from './AvailableCardList';
 import { getFactionColor } from '@utils/dataUtils';
 import { canIncludeCard } from '@utils/deckValidation';
+import { useFactions } from '../hooks/useFactions';
+import { useTypes } from '../hooks/useTypes';
 import '../css/DeckEditor.css';
 
 // Player-card factions — excludes encounter cards
@@ -59,6 +61,8 @@ export default forwardRef(function DeckEditor(
   },
   ref
 ) {
+  const factionsMap = useFactions();
+  const typesMap = useTypes();
   const [allCards, setAllCards] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -838,7 +842,7 @@ export default forwardRef(function DeckEditor(
                     }}
                     onClick={() => setSelectedFaction(prev => prev === fac ? null : fac)}
                   >
-                    {FACTION_LABELS[fac]}
+                    {factionsMap[fac] || FACTION_LABELS[fac]}
                   </button>
                 );
               })}
@@ -848,7 +852,7 @@ export default forwardRef(function DeckEditor(
           {/* Type row */}
           <div className="editor-filter-row">
             <span className="editor-filter-bar-label">Type</span>
-            <div className="editor-filter-pills">
+            <div className="editor-filter-pills editor-filter-pills--nowrap">
               {TYPE_LIST.map(({ code, label }) => {
                 const active = selectedType === code;
                 return (
@@ -857,7 +861,7 @@ export default forwardRef(function DeckEditor(
                     className={`editor-faction-btn${active ? ' editor-faction-btn--active editor-faction-btn--type-active' : ''}`}
                     onClick={() => setSelectedType(prev => prev === code ? null : code)}
                   >
-                    {label}
+                    {typesMap[code] || label}
                   </button>
                 );
               })}

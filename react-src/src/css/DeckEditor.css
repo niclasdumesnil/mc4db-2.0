@@ -91,6 +91,16 @@
   align-items: center;
 }
 
+.editor-filter-pills--nowrap {
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.editor-filter-pills--nowrap::-webkit-scrollbar {
+  display: none;
+}
+
 /* Text / Traits filter input */
 .editor-filter-text-wrap {
   position: relative;

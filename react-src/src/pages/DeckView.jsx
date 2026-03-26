@@ -10,6 +10,7 @@ import MarkdownViewer from '@components/MarkdownViewer';
 import PrintDeckButton from '@components/PrintDeckButton';
 import ExportOctgnButton from '@components/ExportOctgnButton';
 import DeckComments from '@components/DeckComments';
+import { useFactions } from '../hooks/useFactions';
 import '@css/DeckView.css';
 
 const ASPECT_LIST = ['aggression', 'justice', 'leadership', 'protection', 'determination', 'pool'];
@@ -26,6 +27,7 @@ function currentUserId() {
 }
 
 export default function DeckView() {
+  const factionsMap = useFactions();
   const [deck, setDeck] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -318,7 +320,7 @@ export default function DeckView() {
               {deck.hero_name && <span className="deck-view-hero">{deck.hero_name}</span>}
               {deck.version && <span className="deck-view-version">v{deck.version}</span>}
               <span className="deck-view-aspect-dot" style={{ background: headerColor }} />
-              <span className="deck-view-aspect-name">{aspect.charAt(0).toUpperCase() + aspect.slice(1)}</span>
+              <span className="deck-view-aspect-name">{factionsMap[aspect] || aspect.charAt(0).toUpperCase() + aspect.slice(1)}</span>
               {isPrivate && <span className="deck-view-private-badge">🔒 Private</span>}
               {deck.author_name && <span className="deck-view-author">by {deck.author_name}</span>}
               <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -498,7 +500,7 @@ export default function DeckView() {
                         color: isActive ? '#fff' : `${color}cc`,
                       }}
                       onClick={() => setDeckAspect(prev => prev === asp ? null : asp)}
-                    >{ASPECT_LABELS[asp]}</button>
+                    >{factionsMap[asp] || ASPECT_LABELS[asp]}</button>
                   );
                 })}
               </div>

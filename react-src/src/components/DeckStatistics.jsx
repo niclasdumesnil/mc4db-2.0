@@ -3,11 +3,8 @@ import { getFactionColor } from '@utils/dataUtils';
 import '@css/Stories.css';
 import '../css/DeckStatistics.css';
 import '../css/DeckHistory.css';
-
-const FACTION_LABELS = {
-  leadership: 'Leadership', justice: 'Justice', aggression: 'Aggression',
-  protection: 'Protection', basic: 'Basic', hero: 'Hero', campaign: 'Campaign',
-};
+import { useFactions } from '../hooks/useFactions';
+import { useTypes } from '../hooks/useTypes';
 
 const RES_ICONS = [
   { key: 'resource_energy',   cls: 'icon-energy',   label: 'Energy'   },
@@ -17,6 +14,8 @@ const RES_ICONS = [
 ];
 
 export default function DeckStatistics({ slots = [], packsRequired, activeCost = null, onCostClick }) {
+  const factionsMap = useFactions();
+  const typesMap = useTypes();
   const stats = useMemo(() => {
     const regular = slots.filter(s => !s.permanent);
     const totalCards = regular.reduce((n, s) => n + s.quantity, 0);
@@ -36,7 +35,9 @@ export default function DeckStatistics({ slots = [], packsRequired, activeCost =
     const typeMap = {};
     for (const s of regular) {
       const tc = (s.type_code || '').toLowerCase();
-      const type = (tc === 'hero' || tc === 'alter_ego') ? 'Hero / Alter-Ego' : (s.type_name || 'Other');
+      const heroStr = typesMap['hero'] || 'Hero';
+      const alterEgoStr = typesMap['alter_ego'] || 'Alter-Ego';
+      const type = (tc === 'hero' || tc === 'alter_ego') ? `${heroStr} / ${alterEgoStr}` : (typesMap[tc] || s.type_name || 'Other');
       typeMap[type] = (typeMap[type] || 0) + s.quantity;
     }
     const types = Object.entries(typeMap)
@@ -77,7 +78,7 @@ export default function DeckStatistics({ slots = [], packsRequired, activeCost =
     const maxCostCount = Math.max(...costEntries.map(e => e.count), 1);
 
     return { totalCards, factions, types, resMap, totalRes, costEntries, maxCostCount, avgCost };
-  }, [slots]);
+  }, [slots, factionsMap, typesMap]);
 
   return (
     <div className="set-stats-body">
@@ -103,7 +104,7 @@ export default function DeckStatistics({ slots = [], packsRequired, activeCost =
           <tbody>
             {stats.factions.map(({ code, count }) => {
               const color = getFactionColor(code);
-              const label = FACTION_LABELS[code] || code;
+              const label = factionsMap[code] || code.charAt(0).toUpperCase() + code.slice(1);
               return (
                 <tr key={code}>
                   <td className="set-stats-type-label">

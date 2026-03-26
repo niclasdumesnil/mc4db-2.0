@@ -235,11 +235,11 @@ export default function CardList() {
   }, [filters]);
 
   useEffect(() => {
-    fetch('/api/public/cards/attributes')
+    fetch(`/api/public/cards/attributes?locale=${locale}`)
       .then(r => r.json())
       .then(data => setAttributes(data))
       .catch(() => { });
-  }, []);
+  }, [locale]);
 
   useEffect(() => {
     const userId = currentUserId();
@@ -541,6 +541,7 @@ export default function CardList() {
             types={attributes.types}
             subtypes={attributes.subtypes}
             illustrators={attributes.illustrators}
+            factions={attributes.factions || {}}
             themes={themes}
             selectedTheme={selectedTheme}
             onThemeChange={t => { setSelectedTheme(t); setPage(1); }}

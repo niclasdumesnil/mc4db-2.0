@@ -70,8 +70,10 @@ async function fetchDeckSlots(tableName, foreignKey, parentId, locale = 'en') {
       'c.permanent',
       'c.is_unique',
       'c.octgn_id',
+      't.code as type_code',
       't.name as type_name',
       'f.code as faction_code',
+      'f.name as faction_name',
       'c.cost',
       'c.resource_physical',
       'c.resource_energy',
@@ -96,8 +98,21 @@ async function fetchDeckSlots(tableName, foreignKey, parentId, locale = 'en') {
     .select('code', 'name');
   const transMap = Object.fromEntries(transRows.map(t => [t.code, t]));
 
+  const FactionModel = require('../models/faction.model');
+  const TypeModel = require('../models/type.model');
+  const PackModel = require('../models/pack.model');
+  const facMap = await FactionModel.getTranslationMap(locale.toLowerCase());
+  const typesMap = await TypeModel.getTranslationMap(locale.toLowerCase());
+  const packsMap = await PackModel.getTranslationMap(locale.toLowerCase());
+
   return rows.map(r => {
-    const base = { ...r, imagesrc: resolveImage(r.code, r.pack_code, '', locale) };
+    const base = {
+      ...r,
+      imagesrc: resolveImage(r.code, r.pack_code, '', locale),
+      faction_name: facMap[r.faction_code] || r.faction_name,
+      type_name: typesMap[r.type_code] || r.type_name,
+      pack_name: packsMap[r.pack_code] || r.pack_name,
+    };
     const t = transMap[r.code];
     if (!t || !t.name) return base;
     return { ...base, name: t.name };
@@ -157,11 +172,16 @@ async function fetchHeroSpecialCards(heroCode, locale = 'en') {
       .where('locale', locale.toLowerCase())
       .select('code', 'name');
     const transMap = Object.fromEntries(transRows.map(t => [t.code, t]));
+    
+    const FactionModel = require('../models/faction.model');
+    const facMap = await FactionModel.getTranslationMap(locale.toLowerCase());
+
     return rows.map(r => {
       const t = transMap[r.code];
       return {
         ...r,
         name: (t && t.name) ? t.name : r.name,
+        faction_name: facMap[r.faction_code] || r.faction_name,
         imagesrc: resolveImage(r.code, r.pack_code, '', locale),
       };
     });
