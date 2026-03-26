@@ -137,7 +137,7 @@ export default function Landing() {
         <header className="stories-header" style={{ marginBottom: 32 }}>
           <h1 className="stories-title">Welcome to MC4DB 2.0</h1>
           <p className="stories-subtitle">
-            A modern fan-made database for Marvel Champions cards — browse cards, check promos, and build deck.
+            A modern fan-made database for Marvel Champions cards — browse cards, check promos, and build decks.
           </p>
         </header>
 

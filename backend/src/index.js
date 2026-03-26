@@ -17,7 +17,7 @@ const errorHandler = require('./middleware/errorHandler');
 const db = require('./config/database');
 const Card = require('./models/card.model');
 const { serializeCard } = require('./utils/cardSerializer');
-const { renderSharedHeader } = require('./utils/pageTemplate');
+const { renderSharedHeader, renderSharedFooter } = require('./utils/pageTemplate');
 
 const app = express();
 const PORT = parseInt(process.env.PORT || '4000', 10);
@@ -277,6 +277,9 @@ app.get(['/card/:code.html', '/card/:code'], async (req, res, next) => {
       };
     </script>
     <script src="/react/js/mc4db.js?v="></script>
+    
+    
+    ${renderSharedFooter()}
   </body>
 </html>`;
 
@@ -325,6 +328,9 @@ app.get(['/', '/index.html'], async (req, res) => {
       <div style="max-width:980px;margin:24px auto;padding:16px;background:#fee; color:#333;border-radius:8px;">JavaScript is disabled — the interactive UI requires JavaScript to function.</div>
     </noscript>
     <script src="/react/js/mc4db.js?v="></script>
+    
+    
+    ${renderSharedFooter()}
   </body>
 </html>`;
   res.type('html').send(html);
@@ -369,6 +375,9 @@ app.get(['/dashboard', '/dashboard/'], async (req, res) => {
       <div style="max-width:980px;margin:24px auto;padding:16px;background:#fee; color:#333;border-radius:8px;">JavaScript is disabled — the interactive UI requires JavaScript to function.</div>
     </noscript>
     <script src="/react/js/mc4db.js?v="></script>
+    
+    
+    ${renderSharedFooter()}
   </body>
 </html>`;
   res.type('html').send(html);
@@ -408,6 +417,9 @@ app.get(['/decklists', '/decklists/'], async (req, res) => {
       <div style="max-width:980px;margin:24px auto;padding:16px;background:#fee;color:#333;border-radius:8px;">JavaScript is disabled — the interactive UI requires JavaScript to function.</div>
     </noscript>
     <script src="/react/js/mc4db.js?v="></script>
+    
+    
+    ${renderSharedFooter()}
   </body>
 </html>`;
   res.type('html').send(html);
@@ -448,6 +460,9 @@ app.get(['/card-list', '/card-list/'], (req, res) => {
       <div style="max-width:980px;margin:24px auto;padding:16px;background:#fee;color:#333;border-radius:8px;">JavaScript is disabled — the interactive UI requires JavaScript to function.</div>
     </noscript>
     <script src="/react/js/mc4db.js?v="></script>
+    
+    
+    ${renderSharedFooter()}
   </body>
 </html>`;
   res.type('html').send(html);
@@ -483,6 +498,9 @@ app.get(['/my-decks', '/my-decks/'], (req, res) => {
       <div style="max-width:980px;margin:24px auto;padding:16px;background:#fee;color:#333;border-radius:8px;">JavaScript is disabled — the interactive UI requires JavaScript to function.</div>
     </noscript>
     <script src="/react/js/mc4db.js?v="></script>
+    
+    
+    ${renderSharedFooter()}
   </body>
 </html>`;
   res.type('html').send(html);
@@ -521,6 +539,9 @@ app.get(['/decklists', '/decklists/'], (req, res) => {
       <div style="max-width:980px;margin:24px auto;padding:16px;background:#fee;color:#333;border-radius:8px;">JavaScript is disabled — the interactive UI requires JavaScript to function.</div>
     </noscript>
     <script src="/react/js/mc4db.js?v="></script>
+    
+    
+    ${renderSharedFooter()}
   </body>
 </html>`;
   res.type('html').send(html);
@@ -559,6 +580,9 @@ app.get(['/my-decks', '/my-decks/'], (req, res) => {
       <div style="max-width:980px;margin:24px auto;padding:16px;background:#fee;color:#333;border-radius:8px;">JavaScript is disabled — the interactive UI requires JavaScript to function.</div>
     </noscript>
     <script src="/react/js/mc4db.js?v="></script>
+    
+    
+    ${renderSharedFooter()}
   </body>
 </html>`;
   res.type('html').send(html);
@@ -594,6 +618,9 @@ app.get(['/rules', '/rules/'], (req, res) => {
       <div style="max-width:980px;margin:24px auto;padding:16px;background:#fee;color:#333;border-radius:8px;">JavaScript is disabled — the interactive UI requires JavaScript to function.</div>
     </noscript>
     <script src="/react/js/mc4db.js?v="></script>
+    
+    
+    ${renderSharedFooter()}
   </body>
 </html>`;
   res.type('html').send(html);
@@ -629,6 +656,9 @@ app.get(['/stories', '/stories/'], (req, res) => {
       <div style="max-width:980px;margin:24px auto;padding:16px;background:#fee;color:#333;border-radius:8px;">JavaScript is disabled — the interactive UI requires JavaScript to function.</div>
     </noscript>
     <script src="/react/js/mc4db.js?v="></script>
+    
+    
+    ${renderSharedFooter()}
   </body>
 </html>`;
   res.type('html').send(html);
@@ -667,6 +697,9 @@ app.get(['/sets', '/sets/'], (req, res) => {
       <div style="max-width:980px;margin:24px auto;padding:16px;background:#fee;color:#333;border-radius:8px;">JavaScript is disabled — the interactive UI requires JavaScript to function.</div>
     </noscript>
     <script src="/react/js/mc4db.js?v="></script>
+    
+    
+    ${renderSharedFooter()}
   </body>
 </html>`;
   res.type('html').send(html);
@@ -696,6 +729,9 @@ app.get(['/decklist/:id', '/decklist/view/:id'], (req, res) => {
     ${renderSharedHeader()}
     <div id="mc-app"></div>
     <script src="/react/js/mc4db.js?v="></script>
+    
+    
+    ${renderSharedFooter()}
   </body>
 </html>`;
   res.type('html').send(html);
@@ -731,6 +767,9 @@ app.get('/deck/new', (req, res) => {
       <div style="max-width:980px;margin:24px auto;padding:16px;background:#fee;color:#333;border-radius:8px;">JavaScript is disabled — the interactive UI requires JavaScript to function.</div>
     </noscript>
     <script src="/react/js/mc4db.js?v="></script>
+    
+    
+    ${renderSharedFooter()}
   </body>
 </html>`;
   res.type('html').send(html);
@@ -754,6 +793,9 @@ app.get(['/my-decks/:id', '/deck/view/:id'], (req, res) => {
     ${renderSharedHeader()}
     <div id="mc-app"></div>
     <script src="/react/js/mc4db.js?v="></script>
+    
+    
+    ${renderSharedFooter()}
   </body>
 </html>`;
   res.type('html').send(html);

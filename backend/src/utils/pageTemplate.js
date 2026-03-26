@@ -257,10 +257,48 @@ function renderPage({ title, description = '', url = '', image = '', body = '', 
   <body>
     ${renderSharedHeader()}
     ${body}
+    ${renderSharedFooter()}
     ${extraScripts}
   </body>
 </html>`;
 }
 
-module.exports = { renderSharedHeader, renderPage };
+function renderSharedFooter() {
+  return `
+<style>
+  .mc-site-footer {
+    margin-top: 50px;
+    padding: 32px 20px;
+    text-align: center;
+    font-size: 0.85rem;
+    line-height: 1.6;
+    font-family: -apple-system, BlinkMacSystemFont, \`Segoe UI\`, Roboto, Helvetica, Arial, sans-serif;
+    color: #4b5563;
+    background: #f9fafb;
+    border-top: 1px solid #e5e7eb;
+  }
+  .mc-site-footer a {
+    color: #2563eb;
+    text-decoration: none;
+  }
+  html.dark .mc-site-footer {
+    color: #8a99af;
+    background: rgba(7, 16, 38, 0.4);
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+  }
+  html.dark .mc-site-footer a {
+    color: #60a5fa;
+  }
+</style>
+<footer class="mc-site-footer">
+  <div style="max-width: 800px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px;">
+    <p style="margin:0;">Based on ThronesDB by Alsciende. Modified by Zzorba and Kam for Marvel Champions. Fanmade version refactored by Merlin.<br/>If you like my work you could buy me a coffee to help support the cost of this server.</p>
+    <p style="margin:0;">The images of the official cards in english are available thanks to <a href="https://github.com/UnicornSnuggler/Cerebro" target="_blank" rel="noopener noreferrer">Unicorn and its Cerebro</a>.<br/>
+    Please join <a href="https://discord.gg/pYmv9Vud" target="_blank" rel="noopener noreferrer">Marvel Champions LCG Homebrew</a> for more contents.</p>
+    <p style="font-size: 0.75rem; opacity: 0.7; margin:0;">The information presented on this site about Marvel Champions: The Card Game, both literal and graphical, is copyrighted by Fantasy Flight Games for contents. All custom contents are copyrighted accordingly to related sources. This website is not produced, endorsed, supported, or affiliated with Fantasy Flight Games.</p>
+  </div>
+</footer>`;
+}
+
+module.exports = { renderSharedHeader, renderPage, renderSharedFooter };
 
