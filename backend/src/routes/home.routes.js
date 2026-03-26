@@ -93,28 +93,79 @@ router.get('/home', async (req, res) => {
       const chosenCardCode = candidates[idx].code;
       const chosenImageSrc = resolveImage(candidates[idx].code, candidates[idx].pack_code);
 
-      // Find 1 random public deck containing this card
+      // Fetch 1 random deck that includes this card
       const randomDeckRow = await db('decklistslot as s')
         .join('decklist as d', 's.decklist_id', 'd.id')
+        .join('user as u', 'd.user_id', 'u.id')
+        .join('card as c', 'd.card_id', 'c.id')
+        .leftJoin('faction as f', 'c.faction_id', 'f.id')
+        .leftJoin('pack as p', 'c.pack_id', 'p.id')
         .where('s.card_id', chosenCardId)
         .whereNull('d.next_deck')
-        .select('d.id', 'd.name')
+        .select(
+          'd.id', 'd.name', 'd.date_creation', 'd.user_id',
+          'd.nb_votes as likes', 'd.nb_favorites as favorites', 'd.nb_comments as comments',
+          'd.version', 'd.tags', 'd.meta',
+          'u.username as author_name', 'u.reputation as author_reputation',
+          'c.code as hero_code', 'c.name as hero_name',
+          'f.code as faction_code',
+          'p.code as pack_code', 'p.creator as pack_creator', 'p.environment as pack_environment', 'p.status as pack_status'
+        )
         .orderByRaw('RAND()')
         .first();
 
       cardOfTheDay = { code: chosenCardCode, imagesrc: chosenImageSrc };
       if (randomDeckRow) {
-        cotdDeck = { id: randomDeckRow.id, name: randomDeckRow.name };
+        cotdDeck = {
+          ...randomDeckRow,
+          hero_imagesrc: resolveImage(randomDeckRow.hero_code, randomDeckRow.pack_code)
+        };
       }
     }
+
+    // 3.5 Deck of the Week (random public deck)
+    const randomWeeklyDeckRow = await db('decklist as d')
+      .join('user as u', 'd.user_id', 'u.id')
+      .join('card as c', 'd.card_id', 'c.id')
+      .leftJoin('faction as f', 'c.faction_id', 'f.id')
+      .leftJoin('pack as p', 'c.pack_id', 'p.id')
+      .whereNull('d.next_deck')
+      .select(
+        'd.id', 'd.name', 'd.date_creation', 'd.user_id',
+        'd.nb_votes as likes', 'd.nb_favorites as favorites', 'd.nb_comments as comments',
+        'd.version', 'd.tags', 'd.meta',
+        'u.username as author_name', 'u.reputation as author_reputation',
+        'c.code as hero_code', 'c.name as hero_name',
+        'f.code as faction_code',
+        'p.code as pack_code', 'p.creator as pack_creator', 'p.environment as pack_environment', 'p.status as pack_status'
+      )
+      .orderByRaw('RAND()')
+      .first();
+
+    let deckOfTheWeek = null;
+    if (randomWeeklyDeckRow) {
+      deckOfTheWeek = {
+        ...randomWeeklyDeckRow,
+        hero_imagesrc: resolveImage(randomWeeklyDeckRow.hero_code, randomWeeklyDeckRow.pack_code)
+      };
+    }
+
+    // NEW STATS: Total Cards
+    const totalOfficialObj = await db('card as c').join('pack as p', 'c.pack_id', 'p.id').where(b => b.whereNull('p.creator').orWhere('p.creator', 'FFG')).count('* as cnt').first();
+    const totalFanmadeObj = await db('card as c').join('pack as p', 'c.pack_id', 'p.id').whereNotNull('p.creator').andWhere('p.creator', '!=', 'FFG').count('* as cnt').first();
+    const total_official_cards = Number(totalOfficialObj?.cnt || 0);
+    const total_fanmade_cards = Number(totalFanmadeObj?.cnt || 0);
 
     return res.json({
       ok: true,
       total_decks,
+      total_official_cards,
+      total_fanmade_cards,
       top_heroes: topHeroes.map(r => ({ name: r.hero_name, code: r.hero_code, count: Number(r.cnt) })),
       top_cards: topCards.map(r => ({ name: r.card_name, code: r.card_code, count: Number(r.cnt) })),
       card_of_the_day: cardOfTheDay,
       card_of_the_day_deck: cotdDeck,
+      deck_of_the_week: deckOfTheWeek,
       last_release: lastPack ? {
         pack_code: lastPack.code,
         pack_name: lastPack.name,
@@ -125,6 +176,8 @@ router.get('/home', async (req, res) => {
         villains: lastPackVillains
       } : null
     });
+
+
   } catch (err) {
     console.error('GET /api/public/home error', err.message);
     return res.status(500).json({ error: 'Internal error' });
