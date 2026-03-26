@@ -455,8 +455,15 @@ function ScenarioStatsSidebar({ scenario, onDeselect }) {
       fetch('/api/public/cardsets?type=standard').then(r => r.json()).catch(() => []),
       fetch('/api/public/cardsets?type=expert').then(r => r.json()).catch(() => []),
     ]).then(([stds, exps]) => {
-      setAvailableStandards(Array.isArray(stds) ? stds : []);
-      setAvailableExperts(Array.isArray(exps) ? exps : []);
+      const stdList = Array.isArray(stds) ? stds : [];
+      const expList = Array.isArray(exps) ? exps : [];
+      setAvailableStandards(stdList);
+      setAvailableExperts(expList);
+      
+      if (stdList.some(s => s.code === 'standard_iii')) setSelectedStandard('standard_iii');
+      else if (stdList.some(s => s.code === 'standard')) setSelectedStandard('standard');
+      
+      if (expList.some(s => s.code === 'expert')) setSelectedExpert('expert');
     });
   }, []);
 
@@ -869,36 +876,51 @@ function ScenarioTab() {
       <div className="scenario-tab-main">
         {/* Filter bar */}
         <div className="scenario-filterbar">
-        <input
-          className="scenario-search-input"
-          type="text"
-          placeholder="Search title, villain, creator or modular sets…"
-          value={searchText}
-          onChange={e => setSearchText(e.target.value)}
-        />
+          <div className="scenario-search-container">
+            <input
+              className="scenario-search-input"
+              type="text"
+              placeholder="Search title, villain, creator or modular sets…"
+              value={searchText}
+              onChange={e => setSearchText(e.target.value)}
+            />
+            {searchText && (
+              <button
+                className="scenario-search-clear"
+                onClick={() => setSearchText('')}
+                title="Clear search"
+                aria-label="Clear search"
+              >
+                ✕
+              </button>
+            )}
+          </div>
 
-        <div className="scenario-difficulty-btns">
-          {DIFFICULTY_FILTERS.map(f => (
+          <div className="scenario-difficulty-btns">
+            {DIFFICULTY_FILTERS.map(f => (
+              <button
+                key={f.value}
+                className={`scenario-diff-btn${activeDiffs.includes(f.value) ? ' scenario-diff-btn--active' : ''}`}
+                onClick={() => toggleDiff(f.value)}
+              >
+                {f.label}
+              </button>
+            ))}
             <button
-              key={f.value}
-              className={`scenario-diff-btn${activeDiffs.includes(f.value) ? ' scenario-diff-btn--active' : ''}`}
-              onClick={() => toggleDiff(f.value)}
+              className="scenario-shuffle-btn"
+              onClick={() => {
+                if (filtered.length > 0) {
+                  const random = filtered[Math.floor(Math.random() * filtered.length)];
+                  setSelectedScenario(random);
+                }
+              }}
+              title="Random matching scenario"
             >
-              {f.label}
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="16 3 21 3 21 8"></polyline><line x1="4" y1="20" x2="21" y2="3"></line><polyline points="21 16 21 21 16 21"></polyline><line x1="15" y1="15" x2="21" y2="21"></line><line x1="4" y1="4" x2="9" y2="9"></line></svg>
+              Shuffle
             </button>
-          ))}
-        </div>
-
-        {(searchText || activeDiffs.length > 0) && (
-          <button
-            className="scenario-clear-btn"
-            onClick={() => { setSearchText(''); setActiveDiffs([]); }}
-          >
-            Clear
-          </button>
-        )}
-
-        <span className="scenario-count">{filtered.length} scenario{filtered.length !== 1 ? 's' : ''}</span>
+          </div>
+          <span className="scenario-count">{filtered.length} scenario{filtered.length !== 1 ? 's' : ''}</span>
 
         {/* View mode toggle */}
         <div className="scenario-view-toggle">
