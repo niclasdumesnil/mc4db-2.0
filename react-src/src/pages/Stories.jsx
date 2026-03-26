@@ -438,6 +438,7 @@ function ScenarioStatsSidebar({ scenario, onDeselect }) {
 
   // Main scheme cards (villain set, type=main_scheme)
   const [mainSchemeCards, setMainSchemeCards] = useState([]);
+  const [villainCards, setVillainCards] = useState([]);
 
   const cacheRef = useRef({});
   const [activeSet, setActiveSet] = useState(null);
@@ -483,38 +484,48 @@ function ScenarioStatsSidebar({ scenario, onDeselect }) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [scenario?.id, selectedStandard, selectedExpert, availableStandards, availableExperts]);
 
-  // When scenario changes: reset active tab, clear encounter cache, fetch main schemes
+  // When scenario changes: reset active tab, clear encounter cache, fetch main schemes & villains
   useEffect(() => {
     setEncounterCards(null);
-    if (!scenario) { setActiveSet(null); setCachedCards(null); setMainSchemeCards([]); return; }
+    if (!scenario) { setActiveSet(null); setCachedCards(null); setMainSchemeCards([]); setVillainCards([]); return; }
     // Activate encounter (Scenario) tab by default instead of the villain set
     setActiveSet('__encounter__');
-    // Fetch main scheme cards for briefing section
+    // Fetch main scheme & villain cards for briefing section
     if (scenario.villain_set_code) {
       const userId = currentUserId();
       const locale = localStorage.getItem('mc_locale') || window.__MC_LOCALE__ || 'en';
-      const p = new URLSearchParams({ cardset: scenario.villain_set_code, type: 'main_scheme', limit: '50', include_hidden: '1', locale });
+      const p = new URLSearchParams({ cardset: scenario.villain_set_code, limit: '100', include_hidden: '1', locale });
       if (userId) p.set('user_id', userId);
       fetch(`/api/public/cards/search?${p}`)
         .then(r => r.json())
         .then(data => {
           const all = Array.isArray(data?.cards) ? data.cards : Array.isArray(data) ? data : [];
+          
+          // Separate main schemes and villains
+          const msRaw = all.filter(c => (c.type_code || '').toLowerCase() === 'main_scheme');
+          const vilRaw = all.filter(c => (c.type_code || '').toLowerCase() === 'villain');
+
           // For double-sided main schemes, the B-side (hidden) has the threat data.
           // Group by name: prefer the side that has base_threat or threat set.
           const byName = new Map();
-          for (const c of all) {
+          for (const c of msRaw) {
             const existing = byName.get(c.name);
             if (!existing) { byName.set(c.name, c); continue; }
             // Prefer the side with threat data
             const hasData = (x) => x.base_threat != null || x.threat != null;
             if (!hasData(existing) && hasData(c)) byName.set(c.name, c);
           }
-          const cards = [...byName.values()].sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
-          setMainSchemeCards(cards);
+          const schemes = [...byName.values()].sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
+          setMainSchemeCards(schemes);
+
+          // For villains, we want all distinct stages (without duplicates from double-sided links if any)
+          const villains = vilRaw.filter(c => !c.linked_to_code).sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
+          setVillainCards(villains);
         })
-        .catch(() => setMainSchemeCards([]));
+        .catch(() => { setMainSchemeCards([]); setVillainCards([]); });
     } else {
       setMainSchemeCards([]);
+      setVillainCards([]);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [scenario?.id]);
@@ -625,14 +636,59 @@ function ScenarioStatsSidebar({ scenario, onDeselect }) {
         </div>
       )}
 
-      {/* Main Schemes */}
-      {mainSchemeCards.length > 0 && (
+      {/* Villains */}
+      {villainCards.length > 0 && (
         <div className="sidebar-main-schemes-section">
-          <p className="set-stats-section-title">Main Schemes</p>
           <table className="main-schemes-table">
             <thead>
               <tr>
-                <th>Scheme</th>
+                <th>Villain</th>
+                <th style={{ textAlign: 'center' }}>SCH</th>
+                <th style={{ textAlign: 'center' }}>ATK</th>
+                <th style={{ textAlign: 'center' }}>HP</th>
+              </tr>
+            </thead>
+            <tbody>
+              {villainCards.map(card => {
+                const sch = card.scheme != null ? card.scheme : null;
+                const schStar = card.scheme_star;
+                const atk = card.attack != null ? card.attack : null;
+                const atkStar = card.attack_star;
+                const hp = card.health != null ? card.health : null;
+                const hpStar = card.health_star;
+                const hpPerHero = card.health_per_hero;
+                const stage = card.stage || null;
+                const muted = <span style={{ color: 'var(--st-text-muted)' }}>—</span>;
+                return (
+                  <tr key={card.code}>
+                    <td className="main-scheme-name">
+                      {card.name || '?'}
+                      {stage && <span className="main-scheme-stage">{stage}</span>}
+                    </td>
+                    <td className="main-scheme-threat" style={{ textAlign: 'center' }}>
+                      {sch != null ? <>{sch}{schStar ? <StarMark /> : ''}</> : muted}
+                    </td>
+                    <td className="main-scheme-threat" style={{ textAlign: 'center' }}>
+                      {atk != null ? <>{atk}{atkStar ? <StarMark /> : ''}</> : muted}
+                    </td>
+                    <td className="main-scheme-threat" style={{ textAlign: 'center' }}>
+                      {hp != null ? <>{hp}{hpStar ? <StarMark /> : ''}{hpPerHero ? <PerHeroIcon /> : ''}</> : muted}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* Main Schemes */}
+      {mainSchemeCards.length > 0 && (
+        <div className="sidebar-main-schemes-section">
+          <table className="main-schemes-table">
+            <thead>
+              <tr>
+                <th>Main Scheme</th>
                 <th>Start</th>
                 <th>Esc.</th>
                 <th>Limit</th>

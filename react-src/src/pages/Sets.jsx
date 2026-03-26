@@ -77,11 +77,10 @@ function MainSchemesPanel({ schemes }) {
   if (!schemes || schemes.length === 0) return null;
   return (
     <div className="sets-main-schemes-panel">
-      <p className="sets-main-schemes-title">Main Schemes</p>
       <table className="main-schemes-table">
         <thead>
           <tr>
-            <th>Scheme</th>
+            <th>Main Scheme</th>
             <th>Start</th>
             <th>Esc.</th>
             <th>Limit</th>
@@ -89,6 +88,58 @@ function MainSchemesPanel({ schemes }) {
         </thead>
         <tbody>
           {schemes.map(card => <MainSchemeRow key={card.code} card={card} />)}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+// ── Villain panel helpers ──────────────────────────────────────────────────────
+
+function VillainRow({ card }) {
+  const sch = card.scheme != null ? card.scheme : null;
+  const schStar = card.scheme_star;
+  const atk = card.attack != null ? card.attack : null;
+  const atkStar = card.attack_star;
+  const hp = card.health != null ? card.health : null;
+  const hpStar = card.health_star;
+  const hpPerHero = card.health_per_hero;
+  const stage = card.stage || null;
+  const muted = <span style={{ color: 'var(--st-text-muted)' }}>—</span>;
+  return (
+    <tr>
+      <td className="main-scheme-name">
+        {card.name || '?'}
+        {stage && <span className="main-scheme-stage">{stage}</span>}
+      </td>
+      <td className="main-scheme-threat" style={{ textAlign: 'center' }}>
+        {sch != null ? <>{sch}{schStar ? <StarMark /> : ''}</> : muted}
+      </td>
+      <td className="main-scheme-threat" style={{ textAlign: 'center' }}>
+        {atk != null ? <>{atk}{atkStar ? <StarMark /> : ''}</> : muted}
+      </td>
+      <td className="main-scheme-threat" style={{ textAlign: 'center' }}>
+        {hp != null ? <>{hp}{hpStar ? <StarMark /> : ''}{hpPerHero ? <PerHeroIcon /> : ''}</> : muted}
+      </td>
+    </tr>
+  );
+}
+
+function VillainsPanel({ villains }) {
+  if (!villains || villains.length === 0) return null;
+  return (
+    <div className="sets-main-schemes-panel">
+      <table className="main-schemes-table">
+        <thead>
+          <tr>
+            <th>Villain</th>
+            <th style={{ textAlign: 'center' }}>SCH</th>
+            <th style={{ textAlign: 'center' }}>ATK</th>
+            <th style={{ textAlign: 'center' }}>HP</th>
+          </tr>
+        </thead>
+        <tbody>
+          {villains.map(card => <VillainRow key={card.code} card={card} />)}
         </tbody>
       </table>
     </div>
@@ -572,6 +623,15 @@ export default function Sets() {
     );
   }, [selectedSet, identityCards]);
 
+  // For villain sets: villain cards (shown as a panel above main schemes)
+  const villainCards = useMemo(() => {
+    if (!selectedSet || (selectedSet.type_code || '').toLowerCase() !== 'villain') return [];
+    return identityCards.filter(c =>
+      (c.type_code || '').toLowerCase() === 'villain' &&
+      !c.linked_to_code
+    );
+  }, [selectedSet, identityCards]);
+
   // Filtered card list (cost + boost filters)
   const displayCards = useMemo(() => {
     let list = regularCardsBase;
@@ -591,8 +651,11 @@ export default function Sets() {
     if (cardsLoading)  return <div className="sets-stats-loading">Loading…</div>;
     const isEnc = ENCOUNTER_TYPE_CODES.includes((selectedSet.type_code || '').toLowerCase());
     if (isEnc) {
-      // Exclude main_scheme cards (shown in their own panel above the card list)
-      const encStatsCards = encounterCards.filter(c => (c.type_code || '').toLowerCase() !== 'main_scheme' && !c.linked_to_code);
+      // Exclude main_scheme and villain cards
+      const encStatsCards = encounterCards.filter(c => {
+         const tc = (c.type_code || '').toLowerCase();
+         return tc !== 'main_scheme' && tc !== 'villain' && !c.linked_to_code;
+      });
       return <EncounterStatistics
         cards={encStatsCards}
         title={selectedSet.name}
@@ -605,7 +668,7 @@ export default function Sets() {
     const obligationCards = heroCards.filter(c => (c.type_code || '').toLowerCase() === 'obligation');
     const deckCards       = heroCards.filter(c => !['obligation', 'hero', 'alter_ego'].includes((c.type_code || '').toLowerCase()) && !c.hidden);
     const deckSlots       = deckCards.map(c => ({ ...c, quantity: c.quantity ?? 1, permanent: false }));
-    const encounterForStats = [...obligationCards, ...encounterCards];
+    const encounterForStats = [...obligationCards, ...encounterCards.filter(c => (c.type_code || '').toLowerCase() !== 'villain')];
     return (
       <>
         <DeckStatistics
@@ -701,6 +764,7 @@ export default function Sets() {
               })()}
             </div>
           )}
+          {villainCards.length > 0 && <VillainsPanel villains={villainCards} />}
           {mainSchemeCards.length > 0 && <MainSchemesPanel schemes={mainSchemeCards} />}
           <div className="sets-stats-body">
             {renderStats()}
