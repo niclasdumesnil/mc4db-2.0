@@ -224,11 +224,16 @@ export default function MyDecks() {
           <div>
             <h1 className="page-title">My Decks</h1>
             <p className="page-subtitle">
-              Your private deck collection
+                            Your private deck collection
               {!loading && totalItems > 0 && (
                 <span className="decks-count"> &mdash; {totalItems}{deckLimit !== null ? ` / ${deckLimit}` : ''} deck{totalItems > 1 ? 's' : ''}</span>
               )}
             </p>
+            {limitReached && (
+              <p style={{ color: '#f87171', fontWeight: 'bold', fontSize: '0.9rem', marginTop: '6px' }}>
+                You have reached your private deck limit.<br />Try publishing some decks or increasing your reputation to unlock more slots!
+              </p>
+            )}
           </div>
         </header>
 
