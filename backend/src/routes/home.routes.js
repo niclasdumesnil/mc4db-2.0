@@ -161,6 +161,47 @@ router.get('/home', async (req, res) => {
     const total_official_cards = Number(totalOfficialObj?.cnt || 0);
     const total_fanmade_cards = Number(totalFanmadeObj?.cnt || 0);
 
+    // -- Apply Translations --
+    const localeClean = (req.query.locale || 'en').toLowerCase();
+    
+    // Map packs
+    let lastPackName = lastPack?.name;
+    if (lastPack && localeClean !== 'en') {
+      const PackModel = require('../models/pack.model');
+      const packsMap = await PackModel.getTranslationMap(localeClean);
+      if (packsMap[lastPack.code]) lastPackName = packsMap[lastPack.code];
+    }
+
+    if (localeClean !== 'en') {
+      const allCodes = new Set([
+        ...topHeroes.map(h => h.hero_code),
+        ...topCards.map(c => c.card_code),
+        ...lastPackHeroes.map(c => c.code),
+        ...lastPackVillains.map(c => c.code),
+      ]);
+      if (cotdDeck && cotdDeck.hero_code) allCodes.add(cotdDeck.hero_code);
+      if (deckOfTheWeek && deckOfTheWeek.hero_code) allCodes.add(deckOfTheWeek.hero_code);
+
+      if (allCodes.size > 0) {
+        const transRows = await db('card_translation')
+          .whereIn('code', [...allCodes])
+          .where('locale', localeClean)
+          .select('code', 'name');
+        
+        const trMap = {};
+        for (const t of transRows) {
+          if (t.name) trMap[t.code] = t.name;
+        }
+
+        topHeroes.forEach(h => { if (trMap[h.hero_code]) h.hero_name = trMap[h.hero_code]; });
+        topCards.forEach(c => { if (trMap[c.card_code]) c.card_name = trMap[c.card_code]; });
+        lastPackHeroes.forEach(c => { if (trMap[c.code]) c.name = trMap[c.code]; });
+        lastPackVillains.forEach(c => { if (trMap[c.code]) c.name = trMap[c.code]; });
+        if (cotdDeck && trMap[cotdDeck.hero_code]) cotdDeck.hero_name = trMap[cotdDeck.hero_code];
+        if (deckOfTheWeek && trMap[deckOfTheWeek.hero_code]) deckOfTheWeek.hero_name = trMap[deckOfTheWeek.hero_code];
+      }
+    }
+
     return res.json({
       ok: true,
       total_decks,
@@ -174,7 +215,7 @@ router.get('/home', async (req, res) => {
       deck_of_the_week: deckOfTheWeek,
       last_release: lastPack ? {
         pack_code: lastPack.code,
-        pack_name: lastPack.name,
+        pack_name: lastPackName,
         size: lastPack.size,
         date_release: lastPack.date_release ? new Date(lastPack.date_release).toISOString().slice(0, 10) : '',
         creator: lastPack.creator,

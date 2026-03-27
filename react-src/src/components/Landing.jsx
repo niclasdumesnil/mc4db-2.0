@@ -84,11 +84,19 @@ export default function Landing() {
   const [loading, setLoading] = useState(true);
 
   // Localization settings
-  const locale = localStorage.getItem('locale') || 'en';
+  const [locale, setLocale] = useState(localStorage.getItem('mc_locale') || window.__MC_LOCALE__ || 'en');
   const langDir = locale.toLowerCase().startsWith('fr') || locale === 'qc' ? 'FR' : 'EN';
 
   useEffect(() => {
-    fetch('/api/public/home')
+    const onLocaleChange = () => {
+      setLocale(localStorage.getItem('mc_locale') || window.__MC_LOCALE__ || 'en');
+    };
+    window.addEventListener('mc_locale_changed', onLocaleChange);
+    return () => window.removeEventListener('mc_locale_changed', onLocaleChange);
+  }, []);
+
+  useEffect(() => {
+    fetch(`/api/public/home?locale=${locale}`)
       .then(res => res.json())
       .then(d => {
          if (d.ok) setData(d);
@@ -98,7 +106,7 @@ export default function Landing() {
          console.error(e);
          setLoading(false);
       });
-  }, []);
+  }, [locale]);
 
   const panelStyle = {
     background: 'var(--st-surface-1)',
