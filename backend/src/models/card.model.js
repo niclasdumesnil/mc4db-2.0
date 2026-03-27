@@ -109,8 +109,9 @@ async function getAttributes(locale = 'en') {
   const typeMap = await TypeModel.getTranslationMap(locale);
   const packMap = await require('./pack.model').getTranslationMap(locale);
   const subtypeMap = await SubtypeModel.getTranslationMap(locale);
+  const cardsetMap = await require('./cardset.model').getTranslationMap(locale);
 
-  return { types, subtypes, illustrators, factions: facMap, typesMap: typeMap, packsMap: packMap, subtypesMap: subtypeMap };
+  return { types, subtypes, illustrators, factions: facMap, typesMap: typeMap, packsMap: packMap, subtypesMap: subtypeMap, cardsetsMap: cardsetMap };
 }
 
 async function getHeroes(donator, userId, locale = 'en') {
@@ -403,6 +404,7 @@ async function fetchTranslationsForSearch(cards, localeClean) {
   const typesMap = await require('./type.model').getTranslationMap(localeClean);
   const packsMap = await require('./pack.model').getTranslationMap(localeClean);
   const subtypesMap = await require('./subtype.model').getTranslationMap(localeClean);
+  const cardsetsMap = await require('./cardset.model').getTranslationMap(localeClean);
 
   return cards.map(r => {
     const updated = { ...r };
@@ -417,6 +419,7 @@ async function fetchTranslationsForSearch(cards, localeClean) {
     if (typesMap[updated.type_code]) updated.type_name = typesMap[updated.type_code];
     if (packsMap[updated.pack_code]) updated.pack_name = packsMap[updated.pack_code];
     if (subtypesMap[updated.subtype_code]) updated.subtype_name = subtypesMap[updated.subtype_code];
+    if (cardsetsMap[updated.card_set_code]) updated.card_set_name = cardsetsMap[updated.card_set_code];
     return updated;
   });
 }

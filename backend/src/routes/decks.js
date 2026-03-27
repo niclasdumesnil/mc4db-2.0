@@ -174,7 +174,9 @@ async function fetchHeroSpecialCards(heroCode, locale = 'en') {
     const transMap = Object.fromEntries(transRows.map(t => [t.code, t]));
     
     const FactionModel = require('../models/faction.model');
+    const CardsetModel = require('../models/cardset.model');
     const facMap = await FactionModel.getTranslationMap(locale.toLowerCase());
+    const cardsetMap = await CardsetModel.getTranslationMap(locale.toLowerCase());
 
     return rows.map(r => {
       const t = transMap[r.code];
@@ -182,6 +184,7 @@ async function fetchHeroSpecialCards(heroCode, locale = 'en') {
         ...r,
         name: (t && t.name) ? t.name : r.name,
         faction_name: facMap[r.faction_code] || r.faction_name,
+        card_set_name: cardsetMap[r.card_set_code] || r.card_set_name,
         imagesrc: resolveImage(r.code, r.pack_code, '', locale),
       };
     });

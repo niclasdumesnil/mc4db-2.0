@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import '@css/Stories.css';
+import { useTypes } from '../hooks/useTypes';
 
 /* ── Helpers ──────────────────────────────────────────────────── */
 
@@ -105,6 +106,8 @@ function StatBar({ value, max, color = 'var(--st-accent)' }) {
 }
 
 function SetStatsDisplay({ cards, loading }) {
+  const typesMap = useTypes();
+
   if (loading) {
     return (
       <div className="set-stats-loading"><span className="stories-spinner" /></div>
@@ -154,9 +157,10 @@ function SetStatsDisplay({ cards, loading }) {
           <tbody>
             {ENCOUNTER_TYPES.map(({ code, label, color }) => {
               const count = s.typeCount[code] || 0;
+              const translatedLabel = typesMap[code] || label;
               return (
                 <tr key={code}>
-                  <td className="set-stats-type-label">{label}</td>
+                  <td className="set-stats-type-label">{translatedLabel}</td>
                   <td className="set-stats-bar-cell">
                     <StatBar value={count} max={s.total} color={color} />
                   </td>

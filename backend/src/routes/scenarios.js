@@ -20,10 +20,13 @@ const router = Router();
  */
 router.get('/scenarios', async (req, res, next) => {
   try {
-    const { user_id } = req.query;
+    const { user_id, locale = 'en' } = req.query;
     const donator = await isUserDonator(user_id);
+    const locClean = locale.toLowerCase();
 
     const db = require('../config/database');
+    const PackModel = require('../models/pack.model');
+    const CardsetModel = require('../models/cardset.model');
 
     // Fetch scenarios from DB; non-donators only see visibility != 0
     let query = db('scenario').select(
@@ -69,21 +72,25 @@ router.get('/scenarios', async (req, res, next) => {
       }
     }
 
-    // Fetch pack names from DB
+    // Fetch translated pack names and cardset names
+    const packMap = await PackModel.getTranslationMap(locClean);
+    const cardsetMap = await CardsetModel.getTranslationMap(locClean);
+    
     let packNameMap = {};
     if (packCodes.size > 0) {
+      const codesArr = [...packCodes];
+      // Get base names from db just in case translation is missing
       const rows = await db('pack')
-        .whereIn('code', [...packCodes])
+        .whereIn('code', codesArr)
         .select('code', 'name');
       for (const r of rows) {
-        packNameMap[r.code] = r.name;
+        packNameMap[r.code] = packMap[r.code] || r.name;
       }
-      // Also look up in cardset table — villain/modular set codes live here
       const csRows = await db('Cardset')
-        .whereIn('code', [...packCodes])
+        .whereIn('code', codesArr)
         .select('code', 'name');
       for (const r of csRows) {
-        packNameMap[r.code] = r.name;
+        packNameMap[r.code] = cardsetMap[r.code] || packMap[r.code] || r.name;
       }
     }
 
@@ -124,7 +131,9 @@ router.get('/scenarios', async (req, res, next) => {
 router.get('/cardsets', async (req, res, next) => {
   try {
     const db = require('../config/database');
-    const { type } = req.query;
+    const CardsetModel = require('../models/cardset.model');
+    const { type, locale = 'en' } = req.query;
+    const locClean = locale.toLowerCase();
 
     // Start from `card` and join Cardset/Cardsettype so we only return sets
     // that actually have cards in the database (not phantom empty sets).
@@ -145,10 +154,12 @@ router.get('/cardsets', async (req, res, next) => {
     }
 
     const rows = await q;
+    const cardsetMap = await CardsetModel.getTranslationMap(locClean);
+
     res.json(rows.map(r => ({
       id: r.id,
       code: r.code,
-      name: r.name,
+      name: cardsetMap[r.code] || r.name,
       type_code: r.type_code || null,
       type_name: r.type_name || null,
     })));
@@ -171,6 +182,7 @@ router.get('/sets', async (req, res, next) => {
   try {
     const db = require('../config/database');
     const { isUserDonator } = require('../utils/donatorUtils');
+    const CardsetModel = require('../models/cardset.model');
     const { user_id } = req.query;
     const donator = await isUserDonator(user_id);
 
@@ -209,6 +221,8 @@ router.get('/sets', async (req, res, next) => {
       return visOK && langOK;
     });
 
+    const cardsetMap = await CardsetModel.getTranslationMap(localeClean);
+
     // Build nemesis map: hero_set_code → nemesis_set_code
     // 1. Use explicit parent_code if available
     // 2. Fall back to convention: nemesis code = hero_code + '_nemesis'
@@ -244,7 +258,7 @@ router.get('/sets', async (req, res, next) => {
       result[group][typeCode].push({
         id: row.id,
         code: row.code,
-        name: row.name,
+        name: cardsetMap[row.code] || row.name,
         type_code: row.type_code,
         type_name: row.type_name,
         nemesis_code: nemesisMap[row.code] || null,

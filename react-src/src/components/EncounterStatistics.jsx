@@ -2,17 +2,17 @@ import React, { useMemo } from 'react';
 import '@css/Stories.css';
 
 const ENCOUNTER_TYPES = [
-  { name: 'Villain',      color: '#ef4444' },
-  { name: 'Main Scheme',  color: '#8b5cf6' },
-  { name: 'Side Scheme',  color: '#3b82f6' },
-  { name: 'Minion',       color: '#f97316' },
-  { name: 'Treachery',    color: '#a855f7' },
-  { name: 'Attachment',   color: '#eab308' },
-  { name: 'Environment',  color: '#22c55e' },
-  { name: 'Obligation',   color: '#6b7280' },
+  { code: 'villain',      color: '#ef4444' },
+  { code: 'main_scheme',  color: '#8b5cf6' },
+  { code: 'side_scheme',  color: '#3b82f6' },
+  { code: 'minion',       color: '#f97316' },
+  { code: 'treachery',    color: '#a855f7' },
+  { code: 'attachment',   color: '#eab308' },
+  { code: 'environment',  color: '#22c55e' },
+  { code: 'obligation',   color: '#6b7280' },
 ];
 
-const TYPE_COLOR_MAP = Object.fromEntries(ENCOUNTER_TYPES.map(t => [t.name, t.color]));
+const TYPE_COLOR_MAP = Object.fromEntries(ENCOUNTER_TYPES.map(t => [t.code, t.color]));
 
 const BOOST_ROWS = [
   { key: 0,    iconCount: 0 },
@@ -55,11 +55,12 @@ export default function EncounterStatistics({ cards = [], title = 'Encounter Sta
     // --- Type breakdown ---
     const typeMap = {};
     for (const c of effectiveCards) {
+      const code = (c.type_code || 'other').toLowerCase();
       const name = c.type_name || 'Other';
-      typeMap[name] = (typeMap[name] || 0) + (c.quantity ?? 1);
+      if (!typeMap[code]) typeMap[code] = { code, name, count: 0 };
+      typeMap[code].count += (c.quantity ?? 1);
     }
-    const types = Object.entries(typeMap)
-      .map(([name, count]) => ({ name, count }))
+    const types = Object.values(typeMap)
       .sort((a, b) => b.count - a.count);
 
     // --- Boost distribution (histogram by boost value) ---
@@ -121,10 +122,10 @@ export default function EncounterStatistics({ cards = [], title = 'Encounter Sta
         <p className="set-stats-section-title">Type</p>
         <table className="set-stats-table">
           <tbody>
-            {stats.types.map(({ name, count }) => {
-              const color = TYPE_COLOR_MAP[name] || '#94a3b8';
+            {stats.types.map(({ code, name, count }) => {
+              const color = TYPE_COLOR_MAP[code] || '#94a3b8';
               return (
-                <tr key={name}>
+                <tr key={code}>
                   <td className="set-stats-type-label">{name}</td>
                   <td className="set-stats-bar-cell">
                     <div className="set-stat-bar-bg">
