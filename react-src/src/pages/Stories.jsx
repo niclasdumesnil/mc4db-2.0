@@ -73,8 +73,8 @@ function computeSetStats(cards) {
     const t = (c.type_code || '').toLowerCase();
     return t !== 'villain' && t !== 'main_scheme';
   });
-  const total = encounterCards.length;
-  const totalAll = cards.length;
+  const total = encounterCards.reduce((n, c) => n + (c.quantity ?? 1), 0);
+  const totalAll = cards.reduce((n, c) => n + (c.quantity ?? 1), 0);
   const typeCount = {};
   const boostCount = { 0: 0, 1: 0, 2: 0, '3+': 0 };
   let totalBoost = 0;
@@ -82,12 +82,13 @@ function computeSetStats(cards) {
 
   for (const card of encounterCards) {
     const type = (card.type_code || '').toLowerCase();
-    typeCount[type] = (typeCount[type] || 0) + 1;
+    const qty = card.quantity ?? 1;
+    typeCount[type] = (typeCount[type] || 0) + qty;
     const b = Math.max(0, parseInt(card.boost ?? 0, 10));
-    totalBoost += b;
-    if (card.boost_star) totalBoostStar++;
+    totalBoost += b * qty;
+    if (card.boost_star) totalBoostStar += qty;
     const bKey = b >= 3 ? '3+' : b;
-    boostCount[bKey] = (boostCount[bKey] || 0) + 1;
+    boostCount[bKey] = (boostCount[bKey] || 0) + qty;
   }
 
   return {

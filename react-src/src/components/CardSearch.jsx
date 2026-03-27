@@ -199,7 +199,13 @@ export default function CardSearch({ filters, onChange, types = [], subtypes = [
     filters.res_physical || filters.res_mental || filters.res_energy || filters.res_wild ||
     filters.illustrator;
 
-  const reset = () => onChange(EMPTY_FILTERS);
+  const reset = () => {
+    onChange({ 
+      ...EMPTY_FILTERS, 
+      pack: filters.pack || '', 
+      creator_name: filters.creator_name || '' 
+    });
+  };
 
   return (
     <div className="card-search">
