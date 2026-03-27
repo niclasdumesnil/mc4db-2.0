@@ -1099,7 +1099,7 @@ router.put('/user/:userId/decks/:deckId/publish', async (req, res) => {
       user_id: userId,
       card_id: deck.character_id,
       last_pack_id: deck.last_pack_id,
-      parent_deck_id: prevDecklist ? prevDecklist.id : null,
+      parent_deck_id: deckId,
       precedent_decklist_id: prevDecklist ? prevDecklist.id : null,
       uuid: require('crypto').randomUUID(),
       name: deck.name,

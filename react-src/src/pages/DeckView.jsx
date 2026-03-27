@@ -60,6 +60,7 @@ export default function DeckView() {
   // Deck-building state
   const [deckAspect, setDeckAspect] = useState(null);
   const [deckTags, setDeckTags] = useState('');
+  const [customTagsText, setCustomTagsText] = useState('');
   const [showUnauthorized, setShowUnauthorized] = useState(false);
   const [heroCard, setHeroCard] = useState(null);
   const [validationCards, setValidationCards] = useState([]);
@@ -86,9 +87,19 @@ export default function DeckView() {
       if (meta?.aspect) setDeckAspect(meta.aspect);
     } catch (_) {}
     setDeckTags(deck.tags || '');
+    
+    // Extract non-icon custom tags into text field
+    if (deck.tags) {
+      const tagsArr = deck.tags.split(',').map(t => t.trim()).filter(Boolean);
+      const custom = tagsArr.filter(t => !DECK_TAGS[t]);
+      setCustomTagsText(custom.join(', '));
+    } else {
+      setCustomTagsText('');
+    }
+    
     setLiveTitle(null); // reset live title on deck change
     setLiveDescription(null);
-  }, [deck?.id]);
+  }, [deck?.id, deck?.tags, deck?.meta, deck?.name]);
 
   // Auto-infer aspect from live slots when editing, ONLY if no aspect is currently selected
   useEffect(() => {
@@ -374,6 +385,44 @@ export default function DeckView() {
                       </button>
                     );
                   })}
+                  
+                  {/* Custom Tags Rendering */}
+                  {(() => {
+                    const currentTags = deckTags ? deckTags.split(',').map(tag => tag.trim()).filter(Boolean) : [];
+                    const customTagsList = currentTags.filter(t => !DECK_TAGS[t]);
+                    
+                    return (
+                      <>
+                        {!showEditor && customTagsList.map(tag => (
+                          <span key={tag} style={{ background: '#374151', color: '#e2e8f0', padding: '2px 8px', borderRadius: '4px', fontSize: '0.8rem', display: 'inline-flex', alignItems: 'center' }}>
+                            {tag}
+                          </span>
+                        ))}
+                        {showEditor && (
+                          <div style={{ position: 'relative', display: 'inline-block', marginLeft: '8px' }}>
+                            <input
+                              type="text"
+                              placeholder="Extra tags (e.g. tournament, fun)..."
+                              value={customTagsText}
+                              onChange={e => setCustomTagsText(e.target.value)}
+                              title="Separate multiple custom tags with commas (e.g. 'tournament, funny, testing')"
+                              style={{ 
+                                background: '#1e293b', border: '1px solid #334155', color: '#fff', 
+                                padding: '4px 8px', borderRadius: '4px', fontSize: '0.8rem', 
+                                minWidth: '220px'
+                              }}
+                            />
+                            {/* Petit message explicatif sous l'input */}
+                            {customTagsText.length > 0 && typeof customTagsText === 'string' && !customTagsText.includes(',') && customTagsText.indexOf(' ') !== -1 && (
+                              <div style={{ position: 'absolute', top: '100%', left: 0, marginTop: '4px', fontSize: '0.65rem', color: '#94a3b8', whiteSpace: 'nowrap' }}>
+                                Separate multiple tags with a comma <code style={{ color: '#fff' }}>,</code>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </>
+                    );
+                  })()}
                 </div>
               </div>
             )}
@@ -436,11 +485,16 @@ export default function DeckView() {
                         const titleToSave = (liveTitle ?? deck?.name ?? '').trim() || undefined;
                         const descriptionToSave = (liveDescription ?? deck?.description_md ?? '').trim() || undefined;
                         const metaToSave = { aspect: deckAspect || undefined };
+                        
+                        const iconTags = deckTags.split(',').map(t => t.trim()).filter(t => t && DECK_TAGS[t]);
+                        const extraTags = customTagsText.split(',').map(t => t.trim()).filter(Boolean);
+                        const finalTagsToSave = [...iconTags, ...extraTags].join(',');
+
                         await editorRef.current?.save({
                           name: titleToSave,
                           description_md: descriptionToSave,
                           meta: metaToSave,
-                          tags: deckTags,
+                          tags: finalTagsToSave,
                         });
                       }
                       catch (e) { setSaveError(e?.message || 'Save failed.'); }

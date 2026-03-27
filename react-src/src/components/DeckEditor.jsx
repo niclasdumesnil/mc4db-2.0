@@ -927,7 +927,7 @@ export default forwardRef(function DeckEditor(
                 className={`editor-filter-badge editor-filter-badge--current${filters.showCurrent ? ' editor-filter-badge--on' : ' editor-filter-badge--off'}`}
                 onClick={() => handleToggle('showCurrent')}
                 title={filters.showCurrent ? 'Show all cards' : 'Show current format only'}
-              >⚡ Current</button>
+              >⚡ Show Current Only</button>
             </div>
           </div>
 
