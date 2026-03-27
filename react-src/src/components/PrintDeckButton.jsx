@@ -49,6 +49,7 @@ export default function PrintDeckButton({ deckId, deckName, isPrivate, className
         name:          deckData.name,
         hero_name:     deckData.hero_name,
         hero_imagesrc: deckData.hero_imagesrc,
+        tags:          deckData.tags,
       };
 
       // Generate both images in parallel
@@ -70,8 +71,9 @@ export default function PrintDeckButton({ deckId, deckName, isPrivate, className
       }
 
       // Stagger slightly so browser doesn't block the second download
-      download(blobByType,    `${safeName}.jpg`);
-      setTimeout(() => download(blobByFaction, `${safeName}-faction.jpg`), 200);
+      const locSuffix = locale.toUpperCase();
+      download(blobByType,    `${safeName}-${locSuffix}.jpg`);
+      setTimeout(() => download(blobByFaction, `${safeName}-faction-${locSuffix}.jpg`), 200);
     } catch (err) {
       console.error('Print error:', err);
     } finally {

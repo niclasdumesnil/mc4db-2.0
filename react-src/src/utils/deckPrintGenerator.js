@@ -12,6 +12,8 @@
  * Returns a Promise<Blob> (JPEG).
  */
 
+import { DECK_TAGS } from './dataUtils';
+
 // ── Faction colours (RGB) ──────────────────────────────────────────────────
 const FACTION_COLORS = {
   hero:          [120, 120, 120],
@@ -278,15 +280,27 @@ async function buildCanvas(deck, slots, locale, sortByFaction) {
   ctx.stroke();
 
   // Title text (black, auto-wrapped)
-  ctx.font = `bold ${TITLE_SIZE}px Arial, sans-serif`;
   const titleMaxW  = titleBoxW - 60;
-  const titleLines = wrapText(ctx, deck.name, titleMaxW);
-  const totalTxtH  = titleLines.length * (TITLE_SIZE + 10);
-  const txtStartY  = titleBoxY + (PORTRAIT_H - totalTxtH) / 2 + (TITLE_SIZE + 10) / 2;
+  let titleSize = TITLE_SIZE;
+  let titleLines = [];
+  let totalTxtH = 0;
+  
+  // Ensure the stacked lines fit dynamically within the vertical height constraint
+  const maxBoxH = PORTRAIT_H - 16;
+  do {
+    ctx.font = `bold ${titleSize}px Arial, sans-serif`;
+    titleLines = wrapText(ctx, deck.name, titleMaxW);
+    totalTxtH = titleLines.length * (titleSize + 10);
+    if (totalTxtH > maxBoxH) {
+      titleSize -= 3;
+    }
+  } while (totalTxtH > maxBoxH && titleSize >= 24);
+
+  const txtStartY  = titleBoxY + (PORTRAIT_H - totalTxtH) / 2 + (titleSize + 10) / 2;
   ctx.fillStyle = '#000000'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
   const titleCX = titleBoxX + titleBoxW / 2;
   titleLines.forEach((line, i) => {
-    ctx.fillText(line, titleCX, txtStartY + i * (TITLE_SIZE + 10));
+    ctx.fillText(line, titleCX, txtStartY + i * (titleSize + 10));
   });
 
   // ── Portrait box ──────────────────────────────────────────────────────────
@@ -308,11 +322,40 @@ async function buildCanvas(deck, slots, locale, sortByFaction) {
   roundRect(ctx, portraitX, portraitY, PORTRAIT_W, PORTRAIT_H, 22);
   ctx.stroke();
 
-  // Cards area
-  const cardsTop = Math.max(
+  // Calculate tags
+  let tagsStr = '';
+  if (deck.tags) {
+    const rawTags = deck.tags.split(',').map(t => t.trim()).filter(Boolean);
+    const displayTags = rawTags.map(t => DECK_TAGS[t] ? DECK_TAGS[t].label : t);
+    tagsStr = displayTags.join('  •  ');
+  }
+
+  const TAG_SIZE = 42; // Larger tag font size for print legibility
+  ctx.font = `italic ${TAG_SIZE}px Arial, sans-serif`;
+  // Give it slightly more width up to the portrait width since it is under both
+  const tagLines = tagsStr ? wrapText(ctx, tagsStr, titleBoxW + PORTRAIT_W) : [];
+
+  let boxesBottom = Math.max(
     TITLE_MARGIN + TOTAL_TITLE_H + 20,
     TITLE_MARGIN + PORTRAIT_H + 20
   );
+  
+  // Draw Tags below the boxes if they exist
+  if (tagsStr) {
+    ctx.fillStyle = '#666666';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'top';
+    const tagCX = titleBoxX + (titleBoxW + 16 + PORTRAIT_W) / 2;
+    let tagY = boxesBottom + 5;
+    tagLines.forEach((line) => {
+      ctx.fillText(line, tagCX, tagY);
+      tagY += TAG_SIZE + 12;
+    });
+    boxesBottom = tagY + 15;
+  }
+
+  // Cards area
+  const cardsTop = boxesBottom;
   const cardsH = H - cardsTop - 40;
 
   ctx.fillStyle = '#ffffff'; ctx.strokeStyle = '#000000'; ctx.lineWidth = 3;
