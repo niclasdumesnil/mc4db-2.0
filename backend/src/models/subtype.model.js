@@ -6,7 +6,7 @@ const db = require('../config/database');
 const subtypeTranslationCache = {};
 
 async function findAll(locale = 'en') {
-  let q = db('subtype as s')
+  let q = db('Subtype as s')
     .select('s.code');
 
   if (locale && locale !== 'en') {
