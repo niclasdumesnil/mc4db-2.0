@@ -213,7 +213,10 @@ export default function DeckView() {
     finally { setCloning(false); }
   };
 
+  const isPrivatePack = deck?.pack_visibility === 'false' || deck?.pack_visibility === false;
+
   const handlePublish = async () => {
+    if (isPrivatePack) return;
     if (!window.confirm('Are you sure you want to publish this deck?')) return;
     setPublishing(true);
     const userId = currentUserId();
@@ -384,7 +387,7 @@ export default function DeckView() {
                 <button className="deck-view-action-btn" disabled={cloning} onClick={handleClone} title="Clone">
                   {cloning ? '…' : '📋'} Clone
                 </button>
-                <button className="deck-view-action-btn" disabled={publishing} onClick={handlePublish} title="Publish">
+                <button className="deck-view-action-btn" disabled={publishing || isPrivatePack} onClick={handlePublish} title={isPrivatePack ? 'Cannot publish a deck with a hero from a private pack.' : 'Publish'}>
                   {publishing ? '…' : '📤'} Publish
                 </button>
                 <button className="deck-view-action-btn" disabled={deleting} onClick={handleDelete} title="Delete">

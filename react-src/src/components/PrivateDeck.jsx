@@ -36,8 +36,11 @@ export default function PrivateDeck({ deck }) {
     finally { setBusy(null); }
   };
 
+  const isPrivatePack = deck.pack_visibility === 'false' || deck.pack_visibility === false;
+
   const handlePublish = async (e) => {
     e.stopPropagation();
+    if (isPrivatePack) return;
     if (!window.confirm('Are you sure you want to publish this deck?')) return;
     setBusy('publish');
     try {
@@ -80,7 +83,12 @@ export default function PrivateDeck({ deck }) {
       <button className="deck-action-btn" disabled={busy === 'clone'} onClick={handleClone} title="Clone">
         {busy === 'clone' ? '…' : '📋'}
       </button>
-      <button className="deck-action-btn" disabled={busy === 'publish'} onClick={handlePublish} title="Publish">
+      <button 
+        className="deck-action-btn" 
+        disabled={busy === 'publish' || isPrivatePack} 
+        onClick={handlePublish} 
+        title={isPrivatePack ? 'Cannot publish a deck with a hero from a private pack.' : 'Publish'}
+      >
         {busy === 'publish' ? '…' : '📤'}
       </button>
       <button className="deck-action-btn" disabled={busy === 'delete'} onClick={handleDelete} title="Delete">

@@ -692,7 +692,7 @@ router.get('/user/:id/decks', async (req, res) => {
         'd.tags', 'd.meta', 'd.problem',
         'c.code as hero_code', 'c.name as hero_name',
         'f.code as faction_code',
-        'p.code as pack_code', 'p.creator as pack_creator', 'p.environment as pack_environment', 'p.status as pack_status'
+        'p.code as pack_code', 'p.creator as pack_creator', 'p.environment as pack_environment', 'p.status as pack_status', 'p.visibility as pack_visibility'
       )
       .orderBy('d.date_update', 'desc')
       .limit(limit)
@@ -728,7 +728,7 @@ router.get('/user/:userId/decks/:deckId', async (req, res) => {
     const deck = await db('deck as d')
       .join('card as c', 'd.character_id', 'c.id')
       .leftJoin('pack as p', 'c.pack_id', 'p.id')
-      .select('d.*', 'c.name as hero_name', 'c.code as hero_code', 'c.meta as hero_meta', 'c.octgn_id as hero_octgn_id', 'p.code as pack_code')
+      .select('d.*', 'c.name as hero_name', 'c.code as hero_code', 'c.meta as hero_meta', 'c.octgn_id as hero_octgn_id', 'p.code as pack_code', 'p.visibility as pack_visibility')
       .where('d.id', deckId)
       .andWhere('d.user_id', userId)
       .first();
@@ -1077,6 +1077,12 @@ router.put('/user/:userId/decks/:deckId/publish', async (req, res) => {
 
     const deck = await db('deck').where({ id: deckId, user_id: userId }).first();
     if (!deck) return res.status(404).json({ error: 'Deck not found or unauthorized' });
+
+    // Check hero pack visibility
+    const heroCard = await db('card').join('pack', 'card.pack_id', 'pack.id').where('card.id', deck.character_id).select('pack.visibility').first();
+    if (heroCard && heroCard.visibility === 'false') {
+      return res.status(403).json({ error: 'Cannot publish a deck with a hero from a private pack.' });
+    }
 
     const newMajor = deck.major_version + 1;
     const newVersion = `${newMajor}.0`;
