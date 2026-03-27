@@ -157,8 +157,15 @@ function renderSharedHeader() {
       if (document.readyState !== 'loading') { _mcRenderHeader(); }
 
       // ── Locale switcher ───────────────────────────────────────────────
+      // Enforce client-side locale definition to prevent server-side cache sharing
+      if (!localStorage.getItem('mc_locale')) {
+        window.__MC_LOCALE__ = 'en';
+      } else {
+        window.__MC_LOCALE__ = localStorage.getItem('mc_locale');
+      }
+
       function _mcGetLocale() {
-        return localStorage.getItem('mc_locale') || 'en';
+        return window.__MC_LOCALE__ || 'en';
       }
       function _mcRenderLocale() {
         var badge = document.getElementById('mc-locale-badge');
