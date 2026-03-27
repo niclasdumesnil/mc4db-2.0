@@ -13,12 +13,48 @@ import '../css/CardTooltip.css';
  */
 export default function CardTooltip() {
     const [hoverCode, setHoverCode] = useState(null);
-    const [position, setPosition] = useState({ x: 0, y: 0 });
+    const [position, setPosition] = useState({ left: -9999, top: -9999, visibility: 'hidden' });
     const [data, setData] = useState(null);
 
     const cache = useRef({});
     const timeoutId = useRef(null);
     const activeCode = useRef(null);
+    const targetRectRef = useRef(null);
+    const tooltipRef = useRef(null);
+
+    // Mesurer et positionner dynamiquement le tooltip après le rendu
+    useEffect(() => {
+        if (!hoverCode || !tooltipRef.current || !targetRectRef.current) return;
+        requestAnimationFrame(() => {
+            if (!tooltipRef.current || !targetRectRef.current) return;
+            const ttBox = tooltipRef.current.getBoundingClientRect();
+            const rect = targetRectRef.current;
+            
+            const scrollY = window.scrollY || window.pageYOffset;
+            
+            let x = rect.right + 15;
+            let y = rect.top + scrollY - 30; // base absolute Y
+            
+            // X-axis collision
+            if (x + ttBox.width > window.innerWidth) {
+                x = rect.left - ttBox.width - 15;
+                if (x < 10) x = 10; // failsafe
+            }
+            
+            // Y-axis bottom viewport collision
+            // On calcule où le bas se trouverait sur l'écran visible :
+            const screenY = y - scrollY; 
+            if (screenY + ttBox.height > window.innerHeight) {
+                // On remonte le tooltip pour que son bas touche (presque) le bas de l'écran
+                y = scrollY + window.innerHeight - ttBox.height - 15;
+            }
+            
+            // Y-axis top window collision
+            if (y < scrollY + 10) y = scrollY + 10;
+
+            setPosition({ left: x, top: y, visibility: 'visible' });
+        });
+    }, [hoverCode, data]);
 
     useEffect(() => {
         function onMouseOver(e) {
@@ -36,21 +72,8 @@ export default function CardTooltip() {
             timeoutId.current = setTimeout(() => {
                 if (activeCode.current !== code) return;
 
-                // Calculate Position
-                const rect = target.getBoundingClientRect();
-                // Position normally to the right
-                let x = rect.right + 15;
-                let y = rect.top + window.scrollY - 30;
-
-                // If too far right, flip to the left
-                if (x + 350 > window.innerWidth) {
-                    x = rect.left - 365;
-                }
-
-                // Don't go above screen or below screen easily (approximate bounds)
-                if (y < window.scrollY + 10) y = window.scrollY + 10;
-
-                setPosition({ x, y });
+                targetRectRef.current = target.getBoundingClientRect();
+                setPosition({ left: -9999, top: -9999, visibility: 'hidden' });
                 setHoverCode(code);
 
                 // Fetch Data
@@ -101,10 +124,12 @@ export default function CardTooltip() {
 
     return createPortal(
         <div
+            ref={tooltipRef}
             className="card-tooltip"
             style={{
-                left: position.x,
-                top: position.y,
+                left: position.left,
+                top: position.top,
+                visibility: position.visibility,
                 '--tooltip-faction': data ? getFactionColor(data.faction_code) : '#374151'
             }}
         >
