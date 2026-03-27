@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
-import { getFactionColor } from '@utils/dataUtils';
-
-// ── Faction / Aspect pills ───────────────────────────────
+import SmartSearchInput from './SmartSearchInput';
+import { getFactionColor } from '@utils/dataUtils';// ── Faction / Aspect pills ───────────────────────────────
 const AFFINITIES = [
   { code: 'pool', label: "'Pool" },
   { code: 'aggression', label: 'Aggression' },
@@ -268,19 +267,17 @@ export default function CardSearch({ filters, onChange, types = [], subtypes = [
         onReset={() => set({ text: '', flavor: '' })}
       >
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          <input
+          <SmartSearchInput
             className="card-search__input"
-            type="text"
             placeholder="Card text…"
             value={filters.text || ''}
-            onChange={e => set({ text: e.target.value })}
+            onChange={val => set({ text: val })}
           />
-          <input
+          <SmartSearchInput
             className="card-search__input"
-            type="text"
             placeholder="Flavor text…"
             value={filters.flavor || ''}
-            onChange={e => set({ flavor: e.target.value })}
+            onChange={val => set({ flavor: val })}
           />
         </div>
       </Section>
@@ -399,12 +396,11 @@ export default function CardSearch({ filters, onChange, types = [], subtypes = [
 
 
         <span className="card-search__numeric-label">Traits</span>
-        <input
+        <SmartSearchInput
           className="card-search__input"
-          type="text"
           placeholder="e.g. Avenger"
           value={filters.traits || ''}
-          onChange={e => set({ traits: e.target.value })}
+          onChange={val => set({ traits: val })}
           style={{ marginBottom: 8 }}
         />
 

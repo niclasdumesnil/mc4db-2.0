@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback, useImperativeHandle, forwardRef } from 'react';
 import AvailableCardList from './AvailableCardList';
+import SmartSearchInput, { evaluateQueryMatch } from './SmartSearchInput';
 import { getFactionColor } from '@utils/dataUtils';
 import { canIncludeCard } from '@utils/deckValidation';
 import { useFactions } from '../hooks/useFactions';
@@ -412,15 +413,11 @@ export default forwardRef(function DeckEditor(
       if (filters.showCurrent && card.pack_environment !== 'current') return false;
       // Traits filter
       if (traitFilter.trim()) {
-        const needle = traitFilter.trim().toLowerCase();
-        const haystack = (card.traits || '').toLowerCase();
-        if (!haystack.includes(needle)) return false;
+        if (!evaluateQueryMatch(traitFilter, card.traits)) return false;
       }
       // Text filter
       if (textFilter.trim()) {
-        const needle = textFilter.trim().toLowerCase();
-        const haystack = (card.text || '').toLowerCase();
-        if (!haystack.includes(needle)) return false;
+        if (!evaluateQueryMatch(textFilter, card.text)) return false;
       }
       // Resource filter (min qty)
       if (resFilter.energy   > 0 && (card.resource_energy   || 0) < resFilter.energy)   return false;
@@ -832,7 +829,7 @@ export default forwardRef(function DeckEditor(
           {/* Type row */}
           <div className="editor-filter-row">
             <span className="editor-filter-bar-label">Type</span>
-            <div className="editor-filter-pills editor-filter-pills--nowrap">
+            <div className="editor-filter-pills">
               {TYPE_LIST.map(({ code, label }) => {
                 const active = selectedType === code;
                 return (
@@ -852,12 +849,11 @@ export default forwardRef(function DeckEditor(
           <div className="editor-filter-row">
             <span className="editor-filter-bar-label">Traits</span>
             <div className="editor-filter-text-wrap">
-              <input
+              <SmartSearchInput
                 className="editor-filter-text-input"
-                type="text"
                 placeholder="Filter by traits…"
                 value={traitFilter}
-                onChange={e => setTraitFilter(e.target.value)}
+                onChange={setTraitFilter}
               />
               {traitFilter && (
                 <button className="editor-filter-text-clear" onClick={() => setTraitFilter('')} title="Clear">
@@ -867,12 +863,11 @@ export default forwardRef(function DeckEditor(
             </div>
             <span className="editor-filter-bar-label editor-filter-bar-label--inline">Text</span>
             <div className="editor-filter-text-wrap">
-              <input
+              <SmartSearchInput
                 className="editor-filter-text-input"
-                type="text"
                 placeholder="Filter by card text…"
                 value={textFilter}
-                onChange={e => setTextFilter(e.target.value)}
+                onChange={setTextFilter}
               />
               {textFilter && (
                 <button className="editor-filter-text-clear" onClick={() => setTextFilter('')} title="Clear">

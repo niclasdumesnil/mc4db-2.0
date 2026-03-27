@@ -3,6 +3,63 @@
  */
 const db = require('../config/database');
 
+function buildAdvancedSearch(queryStr, fields) {
+  return function() {
+    if (!queryStr) return;
+    const normalized = queryStr.replace(/\b(ou|or)\b/gi, '|').replace(/\b(et|and)\b/gi, '&').replace(/\b(sauf|not)\b/gi, '!');
+    const tokenRegex = /("[^"]*"|[^|&\s]+|\||&|!)/g;
+    let match;
+    const orGroups = [];
+    let currentAndGroup = [];
+    let isNot = false;
+
+    while ((match = tokenRegex.exec(normalized)) !== null) {
+      let token = match[0];
+      if (token === '|') {
+        if (currentAndGroup.length > 0) { orGroups.push(currentAndGroup); currentAndGroup = []; }
+        isNot = false; continue;
+      }
+      if (token === '&') { continue; }
+      if (token === '!') { isNot = true; continue; }
+      
+      if (token.startsWith('!')) { isNot = true; token = token.substring(1); }
+      else if (token.startsWith('-')) { isNot = true; token = token.substring(1); }
+      
+      if (token.startsWith('"') && token.endsWith('"')) token = token.substring(1, token.length - 1);
+      if (token.trim() !== '') {
+        currentAndGroup.push({ phrase: token, exclude: isNot });
+      }
+      isNot = false;
+    }
+    if (currentAndGroup.length > 0) orGroups.push(currentAndGroup);
+
+    if (orGroups.length === 0) return;
+
+    for (const group of orGroups) {
+      if (group.length === 0) continue;
+      this.orWhere(function() {
+        for (const term of group) {
+           const likeOp = term.exclude ? 'NOT LIKE' : 'LIKE';
+           this.where(function() {
+             for (let i = 0; i < fields.length; i++) {
+               const field = fields[i];
+               const sql = `${field} ${likeOp} ?`;
+               const bindings = [`%${term.phrase}%`];
+               if (term.exclude) {
+                 if (i === 0) this.whereRaw(sql, bindings);
+                 else this.andWhereRaw(sql, bindings);
+               } else {
+                 if (i === 0) this.whereRaw(sql, bindings);
+                 else this.orWhereRaw(sql, bindings);
+               }
+             }
+           });
+        }
+      });
+    }
+  };
+}
+
 const BASE_CARD_COLUMNS = [
   'c.id', 'c.pack_id', 'c.code', 'c.name', 'c.real_name', 'c.subname', 'c.cost',
   'c.cost_per_hero', 'c.text', 'c.real_text', 'c.boost', 'c.boost_star', 'c.quantity',
@@ -237,12 +294,12 @@ async function searchCards(filters, pagination, donator) {
       else q = q.whereRaw('c.name LIKE ?', [`%${name}%`]);
   }
   if (text) {
-      if (locale && locale !== 'en') q = q.whereRaw('(COALESCE(ct.text, c.text) LIKE ? OR c.real_text LIKE ?)', [`%${text}%`, `%${text}%`]);
-      else q = q.whereRaw('(c.text LIKE ? OR c.real_text LIKE ?)', [`%${text}%`, `%${text}%`]);
+      const textFields = locale && locale !== 'en' ? ['COALESCE(ct.text, c.text)', 'c.real_text'] : ['c.text', 'c.real_text'];
+      q = q.where(buildAdvancedSearch(text, textFields));
   }
   if (flavor) {
-      if (locale && locale !== 'en') q = q.whereRaw('COALESCE(ct.flavor, c.flavor) LIKE ?', [`%${flavor}%`]);
-      else q = q.whereRaw('c.flavor LIKE ?', [`%${flavor}%`]);
+      const flavorFields = locale && locale !== 'en' ? ['COALESCE(ct.flavor, c.flavor)'] : ['c.flavor'];
+      q = q.where(buildAdvancedSearch(flavor, flavorFields));
   }
   if (pack) q = q.where('p.code', pack);
   if (cardset) q = q.where('cs.code', cardset);
@@ -263,8 +320,8 @@ async function searchCards(filters, pagination, donator) {
   }
   if (subtype) q = q.where('st.code', subtype);
   if (traits) {
-      if (locale && locale !== 'en') q = q.whereRaw('COALESCE(ct.traits, c.traits) LIKE ?', [`%${traits}%`]);
-      else q = q.whereRaw('c.traits LIKE ?', [`%${traits}%`]);
+      const traitsFields = locale && locale !== 'en' ? ['COALESCE(ct.traits, c.traits)'] : ['c.traits'];
+      q = q.where(buildAdvancedSearch(traits, traitsFields));
   }
   if (illustrator) q = q.whereRaw('c.illustrator LIKE ?', [`%${illustrator}%`]);
   if (is_unique === '1') q = q.where('c.is_unique', 1);

@@ -165,7 +165,7 @@ function renderSharedHeader() {
       }
 
       function _mcGetLocale() {
-        return window.__MC_LOCALE__ || 'en';
+        return localStorage.getItem('mc_locale') || window.__MC_LOCALE__ || 'en';
       }
       function _mcRenderLocale() {
         var badge = document.getElementById('mc-locale-badge');
