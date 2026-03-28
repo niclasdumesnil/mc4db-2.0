@@ -52,6 +52,7 @@
   position: relative;
   z-index: 2;
   flex: 1;
+  min-width: 0; /* Ensures children can truncate with ellipsis */
   padding-right: 8px;
   display: flex;
   flex-direction: column;
@@ -383,6 +384,7 @@
 .deck-filters__hero-selects {
   display: flex;
   flex-direction: row;
+  flex-wrap: wrap;
   gap: 8px;
 }
 
@@ -416,7 +418,7 @@
 /* Aspect buttons */
 .deck-filters__aspects {
   display: flex;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
   gap: 5px;
   overflow: visible;
 }
@@ -614,7 +616,7 @@
   .deck-filters__actions {
     margin-left: 0;
     width: 100%;
-    justify-content: space-between;
+    justify-content: flex-end;
   }
 }
 
