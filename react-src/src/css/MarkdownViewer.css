@@ -2,6 +2,8 @@
   color: var(--st-text);
   font-size: 14px;
   line-height: 1.6;
+  word-break: break-word; /* Prevents long contiguous strings from destroying flexbox columns */
+  overflow-wrap: anywhere;
 }
 
 .markdown-viewer h1,

@@ -77,7 +77,9 @@ export default function DeckComments({ deckId, isOwner, updateCommentCount }) {
             background: 'var(--st-surface-3, rgba(255, 255, 255, 0.05))',
             border: '1px solid var(--st-border, rgba(255,255,255,0.1))',
             borderRadius: '8px', 
-            padding: '16px'
+            padding: '16px',
+            overflowWrap: 'anywhere',
+            wordBreak: 'break-word'
           }}>
             <div style={{ display: 'flex', alignItems: 'center', marginBottom: '8px', gap: '8px' }}>
               <span style={{ fontWeight: 'bold', color: 'var(--st-title, #fff)' }}>{c.author_name}</span>

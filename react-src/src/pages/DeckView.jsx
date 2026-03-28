@@ -328,17 +328,25 @@ export default function DeckView() {
           {/* Infos textuelles */}
           <div className="deck-view-banner-info" style={{ borderTop: `4px solid ${headerColor}` }}>
             <div className="deck-view-title-row">
-              <h1 className="deck-view-title">{liveTitle ?? deck.name}</h1>
+              <h1 
+                className="deck-view-title"
+                style={{
+                  fontSize: (liveTitle ?? deck.name).length > 40 ? '1.45rem' : (liveTitle ?? deck.name).length > 25 ? '1.85rem' : undefined
+                }}
+              >
+                {liveTitle ?? deck.name}
+              </h1>
             </div>
-            <div className="deck-view-subtitle" style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap' }}>
-              {deck.hero_name && <span className="deck-view-hero">{deck.hero_name}</span>}
-              {deck.version && <span className="deck-view-version">v{deck.version}</span>}
-              <span className="deck-view-aspect-dot" style={{ background: headerColor }} />
-              <span className="deck-view-aspect-name">{factionsMap[aspect] || aspect.charAt(0).toUpperCase() + aspect.slice(1)}</span>
-              {isPrivate && <span className="deck-view-private-badge">🔒 Private</span>}
-              {deck.author_name && <span className="deck-view-author">by {deck.author_name}</span>}
-              <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '12px' }}>
-                {updatedAt && <span className="deck-view-updated" style={{ color: 'var(--st-text-muted, #8a99af)', fontSize: '0.9em' }}>Updated {updatedAt}</span>}
+            <div className="deck-view-subtitle" style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                {deck.hero_name && <span className="deck-view-hero">{deck.hero_name}</span>}
+                {deck.version && <span className="deck-view-version">v{deck.version}</span>}
+                <span className="deck-view-aspect-dot" style={{ background: headerColor }} />
+                <span className="deck-view-aspect-name">{factionsMap[aspect] || aspect.charAt(0).toUpperCase() + aspect.slice(1)}</span>
+                {isPrivate && <span className="deck-view-private-badge">🔒 Private</span>}
+                {deck.author_name && <span className="deck-view-author">by {deck.author_name}</span>}
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                 {!isPrivate && deck && (
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.9rem', color: 'var(--st-text-muted, #8a99af)' }}>
                     <button 
@@ -351,6 +359,11 @@ export default function DeckView() {
                     >⭐ {deck.favorites || 0}</button>
                     <span title="Comments" style={{ cursor: 'pointer' }} onClick={() => setShowDescriptionPanel(false)}>💬 {deck.comments || 0}</span>
                   </div>
+                )}
+                {updatedAt && (
+                  <span className="deck-view-updated" style={{ color: 'var(--st-text-muted, #8a99af)', fontSize: '0.9em', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    📅 {updatedAt}
+                  </span>
                 )}
               </div>
             </div>
@@ -575,19 +588,6 @@ export default function DeckView() {
             </div>
           </>
         )}
-
-        {/* Problèmes de validation (non-bloquants) */}
-        {(deckProblems.length > 0 || saveProblems.length > 0) && (
-          <div className="dvt-problems">
-            {deckProblems.map((p, i) => (
-              <div key={`dp-${i}`} className="dvt-problem-item">⚠ {p}</div>
-            ))}
-            {saveProblems.map((p, i) => (
-              <div key={`sp-${i}`} className="dvt-problem-item dvt-problem-item--save">🚫 {p}</div>
-            ))}
-          </div>
-        )}
-
         {/* Right side items: Description */}
         {!showEditor && (
           <div className="dvt-section" style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -600,6 +600,18 @@ export default function DeckView() {
                 📝 {showDescriptionPanel ? 'Hide Description' : 'Show Description'}
               </button>
             )}
+          </div>
+        )}
+
+        {/* Problèmes de validation (non-bloquants) */}
+        {(deckProblems.length > 0 || saveProblems.length > 0) && (
+          <div className="dvt-problems">
+            {deckProblems.map((p, i) => (
+              <div key={`dp-${i}`} className="dvt-problem-item">⚠ {p}</div>
+            ))}
+            {saveProblems.map((p, i) => (
+              <div key={`sp-${i}`} className="dvt-problem-item dvt-problem-item--save">🚫 {p}</div>
+            ))}
           </div>
         )}
       </div>
@@ -639,32 +651,36 @@ export default function DeckView() {
           </div>
         )}
         {!showEditor && showDescriptionPanel && deck?.description_md && (
-          <div className="deck-view-right" style={{ flex: '0 0 640px', maxWidth: '100%' }}>
+          <div className="deck-view-description-col">
             <div className="deck-description-container">
               <MarkdownViewer content={deck.description_md} />
             </div>
           </div>
         )}
-        {!showEditor && !showDescriptionPanel && isPrivate && (
-          <div className="deck-view-history-col">
-            <DeckHistory
-              deckId={deckId}
-              isPrivate={isPrivate}
-              locale={locale}
-              refreshKey={historyRefreshKey}
-            />
-          </div>
-        )}
-        {!showEditor && !showDescriptionPanel && !isPrivate && (
-          <div className="deck-view-right" style={{ flex: '0 0 450px', maxWidth: '100%' }}>
-            <DeckComments 
-              deckId={deckId} 
-              uid={uid} 
-              updateCommentCount={() => setDeck(prev => prev ? ({ 
-                ...prev, 
-                comments: (prev.comments || 0) + 1 
-              }) : null)}
-            />
+        {!showEditor && !showDescriptionPanel && (
+          <div className="deck-view-right-group">
+            {isPrivate && (
+              <div className="deck-view-history-col">
+                <DeckHistory
+                  deckId={deckId}
+                  isPrivate={isPrivate}
+                  locale={locale}
+                  refreshKey={historyRefreshKey}
+                />
+              </div>
+            )}
+            {!isPrivate && (
+              <div className="deck-view-comments-col">
+                <DeckComments 
+                  deckId={deckId} 
+                  uid={uid} 
+                  updateCommentCount={() => setDeck(prev => prev ? ({ 
+                    ...prev, 
+                    comments: (prev.comments || 0) + 1 
+                  }) : null)}
+                />
+              </div>
+            )}
           </div>
         )}
         {showEditor && (

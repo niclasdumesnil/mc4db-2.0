@@ -521,8 +521,21 @@
   flex: 0 0 300px;
 }
 
-.deck-view-right {
+.deck-view-right-group {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
   flex: 0 0 320px;
+  max-width: 320px;
+  word-break: break-word;
+}
+.deck-view-comments-col {
+  width: 100%;
+}
+.deck-view-description-col {
+  flex: 0 0 640px;
+  max-width: 640px;
+  width: 100%;
 }
 
 .deck-description-container {
@@ -565,51 +578,160 @@
 }
 
 @media (max-width: 1200px) {
-  .deck-view-history-col {
-    display: none;
-  }
 }
 
-@media (max-width: 900px) {
-  .deck-view-body {
-    flex-direction: column;
-  }
+@media (max-width: 1100px) {
 
-  .deck-view-left,
-  .deck-view-right {
+  .deck-view-left {
     width: 100%;
     flex: unset;
   }
 
-  /* Sur petits écrans, on cache les cartes du set de fond car il n'y a plus de place */
+  /* On Tablet, put Stats, History, and Comments on the SAME row! */
+  .deck-view-middle {
+    flex: 0 0 300px;
+    width: 300px;
+  }
+  
+  .deck-view-right-group {
+    display: flex;
+    flex-direction: row;
+    flex: 1 1 auto;
+    max-width: calc(100% - 320px); /* Fill remaining space safely */
+  }
+
+  .deck-view-history-col,
+  .deck-view-comments-col {
+    flex: 1 1 0; /* Adjusts to fill remaining space */
+    max-width: 100%;
+  }
+
+  .deck-view-description-col {
+    width: 100%;
+    max-width: 100%;
+    flex: unset;
+  }
+
+  /* Hide background cards to save space */
   .card-set-1,
   .card-set-2,
   .card-set-3 {
     display: none;
   }
+
+  .deck-view-banner {
+    padding: 20px 10px 30px; /* Extra bottom padding for buttons */
+    margin-bottom: 20px;
+    height: auto;
+    min-height: 260px;
+    overflow: visible; /* Prevent cards from being clipped */
+    flex-direction: column;
+  }
+  
+  .deck-view-banner-center {
+    flex-direction: column; /* Force info panel and buttons to stack */
+    align-items: center;
+    width: 100%;
+  }
+
+  .deck-view-banner-info {
+    padding: 15px 20px;
+    width: 100%;
+    max-width: 550px; /* Reduced to avoid collision with absolute cards */
+    margin: 0 auto;
+    z-index: 10;
+  }
+
+  .deck-view-banner-btns {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    width: 100%;
+    max-width: 550px;
+    margin: 15px auto 0;
+  }
+
+  .deck-view-action-btn {
+    width: auto;
+    /* 6 buttons total, so calc 33% makes 2 rows of 3 buttons */
+    flex: 1 1 calc(33.33% - 10px);
+    justify-content: center;
+  }
+
+  /* Tablet retains PC absolute positioning but scaled down slightly */
+  .banner-card {
+    width: 140px;
+  }
+  .card-hero {
+    bottom: -20px;
+    left: 2%;
+  }
+  .card-alterego {
+    bottom: -20px;
+    right: 2%;
+  }
+}
+
+@media (max-width: 768px) {
+  /* On phone, the cards move above the info panel instead of flanking it */
+  .banner-cards-layer {
+    position: relative;
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    padding: 0 10px;
+    box-sizing: border-box;
+    margin: 0;
+    margin-top: -10px;
+    margin-bottom: 15px; /* Visual space above the panel */
+    pointer-events: none;
+    z-index: 20;
+  }
+
+  .banner-card {
+    position: relative;
+    width: 110px; /* Smaller for phone */
+    pointer-events: auto;
+  }
+  
+  .card-hero {
+    transform: rotate(-6deg) !important;
+    left: 0;
+    bottom: -10px;
+  }
+
+  .card-alterego {
+    transform: rotate(6deg) !important;
+    right: 0;
+    bottom: -10px;
+  }
+
+  .deck-view-banner-info,
+  .deck-view-banner-btns {
+    max-width: 100%;
+  }
+
+  .deck-view-middle,
+  .deck-view-right-group,
+  .deck-view-history-col,
+  .deck-view-comments-col {
+    width: 100%;
+    flex: unset;
+    max-width: 100%;
+  }
+
+  .deck-view-right-group {
+    flex-direction: column;
+  }
 }
 
 @media (max-width: 640px) {
   .deck-view-banner {
-    height: auto;
     padding: 20px 10px;
-    margin-bottom: 20px;
-    overflow: hidden;
-  }
-
-  .banner-cards-layer {
-    position: static;
-    display: flex;
-    justify-content: center;
-    gap: 10px;
-    margin-top: 20px;
   }
 
   .banner-card {
-    position: static;
-    transform: none !important;
-    width: 100px;
-    filter: none;
+    width: 95px;
   }
 
   .deck-view-title {

@@ -11,7 +11,8 @@
 
 /* Colonnes — flux naturel top→bottom, pas d'alignement forcé */
 .deck-slots-grid {
-  columns: 2;
+  column-width: 240px;
+  column-count: 2;
   column-gap: 40px;
 }
 
@@ -209,15 +210,6 @@
   border: 1px dashed var(--st-border-strong);
 }
 
-/* Responsive */
-@media (max-width: 600px) {
-  .deck-slots-grid {
-    columns: 1;
-  }
-  .hero-special-container {
-    columns: 1;
-  }
-}
 
 /* ═══════════════════════════════════════════════════
    GRID DISPLAY (Image mode for Decks)
@@ -291,7 +283,8 @@
 /* ── Hero Special Deck Panel ─────────────────────────────────────── */
 .hero-special-container {
   margin-top: 24px;
-  columns: 2;
+  column-width: 240px;
+  column-count: 2;
   column-gap: 40px;
 }
 
@@ -326,7 +319,8 @@
 }
 
 .side-deck-slots-grid {
-  columns: 2;
+  column-width: 240px;
+  column-count: 2;
   column-gap: 40px;
 }
 
@@ -453,4 +447,17 @@ html.dark .side-deck-container .side-deck-header {
 html.dark .side-deck-container .slot-group-title {
   color: #fde68a !important;
   border-bottom-color: rgba(251, 191, 36, 0.25) !important;
+}
+
+/* ── Responsive ─────────────────────────────────────── */
+@media (max-width: 600px) {
+  .deck-slots-grid,
+  .hero-special-container,
+  .side-deck-slots-grid {
+    columns: 1;
+  }
+  
+  .dc-grid {
+    grid-template-columns: 1fr;
+  }
 }
