@@ -494,24 +494,26 @@ export default function CardList() {
               >
                 Show Current Only
               </button>
-              <span className="cardlist-sort-label">Sort:</span>
-              <select
-                className="cardlist-sort-select"
-                value={sort}
-                onChange={e => { setSort(e.target.value); setPage(1); }}
-              >
-                <option value="name">Name</option>
-                <option value="faction">Faction</option>
-                <option value="cost">Cost</option>
-                <option value="pack">Pack / Position</option>
-              </select>
-              <button
-                className={`cardlist-order-btn${order === 'desc' ? ' cardlist-order-btn--desc' : ''}`}
-                onClick={handleOrderToggle}
-                title={order === 'asc' ? 'Ascending — click to reverse' : 'Descending — click to reverse'}
-              >
-                {order === 'asc' ? '↑' : '↓'}
-              </button>
+              <div className="cardlist-sort-group" style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0, whiteSpace: 'nowrap' }}>
+                <span className="cardlist-sort-label">Sort:</span>
+                <select
+                  className="cardlist-sort-select"
+                  value={sort}
+                  onChange={e => { setSort(e.target.value); setPage(1); }}
+                >
+                  <option value="name">Name</option>
+                  <option value="faction">Faction</option>
+                  <option value="cost">Cost</option>
+                  <option value="pack">Pack / Position</option>
+                </select>
+                <button
+                  className={`cardlist-order-btn${order === 'desc' ? ' cardlist-order-btn--desc' : ''}`}
+                  onClick={handleOrderToggle}
+                  title={order === 'asc' ? 'Ascending — click to reverse' : 'Descending — click to reverse'}
+                >
+                  {order === 'asc' ? '↑' : '↓'}
+                </button>
+              </div>
             </div>
           </div>
 

@@ -159,9 +159,11 @@
 
 .cardlist-meta-bar {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   padding: 8px 2px;
+  gap: 12px;
   margin-bottom: 10px;
 }
 
@@ -254,6 +256,7 @@
 
 .cardlist-sort {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 6px;
 }
@@ -505,6 +508,7 @@
 .cl-card-name {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 6px;
 }
 
@@ -512,6 +516,9 @@
   color: var(--cl-text);
   text-decoration: none;
   font-weight: 500;
+  white-space: normal;
+  word-break: break-word;
+  line-height: 1.2;
 }
 
 .cl-card-name a:hover {
@@ -1098,6 +1105,9 @@
   font-weight: 500;
   border-bottom: 1px dashed rgba(147,197,253,0.3);
   transition: color 0.12s, border-color 0.12s;
+  white-space: normal;
+  word-break: break-word;
+  line-height: 1.2;
 }
 
 .cl-card-name-btn:hover {
@@ -1114,4 +1124,43 @@
 
 .cl-checklist .cl-type {
   max-width: 120px;
+}
+
+/* ═══════════════════════════════════════════════════
+   RESPONSIVE LAYOUT
+═══════════════════════════════════════════════════ */
+@media (max-width: 900px) {
+  .cardlist-page-inner {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .cardlist-main {
+    order: 3;
+    margin-right: 0;
+    margin-top: 10px;
+    padding: 12px;
+  }
+
+  .cardlist-sidebar {
+    order: 2;
+    position: static;
+    max-height: none;
+    margin-bottom: 6px;
+  }
+
+  .cardlist-topbar {
+    order: 0;
+  }
+
+  .cardlist-mode-bar {
+    order: 1;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .cardlist-mode-bar .cardlist-count {
+    margin-left: 0 !important;
+    margin-top: 8px;
+  }
 }

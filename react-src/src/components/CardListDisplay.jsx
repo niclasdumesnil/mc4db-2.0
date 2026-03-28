@@ -137,9 +137,8 @@ export default function CardListDisplay({ cards, mode = 'checklist', sort, onSor
               <ColHeader label="Cost" col="cost" current={sort} onSort={onSort} />
               <th>Type</th>
               <th style={{ whiteSpace: 'normal', lineHeight: 1.1 }}>Res.<br />Boost</th>
-              <th>Traits</th>
-              <ColHeader label="Pack" col="pack" current={sort} onSort={onSort} />
-              <th>Set</th>
+              <ColHeader label="Pack" col="pack" current={sort} onSort={onSort} className="hide-on-tablet" />
+              <th className="hide-on-tablet">Set</th>
             </tr>
           </thead>
           <tbody>
@@ -147,19 +146,27 @@ export default function CardListDisplay({ cards, mode = 'checklist', sort, onSor
               <tr key={card.code}>
                 {/* Name */}
                 <td>
-                  <div className="cl-card-name">
-                    <FactionDot card={card} />
-                    {card.is_unique ? <span className="icon-unique cl-unique-icon" title="Unique" /> : null}
-                    {onCardNameClick
-                      ? <button className="cl-card-name-btn" onClick={() => onCardNameClick(card)}>{card.name}</button>
-                      : <a href={`/card/${card.code}`} className="card-tip" data-code={card.code}>{card.name}</a>}
-                    {(!card.is_unique && card.quantity > 0) ? <span className="cl-qty">(x{card.quantity})</span> : null}
-                    {card.pack_environment === 'current' ? <span className="mc-badge mc-badge-current" title="Standard format">Current</span> : null}
-                    {card.pack_creator ? String(card.pack_creator).split(/[,&]/).map(c => c.trim()).filter(Boolean).map((c, i) => <span key={i} className="mc-badge mc-badge-creator" title={`Created by ${c}`}>{c}</span>) : null}
-                    <span className="cl-hover-action">
-                      {card.visibility === 'false' && <span className="mc-badge mc-badge-private" title="Donor exclusive">🔒 Private</span>}
-                      {card.alt_art ? <span className="mc-badge mc-badge-altart" title="Alternative art">Alt Art</span> : null}
-                    </span>
+                  <div className="cl-card-name-group" style={{ display: 'flex', flexDirection: 'column' }}>
+                    <div className="cl-card-name">
+                      <FactionDot card={card} />
+                      {card.is_unique ? <span className="icon-unique cl-unique-icon" title="Unique" /> : null}
+                      {onCardNameClick
+                        ? <button className="cl-card-name-btn" onClick={() => onCardNameClick(card)}>{card.name}</button>
+                        : <a href={`/card/${card.code}`} className="card-tip" data-code={card.code}>{card.name}</a>}
+                      {(!card.is_unique && card.quantity > 0) ? <span className="cl-qty">(x{card.quantity})</span> : null}
+                      {card.pack_environment === 'current' ? <span className="mc-badge mc-badge-current" title="Standard format">Current</span> : null}
+                      {card.pack_creator ? String(card.pack_creator).split(/[,&]/).map(c => c.trim()).filter(Boolean).map((c, i) => <span key={i} className="mc-badge mc-badge-creator" title={`Created by ${c}`}>{c}</span>) : null}
+                      <span className="cl-hover-action">
+                        {card.visibility === 'false' && <span className="mc-badge mc-badge-private" title="Donor exclusive">🔒 Private</span>}
+                        {card.alt_art ? <span className="mc-badge mc-badge-altart" title="Alternative art">Alt Art</span> : null}
+                      </span>
+                    </div>
+                    {/* Traits under Name */}
+                    {card.traits && (
+                      <div className="cl-card-traits-sub" style={{ fontSize: '0.75rem', color: 'var(--st-text-muted)', fontStyle: 'italic', paddingLeft: '22px', marginTop: '2px' }}>
+                        {card.traits}
+                      </div>
+                    )}
                   </div>
                 </td>
 
@@ -174,17 +181,14 @@ export default function CardListDisplay({ cards, mode = 'checklist', sort, onSor
                 {/* Resources / Boost */}
                 <td>{card.faction_code === 'encounter' ? <BoostIcons card={card} /> : <ResourceIcons card={card} />}</td>
 
-                {/* Traits */}
-                <td className="cl-traits" title={card.traits || ''}>{card.traits || ''}</td>
-
                 {/* Pack */}
-                <td className="cl-pack">
+                <td className="cl-pack hide-on-tablet">
                   {card.pack_name}
                   {card.visibility === 'false' && <span className="mc-badge mc-badge-private" title="Donor exclusive">🔒 Private</span>}
                 </td>
 
                 {/* Set */}
-                <td className="cl-set">{card.card_set_name || ''}</td>
+                <td className="cl-set hide-on-tablet">{card.card_set_name || ''}</td>
               </tr>
             ))}
           </tbody>
@@ -244,11 +248,11 @@ export default function CardListDisplay({ cards, mode = 'checklist', sort, onSor
   return null;
 }
 
-function ColHeader({ label, col, current, onSort }) {
+function ColHeader({ label, col, current, onSort, className = '' }) {
   const active = current === col;
   return (
     <th
-      className={`sortable${active ? ' active' : ''}`}
+      className={`sortable${active ? ' active' : ''} ${className}`.trim()}
       onClick={() => onSort && onSort(col)}
     >
       {label}
