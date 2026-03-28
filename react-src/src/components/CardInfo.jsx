@@ -90,18 +90,23 @@ function CardProps({ card }) {
     );
   }
   else if (t === 'attachment') {
-    propsElement = (
-      <div className="mc-card-props">
-        <div>
-          {(card.scheme !== 0 || card.scheme_star) && (
-            <>Scheme: {card.scheme > 0 && '+'}<FormattedValue value={card.scheme} star={card.scheme_star} />.{' '}</>
-          )}
-          {(card.attack !== 0 || card.attack_star) && (
-            <>Attack: {card.attack > 0 && '+'}<FormattedValue value={card.attack} star={card.attack_star} />.</>
-          )}
+    const hasScheme = (card.scheme !== null && card.scheme !== undefined && card.scheme !== '' && Number(card.scheme) !== 0) || card.scheme_star;
+    const hasAttack = (card.attack !== null && card.attack !== undefined && card.attack !== '' && Number(card.attack) !== 0) || card.attack_star;
+
+    if (hasScheme || hasAttack) {
+      propsElement = (
+        <div className="mc-card-props">
+          <div>
+            {hasScheme && (
+              <>Scheme: {Number(card.scheme) > 0 && '+'}<FormattedValue value={card.scheme} star={card.scheme_star} />.{' '}</>
+            )}
+            {hasAttack && (
+              <>Attack: {Number(card.attack) > 0 && '+'}<FormattedValue value={card.attack} star={card.attack_star} />.</>
+            )}
+          </div>
         </div>
-      </div>
-    );
+      );
+    }
   }
   else if (t === 'side_scheme') {
     propsElement = (

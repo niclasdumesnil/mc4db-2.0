@@ -577,8 +577,8 @@
 /* Type column */
 .cl-type {
   color: var(--cl-text-muted);
-  white-space: nowrap;
   font-size: 0.8rem;
+  line-height: 1.2;
 }
 
 /* Resources column */

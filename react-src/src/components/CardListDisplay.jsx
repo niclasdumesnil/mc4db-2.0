@@ -136,7 +136,7 @@ export default function CardListDisplay({ cards, mode = 'checklist', sort, onSor
               <ColHeader label="Name" col="name" current={sort} onSort={onSort} />
               <ColHeader label="Cost" col="cost" current={sort} onSort={onSort} />
               <th>Type</th>
-              <th>Res. / Boost</th>
+              <th style={{ whiteSpace: 'normal', lineHeight: 1.1 }}>Res.<br />Boost</th>
               <th>Traits</th>
               <ColHeader label="Pack" col="pack" current={sort} onSort={onSort} />
               <th>Set</th>
