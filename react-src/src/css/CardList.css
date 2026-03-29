@@ -38,6 +38,23 @@
   margin-bottom: 16px;
 }
 
+/* Force pack-search horizontal layout by default (desktop) */
+.cardlist-topbar .pack-search {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.cardlist-topbar .pack-search-controls {
+  width: auto;
+  margin-right: 12px;
+}
+
+.cardlist-topbar .pack-search-group {
+  flex: 1;
+  min-width: 140px;
+}
+
 .cardlist-topbar-head {
   display: flex;
   align-items: center;
@@ -1143,10 +1160,24 @@
   }
 
   .cardlist-sidebar {
-    order: 2;
+    order: 1;
     position: static;
     max-height: none;
     margin-bottom: 6px;
+  }
+
+  /* Force topbar pack search into vertical stack on mobile as requested */
+  .cardlist-topbar .pack-search {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .cardlist-topbar .pack-search-controls {
+    width: 100%;
+    margin-bottom: 4px;
+    margin-right: 0;
+  }
+  .cardlist-topbar .pack-search-group {
+    width: 100%;
   }
 
   .cardlist-topbar {
@@ -1154,9 +1185,11 @@
   }
 
   .cardlist-mode-bar {
-    order: 1;
-    flex-direction: column;
-    align-items: flex-start;
+    order: 2;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    margin-top: 16px;
   }
 
   .cardlist-mode-bar .cardlist-count {
