@@ -475,7 +475,7 @@ export default function CardList() {
                 onClick={() => { setShowAltArt(v => !v); setPage(1); }}
                 title={showAltArt ? 'Hide alt-art cards' : 'Show alt-art cards'}
               >
-                🎨 Alt Art
+                🎨
               </button>
               <button
                 className={`cardlist-showdup-btn${!showDuplicates ? ' cardlist-filtertype-btn--off' : ' cardlist-showdup-btn--active'}`}

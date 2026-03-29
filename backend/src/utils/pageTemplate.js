@@ -43,9 +43,12 @@ function renderSharedHeader() {
     #mc-site-header nav::-webkit-scrollbar { display: none; }
     .mc-header-pad { height: 64px; }
     .mc-right-panel { display: flex; align-items: center; margin-left: auto; }
-    @media (max-width: 1300px) { .header-hide-1300 { display: none !important; } }
-    @media (max-width: 1200px) { .header-hide-1200 { display: none !important; } }
-    @media (max-width: 1100px) { .header-hide-1100 { display: none !important; } }
+    @media (max-width: 1300px) and (min-width: 901px) { .header-hide-1300 { display: none !important; } }
+    @media (max-width: 1200px) and (min-width: 901px) { .header-hide-1200 { display: none !important; } }
+    @media (max-width: 1100px) and (min-width: 901px) { .header-hide-1100 { display: none !important; } }
+    @media (max-width: 600px) {
+      .header-hide-1300, .header-hide-1200, .header-hide-1100 { display: none !important; }
+    }
     @media (max-width: 900px) {
       .hide-on-mobile { display: none !important; }
       #mc-site-header nav { flex-wrap: wrap; gap: 12px !important; }

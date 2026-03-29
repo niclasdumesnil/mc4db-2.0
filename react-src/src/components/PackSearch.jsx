@@ -118,7 +118,7 @@ function CustomPackSelect({ packs, value, onChange, disabled, showCreator = fals
                 {p.environment === 'current' && (
                   <span className="mc-badge mc-badge-current">current</span>
                 )}
-                {p.visibility === 'false' && <span className="mc-badge mc-badge-private" title="Donor exclusive">🔒 Private</span>}
+                {p.visibility === 'false' && <span className="mc-badge mc-badge-private" title="Private">🔒</span>}
                 {showCreator && p.creator && p.creator.toUpperCase() !== 'FFG' && (
                   String(p.creator).split(/[,&]/).map(c => c.trim()).filter(Boolean).map((c, i) => <span key={i} className="mc-badge mc-badge-creator">{c}</span>)
                 )}

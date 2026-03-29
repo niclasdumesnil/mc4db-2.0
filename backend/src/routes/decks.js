@@ -81,13 +81,21 @@ async function fetchDeckSlots(tableName, foreignKey, parentId, locale = 'en') {
       'c.resource_wild',
       'p.environment as pack_environment',
       'p.code as pack_code',
-      'p.name as pack_name'
+      'p.name as pack_name',
+      'p.creator as pack_creator',
+      'p.visibility as visibility',
+      'c.creator as card_creator'
     )
     .where(`s.${foreignKey}`, parentId)
     .orderBy('c.name', 'asc');
 
   if (!locale || locale === 'en' || rows.length === 0) {
-    return rows.map(r => ({ ...r, imagesrc: resolveImage(r.code, r.pack_code, '', locale) }));
+    return rows.map(r => ({ 
+      ...r, 
+      creator: r.card_creator || r.pack_creator || 'FFG',
+      visibility: r.visibility || 'true',
+      imagesrc: resolveImage(r.code, r.pack_code, '', locale) 
+    }));
   }
 
   // Overlay card_translation for name
@@ -108,6 +116,8 @@ async function fetchDeckSlots(tableName, foreignKey, parentId, locale = 'en') {
   return rows.map(r => {
     const base = {
       ...r,
+      creator: r.card_creator || r.pack_creator || 'FFG',
+      visibility: r.visibility || 'true',
       imagesrc: resolveImage(r.code, r.pack_code, '', locale),
       faction_name: facMap[r.faction_code] || r.faction_name,
       type_name: typesMap[r.type_code] || r.type_name,

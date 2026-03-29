@@ -816,7 +816,7 @@ export default function Sets() {
                 <span className="mc-badge sets-theme-badge" style={{ marginLeft: 8, marginTop: -2 }}>{selectedSet.theme}</span>
               )}
               {selectedSet.pack_environment === 'current' && <span className="mc-badge mc-badge-current" style={{ marginLeft: 8 }}>Current</span>}
-              {selectedSet.private && <span className="mc-badge mc-badge-private" style={{ marginLeft: 8 }} title="Pack privé (donateurs)">🔒 Private</span>}
+              {selectedSet.private && <span className="mc-badge mc-badge-private" style={{ marginLeft: 8 }} title="Private">🔒</span>}
               {selectedSet.creator && selectedSet.creator !== 'FFG' && (
                 String(selectedSet.creator).split(/[,&]/).map(c => c.trim()).filter(Boolean).map((c, i) => <span key={i} className="mc-badge mc-badge-creator" style={{ marginLeft: 8 }}>{c}</span>)
               )}

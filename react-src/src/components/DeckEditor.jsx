@@ -246,6 +246,8 @@ export default forwardRef(function DeckEditor(
           imagesrc: card.imagesrc,
           pack_environment: card.pack_environment,
           alt_art: card.alt_art,
+          visibility: card.visibility,
+          creator: card.creator,
           duplicate_of_code: card.duplicate_of_code || null,
           card_set_code: card.card_set_code || null,
         };
@@ -280,6 +282,8 @@ export default forwardRef(function DeckEditor(
           imagesrc: card.imagesrc,
           pack_environment: card.pack_environment,
           alt_art: card.alt_art,
+          visibility: card.visibility,
+          creator: card.creator,
           duplicate_of_code: card.duplicate_of_code || null,
           card_set_code: card.card_set_code || null,
         };
@@ -922,7 +926,7 @@ export default forwardRef(function DeckEditor(
                 className={`editor-filter-badge editor-filter-badge--altart${filters.showAltArt ? ' editor-filter-badge--on' : ' editor-filter-badge--off'}`}
                 onClick={() => handleToggle('showAltArt')}
                 title={filters.showAltArt ? 'Hide alt-art' : 'Show alt-art'}
-              >🎨 Alt Art</button>
+              >🎨</button>
               <button
                 className={`editor-filter-badge editor-filter-badge--current${filters.showCurrent ? ' editor-filter-badge--on' : ' editor-filter-badge--off'}`}
                 onClick={() => handleToggle('showCurrent')}

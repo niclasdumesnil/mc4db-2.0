@@ -53,8 +53,8 @@
 .slot-item {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  padding: 2px 8px;
+  align-items: flex-start;
+  padding: 4px 8px;
   font-size: 0.9rem;
   border-radius: 4px;
   transition: background 0.2s;
@@ -68,7 +68,9 @@
   display: flex;
   align-items: center;
   flex: 1;
+  flex-wrap: wrap;
   gap: 4px;
+  padding-right: 8px;
 }
 
 .slot-main-info .mc-badge:first-of-type {

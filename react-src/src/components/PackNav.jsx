@@ -79,7 +79,7 @@ export default function PackNav({ card, locale = 'en', onNavigate }) {
       <div className="pack-nav-center">
         <div className="pack-nav-title-row">
           <span className="pack-nav-pack-name">{packName}</span>
-          {card.visibility === 'false' && <span className="mc-badge mc-badge-private" title="Donor exclusive">🔒 Private</span>}
+          {card.visibility === 'false' && <span className="mc-badge mc-badge-private" title="Private">🔒</span>}
         </div>
         <span className="pack-nav-position">{currentIndex + 1} / {packCards.length}</span>
       </div>

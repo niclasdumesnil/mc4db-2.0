@@ -633,7 +633,7 @@ function ScenarioStatsSidebar({ scenario, onDeselect }) {
               ))
             )}
             {!scenario.visibility && (
-              <span className="mc-badge mc-badge-private">🔒 Private</span>
+              <span className="mc-badge mc-badge-private" title="Donor exclusive">🔒</span>
             )}
           </div>
         </div>
@@ -984,7 +984,7 @@ function ScenarioTab() {
                   </span>
                   <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
                     {!scenario.visibility && donator && (
-                      <span className="mc-badge mc-badge-private">🔒 Private</span>
+                      <span className="mc-badge mc-badge-private" title="Donor exclusive">🔒</span>
                     )}
                     {official ? (
                       <span className="mc-badge mc-badge-official">Official</span>
@@ -1062,7 +1062,7 @@ function ScenarioTab() {
                   <span className="scenario-list-title">{scenario.title}</span>
                   <div className="scenario-list-badges">
                     {!scenario.visibility && donator && (
-                      <span className="mc-badge mc-badge-private">🔒 Private</span>
+                      <span className="mc-badge mc-badge-private" title="Donor exclusive">🔒</span>
                     )}
                     {official ? (
                       <span className="mc-badge mc-badge-official">Official</span>

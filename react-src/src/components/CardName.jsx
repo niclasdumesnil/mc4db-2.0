@@ -60,7 +60,7 @@ function StatusTag({ card }) {
       {/* 2. Current */}
       {card.pack_environment === 'current' && <span className="mc-badge mc-badge-current">Current</span>}
       {/* 3. Private */}
-      {card.visibility === 'false' && <span className="mc-badge mc-badge-private" title="Donor exclusive">🔒 Private</span>}
+      {card.visibility === 'false' && <span className="mc-badge mc-badge-private" title="Private">🔒</span>}
       {/* 4. Creator */}
       {!isFFG && String(creator).split(/[,&]/).map(c => c.trim()).filter(Boolean).map((c, i) => <span key={i} className="mc-badge mc-badge-creator" title={`Created by ${c}`}>{c}</span>)}
       {/* 5. Status */}

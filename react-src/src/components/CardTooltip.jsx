@@ -172,8 +172,11 @@ export function TooltipContent({ card, isLink = false }) {
                             String(card.pack_creator || card.creator).split(/[,&]/).map(c => c.trim()).filter(Boolean).map((c, i) => <span key={i} className="mc-badge mc-badge-creator tw-ml-1">{c}</span>)
                         ) : null}
                         {card.alt_art ? (
-                            <span className="mc-badge mc-badge-altart tw-ml-1">Alt Art</span>
+                            <span className="mc-badge mc-badge-altart tw-ml-1" title="Alternative art">🎨</span>
                         ) : null}
+                        {card.visibility === 'false' && (
+                            <span className="mc-badge mc-badge-private tw-ml-1" title="Private">🔒</span>
+                        )}
                     </h4>
 
                     {/* Stats moved beneath the card title */}

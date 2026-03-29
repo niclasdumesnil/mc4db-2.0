@@ -60,7 +60,7 @@ function HeroCard({ hero, isOwned, onCreateDeck, creating }) {
           <div className="ndeck-hero-badges">
             {isOfficial && <span className="mc-badge mc-badge-official">Official</span>}
             {isCurrent && <span className="mc-badge mc-badge-current">Current</span>}
-            {isPrivate && <span className="mc-badge mc-badge-private" title="Donor exclusive">🔒 Private</span>}
+            {isPrivate && <span className="mc-badge mc-badge-private" title="Private">🔒</span>}
             {!isOfficial && hero.pack_creator && String(hero.pack_creator).split(/[,&]/).map(c => c.trim()).filter(Boolean).map((c, i) => <span key={i} className="mc-badge mc-badge-creator">{c}</span>)}
             {!isOfficial && status && <span className={`mc-badge mc-badge-${status}`}>{hero.pack_status}</span>}
           </div>

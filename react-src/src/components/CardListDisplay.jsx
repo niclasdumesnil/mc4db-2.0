@@ -157,8 +157,8 @@ export default function CardListDisplay({ cards, mode = 'checklist', sort, onSor
                       {card.pack_environment === 'current' ? <span className="mc-badge mc-badge-current" title="Standard format">Current</span> : null}
                       {card.pack_creator ? String(card.pack_creator).split(/[,&]/).map(c => c.trim()).filter(Boolean).map((c, i) => <span key={i} className="mc-badge mc-badge-creator" title={`Created by ${c}`}>{c}</span>) : null}
                       <span className="cl-hover-action">
-                        {card.visibility === 'false' && <span className="mc-badge mc-badge-private" title="Donor exclusive">🔒 Private</span>}
-                        {card.alt_art ? <span className="mc-badge mc-badge-altart" title="Alternative art">Alt Art</span> : null}
+                        {card.visibility === 'false' && <span className="mc-badge mc-badge-private" title="Private">🔒</span>}
+                        {card.alt_art ? <span className="mc-badge mc-badge-altart" title="Alternative art">🎨</span> : null}
                       </span>
                     </div>
                     {/* Traits under Name */}
