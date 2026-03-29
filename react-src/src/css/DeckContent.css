@@ -462,4 +462,67 @@ html.dark .side-deck-container .slot-group-title {
   .dc-grid {
     grid-template-columns: 1fr;
   }
+}
+
+/* --- Elegant Custom Tooltips --- */
+.dc-tooltip-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: inherit;
+}
+
+.dc-tooltip {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%) translateY(4px);
+  background: var(--st-surface-2, #1f2937);
+  color: var(--st-text, #f9fafb);
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-family: inherit;
+  font-weight: 600;
+  white-space: nowrap;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+  border: 1px solid var(--st-border-strong, rgba(255,255,255,0.15));
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s, transform 0.2s, visibility 0.2s;
+  pointer-events: none;
+  z-index: 100;
+}
+
+/* Caret */
+.dc-tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 5px;
+  border-style: solid;
+  border-color: var(--st-surface-2, #1f2937) transparent transparent transparent;
+  z-index: 2;
+}
+
+.dc-tooltip::before {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-top: 1px;
+  border-width: 6px;
+  border-style: solid;
+  border-color: var(--st-border-strong, rgba(255,255,255,0.15)) transparent transparent transparent;
+  z-index: 1;
+}
+
+.dc-tooltip-wrap:hover > .dc-tooltip {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(0);
 }

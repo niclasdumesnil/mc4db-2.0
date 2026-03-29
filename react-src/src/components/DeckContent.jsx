@@ -247,15 +247,22 @@ export default function DeckContent({ slots, mode = 'list', heroSpecialCards = [
                         {isInvalid && <span className="slot-invalid-badge" title="This card does not comply with deck rules">⚠</span>}
                         {card.pack_environment === 'current' ? <span className="mc-badge mc-badge-current" title="Standard format">Current</span> : null}
                         {card.visibility === 'false' && <span className="mc-badge mc-badge-private" title="Private">🔒</span>}
-                        {card.creator && card.creator !== 'FFG' && <span className="mc-badge mc-badge-creator" title={`Fan-made by ${card.creator}`}>FM</span>}
+                        {card.creator && card.creator !== 'FFG' && (
+                          <span className="dc-tooltip-wrap">
+                            <span className="mc-badge mc-badge-creator">FM</span>
+                            <span className="dc-tooltip">Fan-made by {card.creator}</span>
+                          </span>
+                        )}
                         {card.alt_art ? <span className="mc-badge mc-badge-altart" title="Alternative art">🎨</span> : null}
                         {onTransferToSide && !isHero && (
-                          <button
-                            className={`slot-transfer-btn slot-transfer-btn--to-side${!canToSide ? ' slot-transfer-btn--disabled' : ''}`}
-                            title={canToSide ? 'Move 1 copy to Side Deck' : 'Side Deck full or Unique already there'}
-                            disabled={!canToSide}
-                            onClick={() => { if (canToSide) { onTransferToSide(card.code); triggerFlash(card.code); } }}
-                          >↓ Side</button>
+                          <span className="dc-tooltip-wrap">
+                            <button
+                              className={`slot-transfer-btn slot-transfer-btn--to-side${!canToSide ? ' slot-transfer-btn--disabled' : ''}`}
+                              disabled={!canToSide}
+                              onClick={() => { if (canToSide) { onTransferToSide(card.code); triggerFlash(card.code); } }}
+                            >↓ Side</button>
+                            <span className="dc-tooltip">{canToSide ? 'Move 1 copy to Side Deck' : 'Side Deck full or Unique already there'}</span>
+                          </span>
                         )}
                       </div>
                       {renderResources(card)}
@@ -323,15 +330,22 @@ export default function DeckContent({ slots, mode = 'list', heroSpecialCards = [
                         {isInvalid && <span className="slot-invalid-badge" title="This card does not comply with deck rules">⚠</span>}
                         {card.pack_environment === 'current' ? <span className="mc-badge mc-badge-current" title="Standard format">Current</span> : null}
                         {card.visibility === 'false' && <span className="mc-badge mc-badge-private" title="Private">🔒</span>}
-                        {card.creator && card.creator !== 'FFG' && <span className="mc-badge mc-badge-creator" title={`Fan-made by ${card.creator}`}>FM</span>}
+                        {card.creator && card.creator !== 'FFG' && (
+                          <span className="dc-tooltip-wrap">
+                            <span className="mc-badge mc-badge-creator">FM</span>
+                            <span className="dc-tooltip">Fan-made by {card.creator}</span>
+                          </span>
+                        )}
                         {card.alt_art ? <span className="mc-badge mc-badge-altart" title="Alternative art">🎨</span> : null}
                         {onTransferToSide && !isHero && (
-                          <button
-                            className={`slot-transfer-btn slot-transfer-btn--to-side${!canToSide ? ' slot-transfer-btn--disabled' : ''}`}
-                            title={canToSide ? 'Move 1 copy to Side Deck' : 'Side Deck full or Unique already there'}
-                            disabled={!canToSide}
-                            onClick={() => { if (canToSide) { onTransferToSide(card.code); triggerFlash(card.code); } }}
-                          >↓ Side</button>
+                          <span className="dc-tooltip-wrap">
+                            <button
+                              className={`slot-transfer-btn slot-transfer-btn--to-side${!canToSide ? ' slot-transfer-btn--disabled' : ''}`}
+                              disabled={!canToSide}
+                              onClick={() => { if (canToSide) { onTransferToSide(card.code); triggerFlash(card.code); } }}
+                            >↓ Side</button>
+                            <span className="dc-tooltip">{canToSide ? 'Move 1 copy to Side Deck' : 'Side Deck full or Unique already there'}</span>
+                          </span>
                         )}
                       </div>
                       {renderResources(card)}
@@ -446,15 +460,22 @@ export default function DeckContent({ slots, mode = 'list', heroSpecialCards = [
                         {isInvalid && <span className="slot-invalid-badge" title="This card does not comply with deck rules">⚠</span>}
                         {card.pack_environment === 'current' ? <span className="mc-badge mc-badge-current" title="Standard format">Current</span> : null}
                         {card.visibility === 'false' && <span className="mc-badge mc-badge-private" title="Private">🔒</span>}
-                        {card.creator && card.creator !== 'FFG' && <span className="mc-badge mc-badge-creator" title={`Fan-made by ${card.creator}`}>FM</span>}
+                        {card.creator && card.creator !== 'FFG' && (
+                          <span className="dc-tooltip-wrap">
+                            <span className="mc-badge mc-badge-creator">FM</span>
+                            <span className="dc-tooltip">Fan-made by {card.creator}</span>
+                          </span>
+                        )}
                         {card.alt_art ? <span className="mc-badge mc-badge-altart" title="Alternative art">🎨</span> : null}
                         {onTransferToMain && (
-                          <button
-                            className={`slot-transfer-btn slot-transfer-btn--to-main${!canToMain ? ' slot-transfer-btn--disabled' : ''}`}
-                            title={canToMain ? 'Move 1 copy to Main Deck' : 'Main Deck full or Unique already there'}
-                            disabled={!canToMain}
-                            onClick={() => { if (canToMain) { onTransferToMain(card.code); triggerFlash(card.code); } }}
-                          >↑ Main</button>
+                          <span className="dc-tooltip-wrap">
+                            <button
+                              className={`slot-transfer-btn slot-transfer-btn--to-main${!canToMain ? ' slot-transfer-btn--disabled' : ''}`}
+                              disabled={!canToMain}
+                              onClick={() => { if (canToMain) { onTransferToMain(card.code); triggerFlash(card.code); } }}
+                            >↑ Main</button>
+                            <span className="dc-tooltip">{canToMain ? 'Move 1 copy to Main Deck' : 'Main Deck full or Unique already there'}</span>
+                          </span>
                         )}
                       </div>
                       {renderResources(card)}
