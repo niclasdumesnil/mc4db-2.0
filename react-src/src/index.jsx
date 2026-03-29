@@ -25,11 +25,16 @@ const originalFetch = window.fetch;
 window.fetch = async function(...args) {
   const response = await originalFetch(...args);
   if (response.status === 401) {
-    if (localStorage.getItem('mc_token')) {
+    const hasToken = localStorage.getItem('mc_token');
+    const hasUser = localStorage.getItem('mc_user');
+    if (hasToken || hasUser) {
       console.warn('[mc4db] 401 Unauthorized detected. Session expired, logging out.');
       localStorage.removeItem('mc_token');
       localStorage.removeItem('mc_user');
       window.dispatchEvent(new Event('mc_user_changed'));
+      
+      // Force refresh on the home page
+      window.location.href = '/';
     }
   }
   return response;
