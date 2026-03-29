@@ -214,6 +214,7 @@ html.dark .sets-topbar-wrapper {
   top: calc(100% + 4px);
   left: 0;
   width: 600px;
+  max-width: calc(100vw - 32px);
   z-index: 200;
   background: var(--st-surface-2);
   border: 1px solid var(--sets-border);
@@ -224,6 +225,11 @@ html.dark .sets-topbar-wrapper {
   padding: 0;
   max-height: 400px;
   overflow: hidden;
+}
+
+.sets-topbar-dropdown--right {
+  left: auto;
+  right: 0;
 }
 
 /* Search inside dropdown */
@@ -744,6 +750,7 @@ html.dark .sets-topbar-wrapper {
     border-right: none;
     border-left: none;
     border-bottom: 1px solid var(--sets-border);
+    min-width: 0;
   }
 
   .sets-identity-panel {
@@ -816,6 +823,13 @@ html.dark .sets-topbar-wrapper {
   padding: 1px 5px;
   letter-spacing: 0.04em;
   flex-shrink: 0;
+}
+
+.sets-theme-badge {
+  background: rgba(0, 0, 0, 0.45);
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.2);
+  margin-left: 4px;
 }
 
 .sets-topbar-dropdown-section {

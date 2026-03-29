@@ -206,6 +206,7 @@ router.get('/sets', async (req, res, next) => {
         db.raw('COALESCE(cs.creator, MAX(p.creator)) as creator'),
         db.raw('MAX(p.visibility) as visibility'),
         db.raw('MIN(p.environment) as pack_environment'),
+        db.raw('MAX(p.theme) as theme'),
         db.raw('COALESCE(cs.status, MIN(p.status)) as pack_status'),
         db.raw('MIN(p.date_release) as pack_date_release'),
         db.raw('MIN(p.language) as language'),
@@ -239,7 +240,7 @@ router.get('/sets', async (req, res, next) => {
     }
 
     // Types to include in the main groups (nemesis handled separately)
-    const INCLUDED_TYPES = ['hero', 'villain', 'modular', 'standard', 'expert'];
+    const INCLUDED_TYPES = ['hero', 'villain', 'leader', 'modular', 'standard', 'expert'];
 
     const result = {
       official: { hero: [], villain: [], modular: [], standard: [], expert: [] },
@@ -255,7 +256,9 @@ router.get('/sets', async (req, res, next) => {
       const isOfficial = !row.creator;
       const group = isOfficial ? 'official' : 'fanmade';
 
-      result[group][typeCode].push({
+      const targetList = typeCode === 'leader' ? 'villain' : typeCode;
+
+      result[group][targetList].push({
         id: row.id,
         code: row.code,
         name: cardsetMap[row.code] || row.name,
@@ -263,6 +266,7 @@ router.get('/sets', async (req, res, next) => {
         type_name: row.type_name,
         nemesis_code: nemesisMap[row.code] || null,
         creator: row.creator || 'FFG',
+        theme: row.theme || null,
         card_count: Number(row.card_count) || 0,
         pack_environment: row.pack_environment || null,
         pack_status: row.pack_status || null,

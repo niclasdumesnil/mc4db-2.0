@@ -37,7 +37,7 @@ const DISPLAY_MODES = [
 ];
 
 const ENCOUNTER_TYPE_CODES = ['villain', 'modular', 'standard', 'expert'];
-const IDENTITY_TYPE_CODES  = ['hero', 'alter_ego', 'villain', 'main_scheme'];
+const IDENTITY_TYPE_CODES  = ['hero', 'alter_ego', 'villain', 'leader', 'main_scheme'];
 
 // ── Main Scheme panel helpers ──────────────────────────────────────────────────────
 const PerHeroIcon = () => <span className="icon icon-per_hero" style={{ fontSize: '0.78rem', verticalAlign: 'middle', marginLeft: '1px' }} />;
@@ -150,9 +150,8 @@ function VillainsPanel({ villains }) {
 
 function SetBanner({ identityCards = [], fallbackCard, mode, onModeChange, selectedSet, cardCount, regularCount, costFilter, onClearCost, boostFilter, onClearBoost, loading }) {
   const heroFaces = [
-    ...identityCards.filter(c => c.type_code === 'hero'),
-    ...identityCards.filter(c => c.type_code === 'alter_ego'),
-    ...identityCards.filter(c => c.type_code === 'villain'),
+    ...identityCards.filter(c => ['hero', 'alter_ego'].includes(c.type_code)),
+    ...identityCards.filter(c => ['villain', 'leader'].includes(c.type_code)),
   ].filter(c => c.imagesrc);
 
   // For sets without hero/villain cards (modular, standard…) use first regular card
@@ -300,18 +299,54 @@ function HorizontalSetsBar({ setsData, setsLoading, selectedSet, onSelect }) {
     return () => document.removeEventListener('mousedown', handler);
   }, [openCat]);
 
-  // Focus search when dropdown opens
+  // Focus search when dropdown opens, and calculate bounding boxes
   useEffect(() => {
     if (openCat) {
       setTimeout(() => dropdownSearchRef.current?.focus(), 50);
       setDropdownSearch('');
+      
+      // Calculate position
+      requestAnimationFrame(() => {
+        const el = document.getElementById(`dropdown-${openCat}`);
+        if (!el) return;
+        el.style.left = '0';
+        el.style.right = 'auto';
+        
+        const rect = el.getBoundingClientRect();
+        const pad = 12;
+        if (rect.right > window.innerWidth - pad) {
+          el.style.left = 'auto';
+          el.style.right = '0';
+          
+          const newRect = el.getBoundingClientRect();
+          if (newRect.left < pad) {
+            el.style.right = 'auto';
+            const containerRect = el.parentElement.getBoundingClientRect();
+            const shiftLeft = containerRect.left - pad;
+            el.style.left = `-${shiftLeft}px`;
+          }
+        }
+      });
     }
   }, [openCat]);
 
   const getSets = useCallback((key) => {
     if (!setsData) return [];
-    const off = (setsData.official[key] || []).map(s => ({ ...s, _src: 'official' }));
-    const fm  = (setsData.fanmade[key]  || []).map(s => ({ ...s, _src: 'fanmade' }));
+    
+    // Custom filter based on user active themes
+    let showTheme = {};
+    const u = currentUser();
+    if (u && u.show_theme) showTheme = u.show_theme;
+    const normalizeTheme = t => t ? t.charAt(0).toUpperCase() + t.slice(1) : 'Marvel';
+    
+    const isThemeVisible = (t) => {
+      const txt = (t || 'Marvel').trim();
+      const norm = normalizeTheme(txt);
+      return showTheme[txt] !== false && showTheme[norm] !== false && showTheme[txt.toLowerCase()] !== false;
+    };
+
+    const off = (setsData.official[key] || []).filter(s => isThemeVisible(s.theme)).map(s => ({ ...s, _src: 'official' }));
+    const fm  = (setsData.fanmade[key]  || []).filter(s => isThemeVisible(s.theme)).map(s => ({ ...s, _src: 'fanmade' }));
     let list = [];
     if (source === 'official') list = off;
     else if (source === 'fanmade') list = fm;
@@ -402,7 +437,7 @@ function HorizontalSetsBar({ setsData, setsLoading, selectedSet, onSelect }) {
 
               {/* Specific Modals per Category */}
               {isOpen && (
-                <div className="sets-topbar-dropdown">
+                <div id={`dropdown-${key}`} className="sets-topbar-dropdown">
                   {/* Set search */}
                   <div className="sets-topbar-dropdown-search-wrap">
                     <svg className="sets-topbar-dropdown-search-icon" viewBox="0 0 20 20" fill="none" aria-hidden="true">
@@ -427,20 +462,24 @@ function HorizontalSetsBar({ setsData, setsLoading, selectedSet, onSelect }) {
                     <div className="sets-topbar-dropdown-empty">No sets match</div>
                   ) : (
                     <div className="sets-topbar-dropdown-items">
-                      {dropdownCategorySets.map(set => (
-                        <button
-                          key={set.code}
-                          className={`sets-topbar-dropdown-item${selectedSet?.code === set.code ? ' sets-topbar-dropdown-item--active' : ''}`}
-                          onClick={(e) => { e.stopPropagation(); handleSelect(set); }}
-                        >
-                          <span>{set.name}</span>
-                          {set.private && <span className="mc-badge mc-badge-private sets-topbar-badge" title="Pack privé">🔒</span>}
-                          {set.creator && set.creator !== 'FFG' && String(set.creator).split(/[,&]/).map(c => c.trim()).filter(Boolean).map((c, i) => <span key={i} className="mc-badge mc-badge-creator sets-topbar-badge">{c}</span>)}
-                        </button>
-                      ))}
+                      {dropdownCategorySets.map(set => {
+                        const themeNorm = set.theme ? set.theme.trim().toLowerCase() : 'marvel';
+                        return (
+                          <button
+                            key={set.code}
+                            className={`sets-topbar-dropdown-item${selectedSet?.code === set.code ? ' sets-topbar-dropdown-item--active' : ''}`}
+                            onClick={(e) => { e.stopPropagation(); handleSelect(set); }}
+                          >
+                            <span>{set.name}</span>
+                            {themeNorm !== 'marvel' && <span className="mc-badge sets-topbar-badge sets-theme-badge">{set.theme}</span>}
+                            {set.private && <span className="mc-badge mc-badge-private sets-topbar-badge" title="Pack privé">🔒</span>}
+                            {set.creator && set.creator !== 'FFG' && String(set.creator).split(/[,&]/).map(c => c.trim()).filter(Boolean).map((c, i) => <span key={i} className="mc-badge mc-badge-creator sets-topbar-badge">{c}</span>)}
+                          </button>
+                        );
+                      })}
                     </div>
                   )}
-                </div>
+                  </div>
               )}
             </div>
           );
@@ -585,11 +624,14 @@ export default function Sets() {
     setCardsLoading(true);
     setCostFilter(null);
     setBoostFilter(null);
+
+    let active = true;
+
     const isEnc = ENCOUNTER_TYPE_CODES.includes((selectedSet.type_code || '').toLowerCase());
     if (isEnc) {
       fetchSetCards(selectedSet.code, locale)
-        .then(cards => { setEncounterCards(cards); setHeroCards([]); })
-        .finally(() => setCardsLoading(false));
+        .then(cards => { if (active) { setEncounterCards(cards); setHeroCards([]); } })
+        .finally(() => { if (active) setCardsLoading(false); });
     } else {
       // Hero set: load hero set + nemesis set together
       // Try nemesis_code from set data, or fall back to "{code}_nemesis"
@@ -598,10 +640,14 @@ export default function Sets() {
         fetchSetCards(selectedSet.code, locale),
         fetchSetCards(nemesisCode, locale),
       ]).then(([hero, nemesis]) => {
-        setHeroCards(hero);
-        setEncounterCards(nemesis);
-      }).finally(() => setCardsLoading(false));
+        if (active) {
+          setHeroCards(hero);
+          setEncounterCards(nemesis);
+        }
+      }).finally(() => { if (active) setCardsLoading(false); });
     }
+
+    return () => { active = false; };
   }, [selectedSet?.code, locale]);
 
   const handleSelectSet = useCallback((set) => setSelectedSet(set), []);
@@ -629,7 +675,7 @@ export default function Sets() {
 
   // For villain sets: front-face main scheme cards (shown as a panel above the card list)
   const mainSchemeCards = useMemo(() => {
-    if (!selectedSet || (selectedSet.type_code || '').toLowerCase() !== 'villain') return [];
+    if (!selectedSet || !['villain', 'leader'].includes((selectedSet.type_code || '').toLowerCase())) return [];
     return identityCards.filter(c =>
       (c.type_code || '').toLowerCase() === 'main_scheme' &&
       !c.linked_to_code &&
@@ -639,9 +685,9 @@ export default function Sets() {
 
   // For villain sets: villain cards (shown as a panel above main schemes)
   const villainCards = useMemo(() => {
-    if (!selectedSet || (selectedSet.type_code || '').toLowerCase() !== 'villain') return [];
+    if (!selectedSet || !['villain', 'leader'].includes((selectedSet.type_code || '').toLowerCase())) return [];
     return identityCards.filter(c =>
-      (c.type_code || '').toLowerCase() === 'villain' &&
+      ['villain', 'leader'].includes((c.type_code || '').toLowerCase()) &&
       !c.linked_to_code
     );
   }, [selectedSet, identityCards]);
@@ -668,7 +714,7 @@ export default function Sets() {
       // Exclude main_scheme and villain cards
       const encStatsCards = encounterCards.filter(c => {
          const tc = (c.type_code || '').toLowerCase();
-         return tc !== 'main_scheme' && tc !== 'villain' && !c.linked_to_code;
+         return tc !== 'main_scheme' && !['villain', 'leader'].includes(tc) && !c.linked_to_code;
       });
       return <EncounterStatistics
         cards={encStatsCards}
@@ -682,7 +728,7 @@ export default function Sets() {
     const obligationCards = heroCards.filter(c => (c.type_code || '').toLowerCase() === 'obligation');
     const deckCards       = heroCards.filter(c => !['obligation', 'hero', 'alter_ego'].includes((c.type_code || '').toLowerCase()) && !c.hidden);
     const deckSlots       = deckCards.map(c => ({ ...c, quantity: c.quantity ?? 1, permanent: false }));
-    const encounterForStats = [...obligationCards, ...encounterCards.filter(c => (c.type_code || '').toLowerCase() !== 'villain')];
+    const encounterForStats = [...obligationCards, ...encounterCards.filter(c => !['villain', 'leader'].includes((c.type_code || '').toLowerCase()))];
     return (
       <>
         <DeckStatistics
@@ -766,6 +812,9 @@ export default function Sets() {
           {selectedSet && (
             <div className="sets-stats-title">
               <span className="sets-stats-title-name">{selectedSet.name}</span>
+              {selectedSet.theme && selectedSet.theme.trim().toLowerCase() !== 'marvel' && (
+                <span className="mc-badge sets-theme-badge" style={{ marginLeft: 8, marginTop: -2 }}>{selectedSet.theme}</span>
+              )}
               {selectedSet.pack_environment === 'current' && <span className="mc-badge mc-badge-current" style={{ marginLeft: 8 }}>Current</span>}
               {selectedSet.private && <span className="mc-badge mc-badge-private" style={{ marginLeft: 8 }} title="Pack privé (donateurs)">🔒 Private</span>}
               {selectedSet.creator && selectedSet.creator !== 'FFG' && (
