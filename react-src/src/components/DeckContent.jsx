@@ -264,6 +264,8 @@ export default function DeckContent({ slots, mode = 'list', showBadges = true, h
                             <span className="dc-tooltip">Alternative art</span>
                           </span>
                         )}
+                      </div>
+                      <div className="slot-actions-right">
                         {onTransferToSide && !isHero && (
                           <span className="dc-tooltip-wrap">
                             <button
@@ -357,6 +359,8 @@ export default function DeckContent({ slots, mode = 'list', showBadges = true, h
                             <span className="dc-tooltip">Alternative art</span>
                           </span>
                         )}
+                      </div>
+                      <div className="slot-actions-right">
                         {onTransferToSide && !isHero && (
                           <span className="dc-tooltip-wrap">
                             <button
@@ -497,6 +501,8 @@ export default function DeckContent({ slots, mode = 'list', showBadges = true, h
                             <span className="dc-tooltip">Alternative art</span>
                           </span>
                         )}
+                      </div>
+                      <div className="slot-actions-right">
                         {onTransferToMain && (
                           <span className="dc-tooltip-wrap">
                             <button

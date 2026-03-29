@@ -571,7 +571,7 @@ export default function DeckView() {
                       className={`editor-faction-btn${isActive ? ' editor-faction-btn--active' : ''}`}
                       style={{
                         '--fac-color': color,
-                        borderColor: isActive ? color : `${color}55`,
+                        borderColor: isActive ? color : `${fgColor}55`,
                         background: isActive ? color : `${color}18`,
                         color: isActive ? '#fff' : fgColor,
                       }}

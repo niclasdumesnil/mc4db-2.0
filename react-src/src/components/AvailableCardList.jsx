@@ -174,7 +174,7 @@ export default function AvailableCardList({ cards, slotsMap = {}, onSetQty, side
                     {creator && String(creator).split(/[,&]/).map(c => c.trim()).filter(Boolean).map((c, i) => <span key={i} className="mc-badge mc-badge-creator" title={`Created by ${c}`}>{c}</span>)}
                     {card.alt_art && (
                       <span className="dc-tooltip-wrap">
-                        <span className="mc-badge mc-badge-altart">🎨</span>
+                        <span className="mc-badge mc-badge-altart">🎨 Alt-Art</span>
                         <span className="dc-tooltip">Alternative art</span>
                       </span>
                     )}

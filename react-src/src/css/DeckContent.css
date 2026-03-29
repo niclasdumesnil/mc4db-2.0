@@ -77,6 +77,13 @@
   margin-left: 6px;
 }
 
+.slot-actions-right {
+  display: flex;
+  align-self: flex-end;
+  margin-right: 8px;
+  margin-top: auto;
+}
+
 .slot-qty {
   font-weight: 700;
   color: var(--st-text-muted);

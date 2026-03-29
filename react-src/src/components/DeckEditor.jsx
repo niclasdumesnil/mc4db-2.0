@@ -819,7 +819,7 @@ export default forwardRef(function DeckEditor(
                     className={`editor-faction-btn${active ? ' editor-faction-btn--active' : ''}`}
                     style={{
                       '--fac-color': color,
-                      borderColor: active ? color : `${color}55`,
+                      borderColor: active ? color : `${fgColor}55`,
                       background: active ? color : `${color}18`,
                       color: active ? '#fff' : fgColor,
                     }}
@@ -928,14 +928,15 @@ export default forwardRef(function DeckEditor(
                 className={`editor-filter-badge editor-filter-badge--altart${filters.showAltArt ? ' editor-filter-badge--on' : ' editor-filter-badge--off'}`}
                 onClick={() => handleToggle('showAltArt')}
                 title={filters.showAltArt ? 'Hide alt-art' : 'Show alt-art'}
-              >🎨</button>
+              >🎨 Alt-Art</button>
               <button
                 className={`editor-filter-badge editor-filter-badge--current${filters.showCurrent ? ' editor-filter-badge--on' : ' editor-filter-badge--off'}`}
                 onClick={() => handleToggle('showCurrent')}
                 title={filters.showCurrent ? 'Show all cards' : 'Show current format only'}
               >⚡ Show Current Only</button>
               <button
-                className={`editor-filter-badge ${showUnauthorized ? 'editor-filter-badge--on' : 'editor-filter-badge--off'}`}
+                className={`dvt-unauthorized-btn${showUnauthorized ? ' dvt-unauthorized-btn--active' : ''}`}
+                style={{ marginLeft: '10px' }}
                 onClick={() => setShowUnauthorized(p => !p)}
                 title="Show cards that do not comply with deck rules in the card browser"
               >

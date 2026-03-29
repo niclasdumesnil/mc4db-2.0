@@ -165,7 +165,7 @@ export default function CardListDisplay({ cards, mode = 'checklist', sort, onSor
                         {card.visibility === 'false' && <span className="mc-badge mc-badge-private" title="Private">🔒</span>}
                         {card.alt_art ? (
                           <span className="dc-tooltip-wrap">
-                            <span className="mc-badge mc-badge-altart">🎨</span>
+                            <span className="mc-badge mc-badge-altart">🎨 Alt-Art</span>
                             <span className="dc-tooltip">Alternative art</span>
                           </span>
                         ) : null}
