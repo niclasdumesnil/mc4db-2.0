@@ -60,8 +60,8 @@ function CustomPackSelect({ packs, value, onChange, disabled, showCreator = fals
             <span className="pack-search-trigger-name">{selected.name}</span>
             {selected.environment === 'current' && (
               <span className="dc-tooltip-wrap">
-                <span className="mc-badge mc-badge-current">Std</span>
-                <span className="dc-tooltip">Standard format</span>
+                <span className="mc-badge mc-badge-current">Current</span>
+                <span className="dc-tooltip">Current format</span>
               </span>
             )}
             {selected.visibility === 'false' && <span className="mc-badge mc-badge-private" title="Donor exclusive">🔒 Private</span>}
@@ -120,8 +120,8 @@ function CustomPackSelect({ packs, value, onChange, disabled, showCreator = fals
                 <span className="pack-search-option-name">{p.name}</span>
                 {p.environment === 'current' && (
                   <span className="dc-tooltip-wrap">
-                    <span className="mc-badge mc-badge-current">Std</span>
-                    <span className="dc-tooltip">Standard format</span>
+                    <span className="mc-badge mc-badge-current">Current</span>
+                    <span className="dc-tooltip">Current format</span>
                   </span>
                 )}
                 {p.visibility === 'false' && <span className="mc-badge mc-badge-private" title="Private">🔒</span>}

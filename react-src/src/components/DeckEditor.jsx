@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback, useImperativeHandle, forwardRef } from 'react';
 import AvailableCardList from './AvailableCardList';
 import SmartSearchInput, { evaluateQueryMatch } from './SmartSearchInput';
-import { getFactionColor } from '@utils/dataUtils';
+import { getFactionColor, getFactionFgColor } from '@utils/dataUtils';
 import { canIncludeCard } from '@utils/deckValidation';
 import { useFactions } from '../hooks/useFactions';
 import { useTypes } from '../hooks/useTypes';
@@ -54,6 +54,7 @@ export default forwardRef(function DeckEditor(
     isPrivate,
     deckAspect,
     showUnauthorized,
+    setShowUnauthorized,
     onSlotsChange,
     onSideSlotsChange,
     onCardsLoaded,
@@ -810,6 +811,7 @@ export default forwardRef(function DeckEditor(
             <div className="editor-filter-pills">
               {FACTION_LIST.map(fac => {
                 const color = getFactionColor(fac);
+                const fgColor = getFactionFgColor(fac);
                 const active = selectedFaction === fac;
                 return (
                   <button
@@ -819,7 +821,7 @@ export default forwardRef(function DeckEditor(
                       '--fac-color': color,
                       borderColor: active ? color : `${color}55`,
                       background: active ? color : `${color}18`,
-                      color: active ? '#fff' : `${color}cc`,
+                      color: active ? '#fff' : fgColor,
                     }}
                     onClick={() => setSelectedFaction(prev => prev === fac ? null : fac)}
                   >
@@ -932,6 +934,13 @@ export default forwardRef(function DeckEditor(
                 onClick={() => handleToggle('showCurrent')}
                 title={filters.showCurrent ? 'Show all cards' : 'Show current format only'}
               >⚡ Show Current Only</button>
+              <button
+                className={`editor-filter-badge ${showUnauthorized ? 'editor-filter-badge--on' : 'editor-filter-badge--off'}`}
+                onClick={() => setShowUnauthorized(p => !p)}
+                title="Show cards that do not comply with deck rules in the card browser"
+              >
+                {showUnauthorized ? '🔓 Showing Unauthorized' : '🔒 Show Unauthorized'}
+              </button>
             </div>
           </div>
 

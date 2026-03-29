@@ -104,8 +104,8 @@ export default function DeckCard({
               {!isFFG && creator && String(creator).split(/[,&]/).map(c => c.trim()).filter(Boolean).map((c, i) => <span key={i} className="mc-badge mc-badge-creator">{c}</span>)}
               {statusBadgeClass && statusKey === 'current' ? (
                 <span className="dc-tooltip-wrap">
-                  <span className="mc-badge mc-badge-current">Std</span>
-                  <span className="dc-tooltip">Standard format</span>
+                  <span className="mc-badge mc-badge-current">Current</span>
+                  <span className="dc-tooltip">Current format</span>
                 </span>
               ) : statusBadgeClass ? (
                 <span className={`mc-badge ${statusBadgeClass}`}>{statusKey}</span>

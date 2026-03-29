@@ -3,7 +3,7 @@ import DeckContent from '@components/DeckContent';
 import DeckStatistics from '@components/DeckStatistics';
 import DeckHistory from '@components/DeckHistory';
 import DeckEditor from '@components/DeckEditor';
-import { getFactionColor, DECK_TAGS } from '@utils/dataUtils';
+import { getFactionColor, getFactionFgColor, DECK_TAGS } from '@utils/dataUtils';
 import { getDeckProblems, getSaveProblems, getInvalidCodes, inferDeckAspect } from '@utils/deckValidation';
 import MarkdownEditor from '@components/MarkdownEditor';
 import MarkdownViewer from '@components/MarkdownViewer';
@@ -563,6 +563,7 @@ export default function DeckView() {
               <div className="editor-filter-pills">
                 {ASPECT_LIST.map(asp => {
                   const color = getFactionColor(asp);
+                  const fgColor = getFactionFgColor(asp);
                   const isActive = deckAspect === asp;
                   return (
                     <button
@@ -572,7 +573,7 @@ export default function DeckView() {
                         '--fac-color': color,
                         borderColor: isActive ? color : `${color}55`,
                         background: isActive ? color : `${color}18`,
-                        color: isActive ? '#fff' : `${color}cc`,
+                        color: isActive ? '#fff' : fgColor,
                       }}
                       onClick={() => setDeckAspect(prev => prev === asp ? null : asp)}
                     >{factionsMap[asp] || ASPECT_LABELS[asp]}</button>
@@ -581,16 +582,6 @@ export default function DeckView() {
               </div>
             </div>
 
-            {/* Show Unauthorized Cards */}
-            <div className="dvt-section">
-              <button
-                className={`dvt-unauthorized-btn${showUnauthorized ? ' dvt-unauthorized-btn--active' : ''}`}
-                onClick={() => setShowUnauthorized(p => !p)}
-                title="Show cards that do not comply with deck rules in the card browser"
-              >
-                {showUnauthorized ? '🔓 Showing Unauthorized' : '🔒 Show Unauthorized'}
-              </button>
-            </div>
           </>
         )}
         {/* Right side items: Description */}
@@ -698,6 +689,7 @@ export default function DeckView() {
               isPrivate={isPrivate}
               deckAspect={deckAspect}
               showUnauthorized={showUnauthorized}
+              setShowUnauthorized={setShowUnauthorized}
               onSlotsChange={slots => setLiveSlots(slots)}
               onSideSlotsChange={sideSlots => setLiveSideSlots(sideSlots)}
               onCardsLoaded={({ heroCard: hc, allCards: ac }) => {

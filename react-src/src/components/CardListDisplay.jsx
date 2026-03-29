@@ -156,8 +156,8 @@ export default function CardListDisplay({ cards, mode = 'checklist', sort, onSor
                       {(!card.is_unique && card.quantity > 0) ? <span className="cl-qty">(x{card.quantity})</span> : null}
                       {card.pack_environment === 'current' ? (
                         <span className="dc-tooltip-wrap">
-                          <span className="mc-badge mc-badge-current">Std</span>
-                          <span className="dc-tooltip">Standard format</span>
+                          <span className="mc-badge mc-badge-current">Current</span>
+                          <span className="dc-tooltip">Current format</span>
                         </span>
                       ) : null}
                       {card.pack_creator ? String(card.pack_creator).split(/[,&]/).map(c => c.trim()).filter(Boolean).map((c, i) => <span key={i} className="mc-badge mc-badge-creator" title={`Created by ${c}`}>{c}</span>) : null}

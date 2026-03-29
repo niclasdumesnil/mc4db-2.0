@@ -60,8 +60,8 @@ function StatusTag({ card }) {
       {/* 2. Current */}
       {card.pack_environment === 'current' && (
         <span className="dc-tooltip-wrap">
-          <span className="mc-badge mc-badge-current">Std</span>
-          <span className="dc-tooltip">Standard format</span>
+          <span className="mc-badge mc-badge-current">Current</span>
+          <span className="dc-tooltip">Current format</span>
         </span>
       )}
       {/* 3. Private */}

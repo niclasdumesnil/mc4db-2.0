@@ -167,8 +167,8 @@ export function TooltipContent({ card, isLink = false }) {
                         {card.subname ? <span className="card-tooltip__subname tw-mr-1"> {card.subname}</span> : null}
                         {card.pack_environment === 'current' ? (
                             <span className="dc-tooltip-wrap tw-ml-1">
-                                <span className="mc-badge mc-badge-current">Std</span>
-                                <span className="dc-tooltip">Standard format</span>
+                                <span className="mc-badge mc-badge-current">Current</span>
+                                <span className="dc-tooltip">Current format</span>
                             </span>
                         ) : null}
                         {(card.pack_creator || (card.creator && card.creator !== 'FFG')) ? (

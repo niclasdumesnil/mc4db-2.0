@@ -166,8 +166,8 @@ export default function AvailableCardList({ cards, slotsMap = {}, onSetQty, side
                     <span className="card-tip" data-code={card.code} style={{ color: 'var(--cl-text)', fontWeight: 500, cursor: 'pointer' }}>{card.name}</span>
                     {card.pack_environment === 'current' && (
                       <span className="dc-tooltip-wrap">
-                        <span className="mc-badge mc-badge-current">Std</span>
-                        <span className="dc-tooltip">Standard format</span>
+                        <span className="mc-badge mc-badge-current">Current</span>
+                        <span className="dc-tooltip">Current format</span>
                       </span>
                     )}
                     {card.visibility === 'false' && <span className="mc-badge mc-badge-private" title="Private">🔒</span>}

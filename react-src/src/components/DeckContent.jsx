@@ -247,8 +247,8 @@ export default function DeckContent({ slots, mode = 'list', showBadges = true, h
                         {isInvalid && <span className="slot-invalid-badge" title="This card does not comply with deck rules">⚠</span>}
                         {showBadges && card.pack_environment === 'current' && (
                           <span className="dc-tooltip-wrap">
-                            <span className="mc-badge mc-badge-current">Std</span>
-                            <span className="dc-tooltip">Standard format</span>
+                            <span className="mc-badge mc-badge-current">Cur</span>
+                            <span className="dc-tooltip">Current format</span>
                           </span>
                         )}
                         {showBadges && card.visibility === 'false' && <span className="mc-badge mc-badge-private" title="Private">🔒</span>}
@@ -340,8 +340,8 @@ export default function DeckContent({ slots, mode = 'list', showBadges = true, h
                         {isInvalid && <span className="slot-invalid-badge" title="This card does not comply with deck rules">⚠</span>}
                         {showBadges && card.pack_environment === 'current' && (
                           <span className="dc-tooltip-wrap">
-                            <span className="mc-badge mc-badge-current">Std</span>
-                            <span className="dc-tooltip">Standard format</span>
+                            <span className="mc-badge mc-badge-current">Cur</span>
+                            <span className="dc-tooltip">Current format</span>
                           </span>
                         )}
                         {showBadges && card.visibility === 'false' && <span className="mc-badge mc-badge-private" title="Private">🔒</span>}
@@ -480,8 +480,8 @@ export default function DeckContent({ slots, mode = 'list', showBadges = true, h
                         {isInvalid && <span className="slot-invalid-badge" title="This card does not comply with deck rules">⚠</span>}
                         {showBadges && card.pack_environment === 'current' && (
                           <span className="dc-tooltip-wrap">
-                            <span className="mc-badge mc-badge-current">Std</span>
-                            <span className="dc-tooltip">Standard format</span>
+                            <span className="mc-badge mc-badge-current">Cur</span>
+                            <span className="dc-tooltip">Current format</span>
                           </span>
                         )}
                         {showBadges && card.visibility === 'false' && <span className="mc-badge mc-badge-private" title="Private">🔒</span>}
