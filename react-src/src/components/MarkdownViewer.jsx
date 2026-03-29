@@ -1,5 +1,6 @@
 import React from 'react';
 import ReactMarkdown from 'react-markdown';
+import rehypeRaw from 'rehype-raw';
 import '../css/MarkdownViewer.css';
 
 export default function MarkdownViewer({ content }) {
@@ -7,7 +8,7 @@ export default function MarkdownViewer({ content }) {
 
   return (
     <div className="markdown-viewer">
-      <ReactMarkdown>{content}</ReactMarkdown>
+      <ReactMarkdown rehypePlugins={[rehypeRaw]}>{content}</ReactMarkdown>
     </div>
   );
 }
