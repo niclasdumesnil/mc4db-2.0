@@ -62,6 +62,7 @@ export default function DeckView() {
   const [deckTags, setDeckTags] = useState('');
   const [customTagsText, setCustomTagsText] = useState('');
   const [showUnauthorized, setShowUnauthorized] = useState(false);
+  const [showBadges, setShowBadges] = useState(true);
   const [heroCard, setHeroCard] = useState(null);
   const [validationCards, setValidationCards] = useState([]);
   const [saveProblems, setSaveProblems] = useState([]); // problèmes vérifiés uniquement à la sauvegarde
@@ -536,6 +537,10 @@ export default function DeckView() {
             className={`deck-view-mode-btn${displayMode === 'grid' ? ' active' : ''}`}
             onClick={() => setDisplayMode('grid')}
           >⊞ Image</button>
+          <button
+            className={`deck-view-mode-btn${showBadges ? ' active' : ''}`}
+            onClick={() => setShowBadges(!showBadges)}
+          >🏷 Show Badge</button>
         </div>
 
         {showEditor && (
@@ -624,6 +629,7 @@ export default function DeckView() {
             slots={liveSlots ?? deck.slots ?? []}
             sideSlots={liveSideSlots ?? deck.side_slots ?? []}
             mode={displayMode}
+            showBadges={showBadges}
             heroSpecialCards={deck.hero_special_cards ?? []}
             invalidCodes={invalidCodes}
             heroSetCode={heroSetCode}
