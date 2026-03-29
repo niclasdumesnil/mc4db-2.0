@@ -85,7 +85,6 @@ export default function PrintDeckButton({ deckId, deckName, isPrivate, className
     <button
       className={className ? `${className}${busy ? ' ' + className + '--busy' : ''}` : `deck-action-btn${busy ? ' deck-action-btn--busy' : ''}`}
       onClick={handlePrint}
-      title="Generate deck image"
       disabled={busy}
       aria-label="Print deck"
     >

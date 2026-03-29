@@ -64,16 +64,34 @@ export default function PublicDeck({ deck }) {
 
   const actionButtons = (
     <>
-      <button className="deck-action-btn deck-action-btn--disabled" disabled={true} title="Cannot edit a public deck">✏️</button>
-      <button className="deck-action-btn" disabled={busy === 'clone'} onClick={handleClone} title="Clone">
-        {busy === 'clone' ? '…' : '📋'}
-      </button>
-      <button className="deck-action-btn deck-action-btn--disabled" disabled={true} title="Already published">📤</button>
-      <button className="deck-action-btn" disabled={!isOwner || busy === 'unpublish'} onClick={isOwner ? handleUnpublish : undefined} title={isOwner ? "Unpublish" : "You can only unpublish your own decks"}>
-        {busy === 'unpublish' ? '…' : '📥'}
-      </button>
-      <PrintDeckButton deckId={deck.id} deckName={deck.name} isPrivate={false} />
-      <ExportOctgnButton deckId={deck.id} deckName={deck.name} isPrivate={false} />
+      <span className="dc-tooltip-wrap" onClick={e => e.stopPropagation()}>
+        <button className="deck-action-btn deck-action-btn--disabled" disabled={true}>✏️</button>
+        <span className="dc-tooltip">Cannot edit a public deck</span>
+      </span>
+      <span className="dc-tooltip-wrap" onClick={e => e.stopPropagation()}>
+        <button className="deck-action-btn" disabled={busy === 'clone'} onClick={handleClone}>
+          {busy === 'clone' ? '…' : '📋'}
+        </button>
+        <span className="dc-tooltip">Clone</span>
+      </span>
+      <span className="dc-tooltip-wrap" onClick={e => e.stopPropagation()}>
+        <button className="deck-action-btn deck-action-btn--disabled" disabled={true}>📤</button>
+        <span className="dc-tooltip">Already published</span>
+      </span>
+      <span className="dc-tooltip-wrap" onClick={e => e.stopPropagation()}>
+        <button className="deck-action-btn" disabled={!isOwner || busy === 'unpublish'} onClick={isOwner ? handleUnpublish : undefined}>
+          {busy === 'unpublish' ? '…' : '📥'}
+        </button>
+        <span className="dc-tooltip">{isOwner ? "Unpublish" : "You can only unpublish your own decks"}</span>
+      </span>
+      <span className="dc-tooltip-wrap" onClick={e => e.stopPropagation()}>
+        <PrintDeckButton deckId={deck.id} deckName={deck.name} isPrivate={false} />
+        <span className="dc-tooltip">Print Deck</span>
+      </span>
+      <span className="dc-tooltip-wrap" onClick={e => e.stopPropagation()}>
+        <ExportOctgnButton deckId={deck.id} deckName={deck.name} isPrivate={false} />
+        <span className="dc-tooltip">Export OCTGN</span>
+      </span>
       <div className="deck-date" style={{ marginLeft: '4px' }}>
         {new Date(deck.date_creation).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
       </div>

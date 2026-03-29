@@ -31,8 +31,7 @@ export function RepBadge({ reputation }) {
 
   return (
     <span 
-      className={`rep-badge rep-badge--${tier}`} 
-      title={`${label} — ${rep}`}
+      className={`rep-badge rep-badge--${tier} dc-tooltip-wrap`} 
       style={{
         display: 'inline-flex',
         alignItems: 'center',
@@ -47,7 +46,8 @@ export function RepBadge({ reputation }) {
         marginLeft: '6px'
       }}
     >
-      <MedalIcon fill={fill} stroke={stroke} title={`${label} — ${rep}`} />
+      <MedalIcon fill={fill} stroke={stroke} />
+      <span className="dc-tooltip">{`${label} — ${rep}`}</span>
     </span>
   );
 }
@@ -120,8 +120,9 @@ export default function DeckCard({
             {tags.map((tag, i) => {
               const t = DECK_TAGS[tag.toLowerCase()];
               return t ? (
-                <span key={i} className={`deck-tag-icon deck-tag-icon--${tag.toLowerCase()}`} title={t.title} style={{ opacity: 1 }}>
+                <span key={i} className={`deck-tag-icon deck-tag-icon--${tag.toLowerCase()} dc-tooltip-wrap`} style={{ opacity: 1 }}>
                   {t.icon}
+                  <span className="dc-tooltip">{t.title}</span>
                 </span>
               ) : (
                 <span key={i} className="deck-tag">{tag}</span>

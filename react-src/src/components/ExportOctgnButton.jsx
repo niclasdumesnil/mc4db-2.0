@@ -182,7 +182,6 @@ export default function ExportOctgnButton({ deckId, deckName, isPrivate, classNa
       className={className ? `${className}${busy ? ' ' + className + '--busy' : ''}` : `deck-action-btn${busy ? ' deck-action-btn--busy' : ''}`}
       style={className ? undefined : { marginLeft: '5px' }}
       onClick={handleExport}
-      title="Export to OCTGN"
       disabled={busy}
       aria-label="Export deck"
     >

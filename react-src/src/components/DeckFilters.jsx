@@ -1,5 +1,5 @@
 import React from 'react';
-import { getFactionColor, DECK_TAGS } from '@utils/dataUtils';
+import { getFactionColor, getFactionFgColor, DECK_TAGS } from '@utils/dataUtils';
 import { useFactions } from '../hooks/useFactions';
 
 // Aspects jouables uniquement (pas encounter/hero/basic)
@@ -83,17 +83,17 @@ export default function DeckFilters({ filters, onChange, heroes, children }) {
           </button>
           {ASPECTS.map(code => {
             const color = getFactionColor(code);
+            const fgColor = getFactionFgColor(code);
             const active = (filters.aspects || []).includes(code);
             return (
               <button
                 key={code}
                 className={`deck-filters__aspect-btn${active ? ' deck-filters__aspect-btn--active' : ''}`}
                 style={{
-                  borderColor: active ? color : `${color}55`,
+                  borderColor: active ? color : `${fgColor}55`,
                   background: active ? color : `${color}18`,
-                  color: active ? '#fff' : `${color}cc`,
+                  color: active ? '#fff' : fgColor,
                 }}
-                title={factionsMap[code] || ASPECT_LABELS[code]}
                 onClick={() => toggleAspect(code)}
               >
                 {factionsMap[code] || ASPECT_LABELS[code]}
@@ -110,15 +110,16 @@ export default function DeckFilters({ filters, onChange, heroes, children }) {
           {Object.entries(DECK_TAGS).map(([key, t]) => {
             const active = filters.tags.includes(key);
             return (
-              <button
-                key={key}
-                className={`deck-tag-icon deck-tag-icon--${key}${active ? ' deck-tag-icon--active' : ''}`}
-                title={t.title}
-                onClick={() => toggleTag(key)}
-                style={{ opacity: active ? 1 : 0.45, transform: active ? 'scale(1.15)' : 'none' }}
-              >
-                {t.icon}
-              </button>
+              <span key={key} className="dc-tooltip-wrap">
+                <button
+                  className={`deck-tag-icon deck-tag-icon--${key}${active ? ' deck-tag-icon--active' : ''}`}
+                  onClick={() => toggleTag(key)}
+                  style={{ opacity: active ? 1 : 0.45, transform: active ? 'scale(1.15)' : 'none' }}
+                >
+                  {t.icon}
+                </button>
+                <span className="dc-tooltip">{t.title}</span>
+              </span>
             );
           })}
         </div>

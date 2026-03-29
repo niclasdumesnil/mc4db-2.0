@@ -446,36 +446,72 @@ export default function DeckView() {
           <div className="deck-view-banner-btns">
             {!showEditor && isPrivate && (
               <>
-                <button className="deck-view-action-btn" onClick={() => setShowEditor(true)} title="Edit">✏️ Edit</button>
-                <button className="deck-view-action-btn" disabled={cloning} onClick={handleClone} title="Clone">
-                  {cloning ? '…' : '📋'} Clone
-                </button>
-                <button className="deck-view-action-btn" disabled={publishing || isPrivatePack} onClick={handlePublish} title={isPrivatePack ? 'Cannot publish a deck with a hero from a private pack.' : 'Publish'}>
-                  {publishing ? '…' : '📤'} Publish
-                </button>
-                <button className="deck-view-action-btn" disabled={deleting} onClick={handleDelete} title="Delete">
-                  {deleting ? '…' : '🗑️'} Delete
-                </button>
-                <PrintDeckButton className="deck-view-action-btn" deckId={deckId} deckName={liveTitle ?? deck.name} isPrivate={isPrivate} label="Print" />
-                <ExportOctgnButton className="deck-view-action-btn" deckId={deckId} deckName={liveTitle ?? deck.name} isPrivate={isPrivate}>
-                  📁 Export
-                </ExportOctgnButton>
+                <span className="dc-tooltip-wrap deck-view-action-btn-wrap">
+                  <button className="deck-view-action-btn" onClick={() => setShowEditor(true)}>✏️ Edit</button>
+                  <span className="dc-tooltip">Edit</span>
+                </span>
+                <span className="dc-tooltip-wrap deck-view-action-btn-wrap">
+                  <button className="deck-view-action-btn" disabled={cloning} onClick={handleClone}>
+                    {cloning ? '…' : '📋'} Clone
+                  </button>
+                  <span className="dc-tooltip">Clone</span>
+                </span>
+                <span className="dc-tooltip-wrap deck-view-action-btn-wrap">
+                  <button className="deck-view-action-btn" disabled={publishing || isPrivatePack} onClick={handlePublish}>
+                    {publishing ? '…' : '📤'} Publish
+                  </button>
+                  <span className="dc-tooltip">{isPrivatePack ? 'Cannot publish a deck with a hero from a private pack.' : 'Publish'}</span>
+                </span>
+                <span className="dc-tooltip-wrap deck-view-action-btn-wrap">
+                  <button className="deck-view-action-btn" disabled={deleting} onClick={handleDelete}>
+                    {deleting ? '…' : '🗑️'} Delete
+                  </button>
+                  <span className="dc-tooltip">Delete</span>
+                </span>
+                <span className="dc-tooltip-wrap deck-view-action-btn-wrap">
+                  <PrintDeckButton className="deck-view-action-btn" deckId={deckId} deckName={liveTitle ?? deck.name} isPrivate={isPrivate} label="Print" />
+                  <span className="dc-tooltip">Print Deck</span>
+                </span>
+                <span className="dc-tooltip-wrap deck-view-action-btn-wrap">
+                  <ExportOctgnButton className="deck-view-action-btn" deckId={deckId} deckName={liveTitle ?? deck.name} isPrivate={isPrivate}>
+                    📁 Export
+                  </ExportOctgnButton>
+                  <span className="dc-tooltip">Export OCTGN</span>
+                </span>
               </>
             )}
             {!showEditor && !isPrivate && (
               <>
-                <button className="deck-view-action-btn" disabled={true} title="You cannot edit a public deck">✏️ Edit</button>
-                <button className="deck-view-action-btn" disabled={cloning} onClick={handleClone} title="Clone">
-                  {cloning ? '…' : '📋'} Clone
-                </button>
-                <button className="deck-view-action-btn" disabled={true} title="Already published">📤 Publish</button>
-                <button className="deck-view-action-btn" disabled={!isOwner || deleting} onClick={isOwner ? handleDelete : undefined} title={isOwner ? "Unpublish" : "You can only unpublish your own decks"}>
-                  {deleting ? '…' : '📥'} Unpublish
-                </button>
-                <PrintDeckButton className="deck-view-action-btn" deckId={deckId} deckName={deck.name} isPrivate={false} label="Print" />
-                <ExportOctgnButton className="deck-view-action-btn" deckId={deckId} deckName={deck.name} isPrivate={false}>
-                  📁 Export
-                </ExportOctgnButton>
+                <span className="dc-tooltip-wrap deck-view-action-btn-wrap">
+                  <button className="deck-view-action-btn" disabled={true}>✏️ Edit</button>
+                  <span className="dc-tooltip">Cannot edit a public deck</span>
+                </span>
+                <span className="dc-tooltip-wrap deck-view-action-btn-wrap">
+                  <button className="deck-view-action-btn" disabled={cloning} onClick={handleClone}>
+                    {cloning ? '…' : '📋'} Clone
+                  </button>
+                  <span className="dc-tooltip">Clone</span>
+                </span>
+                <span className="dc-tooltip-wrap deck-view-action-btn-wrap">
+                  <button className="deck-view-action-btn" disabled={true}>📤 Publish</button>
+                  <span className="dc-tooltip">Already published</span>
+                </span>
+                <span className="dc-tooltip-wrap deck-view-action-btn-wrap">
+                  <button className="deck-view-action-btn" disabled={!isOwner || deleting} onClick={isOwner ? handleDelete : undefined}>
+                    {deleting ? '…' : '📥'} Unpublish
+                  </button>
+                  <span className="dc-tooltip">{isOwner ? "Unpublish" : "You can only unpublish your own decks"}</span>
+                </span>
+                <span className="dc-tooltip-wrap deck-view-action-btn-wrap">
+                  <PrintDeckButton className="deck-view-action-btn" deckId={deckId} deckName={deck.name} isPrivate={false} label="Print" />
+                  <span className="dc-tooltip">Print Deck</span>
+                </span>
+                <span className="dc-tooltip-wrap deck-view-action-btn-wrap">
+                  <ExportOctgnButton className="deck-view-action-btn" deckId={deckId} deckName={deck.name} isPrivate={false}>
+                    📁 Export
+                  </ExportOctgnButton>
+                  <span className="dc-tooltip">Export OCTGN</span>
+                </span>
               </>
             )}
               {showEditor && isPrivate && (

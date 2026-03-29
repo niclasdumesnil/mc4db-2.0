@@ -79,23 +79,40 @@ export default function PrivateDeck({ deck }) {
 
   const actionButtons = (
     <>
-      <button className="deck-action-btn" onClick={handleEdit} title="Edit">✏️</button>
-      <button className="deck-action-btn" disabled={busy === 'clone'} onClick={handleClone} title="Clone">
-        {busy === 'clone' ? '…' : '📋'}
-      </button>
-      <button 
-        className="deck-action-btn" 
-        disabled={busy === 'publish' || isPrivatePack} 
-        onClick={handlePublish} 
-        title={isPrivatePack ? 'Cannot publish a deck with a hero from a private pack.' : 'Publish'}
-      >
-        {busy === 'publish' ? '…' : '📤'}
-      </button>
-      <button className="deck-action-btn" disabled={busy === 'delete'} onClick={handleDelete} title="Delete">
-        {busy === 'delete' ? '…' : '🗑️'}
-      </button>
-      <PrintDeckButton deckId={deck.id} deckName={deck.name} isPrivate={true} />
-      <ExportOctgnButton deckId={deck.id} deckName={deck.name} isPrivate={true} />
+      <span className="dc-tooltip-wrap" onClick={e => e.stopPropagation()}>
+        <button className="deck-action-btn" onClick={handleEdit}>✏️</button>
+        <span className="dc-tooltip">Edit</span>
+      </span>
+      <span className="dc-tooltip-wrap" onClick={e => e.stopPropagation()}>
+        <button className="deck-action-btn" disabled={busy === 'clone'} onClick={handleClone}>
+          {busy === 'clone' ? '…' : '📋'}
+        </button>
+        <span className="dc-tooltip">Clone</span>
+      </span>
+      <span className="dc-tooltip-wrap" onClick={e => e.stopPropagation()}>
+        <button 
+          className="deck-action-btn" 
+          disabled={busy === 'publish' || isPrivatePack} 
+          onClick={handlePublish} 
+        >
+          {busy === 'publish' ? '…' : '📤'}
+        </button>
+        <span className="dc-tooltip">{isPrivatePack ? 'Cannot publish a deck with a hero from a private pack.' : 'Publish'}</span>
+      </span>
+      <span className="dc-tooltip-wrap" onClick={e => e.stopPropagation()}>
+        <button className="deck-action-btn" disabled={busy === 'delete'} onClick={handleDelete}>
+          {busy === 'delete' ? '…' : '🗑️'}
+        </button>
+        <span className="dc-tooltip">Delete</span>
+      </span>
+      <span className="dc-tooltip-wrap" onClick={e => e.stopPropagation()}>
+        <PrintDeckButton deckId={deck.id} deckName={deck.name} isPrivate={true} />
+        <span className="dc-tooltip">Print Deck</span>
+      </span>
+      <span className="dc-tooltip-wrap" onClick={e => e.stopPropagation()}>
+        <ExportOctgnButton deckId={deck.id} deckName={deck.name} isPrivate={true} />
+        <span className="dc-tooltip">Export OCTGN</span>
+      </span>
       <div className="deck-date" style={{ marginLeft: '4px' }}>
         {updatedAt}
       </div>

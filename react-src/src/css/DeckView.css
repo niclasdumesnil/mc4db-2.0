@@ -658,6 +658,16 @@
     margin: 15px auto 0;
   }
 
+  .deck-view-action-btn-wrap {
+    flex: 1 1 calc(33.33% - 10px);
+    width: auto;
+  }
+
+  .deck-view-action-btn-wrap .deck-view-action-btn {
+    width: 100%;
+    margin: 0;
+  }
+
   .deck-view-action-btn {
     width: auto;
     /* 6 buttons total, so calc 33% makes 2 rows of 3 buttons */

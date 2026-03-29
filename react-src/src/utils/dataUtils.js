@@ -38,7 +38,7 @@ const FACTION_FG_COLORS = {
   leadership: '#3499eb',
   aggression: '#e01414',
   protection: '#00ab41',
-  basic: '#606060',
+  basic: '#a0a0a0',
   justice: '#f2ca00',
   pool: '#d47eb2',
   determination: '#8160d6',
