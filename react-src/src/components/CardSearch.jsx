@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import SmartSearchInput from './SmartSearchInput';
-import { getFactionColor } from '@utils/dataUtils';// ── Faction / Aspect pills ───────────────────────────────
+import { getFactionColor, getFactionFgColor } from '@utils/dataUtils';// ── Faction / Aspect pills ───────────────────────────────
 const AFFINITIES = [
   { code: 'pool', label: "'Pool" },
   { code: 'aggression', label: 'Aggression' },
@@ -297,15 +297,16 @@ export default function CardSearch({ filters, onChange, types = [], subtypes = [
           {[...CATEGORIES, ...AFFINITIES].map(f => {
             const active = (filters.factions || []).includes(f.code);
             const color = getFactionColor(f.code);
+            const fgColor = getFactionFgColor(f.code);
             const translatedLabel = factions[f.code] || f.label;
             return (
               <button
                 key={f.code}
                 className={`deck-filters__aspect-btn${active ? ' deck-filters__aspect-btn--active' : ''}`}
                 style={{
-                  borderColor: active ? color : `${color}55`,
+                  borderColor: active ? color : `${fgColor}55`,
                   background: active ? color : `${color}18`,
-                  color: active ? '#fff' : `${color}cc`,
+                  color: active ? '#fff' : fgColor,
                 }}
                 title={translatedLabel}
                 onClick={() => toggleFaction(f.code)}

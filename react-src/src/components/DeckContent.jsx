@@ -258,7 +258,7 @@ export default function DeckContent({ slots, mode = 'list', showBadges = true, h
                             <span className="dc-tooltip">Fan-made by {card.creator}</span>
                           </span>
                         )}
-                        {showBadges && card.alt_art && (
+                        {showBadges && !!card.alt_art && (
                           <span className="dc-tooltip-wrap">
                             <span className="mc-badge mc-badge-altart">🎨</span>
                             <span className="dc-tooltip">Alternative art</span>
@@ -353,7 +353,7 @@ export default function DeckContent({ slots, mode = 'list', showBadges = true, h
                             <span className="dc-tooltip">Fan-made by {card.creator}</span>
                           </span>
                         )}
-                        {showBadges && card.alt_art && (
+                        {showBadges && !!card.alt_art && (
                           <span className="dc-tooltip-wrap">
                             <span className="mc-badge mc-badge-altart">🎨</span>
                             <span className="dc-tooltip">Alternative art</span>
@@ -495,7 +495,7 @@ export default function DeckContent({ slots, mode = 'list', showBadges = true, h
                             <span className="dc-tooltip">Fan-made by {card.creator}</span>
                           </span>
                         )}
-                        {showBadges && card.alt_art && (
+                        {showBadges && !!card.alt_art && (
                           <span className="dc-tooltip-wrap">
                             <span className="mc-badge mc-badge-altart">🎨</span>
                             <span className="dc-tooltip">Alternative art</span>
