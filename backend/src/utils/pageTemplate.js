@@ -41,36 +41,56 @@ function renderSharedHeader() {
   <style>
     #mc-site-header a { white-space: nowrap; }
     #mc-site-header nav::-webkit-scrollbar { display: none; }
+    .mc-header-pad { height: 64px; }
+    .mc-right-panel { display: flex; align-items: center; margin-left: auto; }
+    @media (max-width: 1300px) { .header-hide-1300 { display: none !important; } }
+    @media (max-width: 1200px) { .header-hide-1200 { display: none !important; } }
+    @media (max-width: 1100px) { .header-hide-1100 { display: none !important; } }
+    @media (max-width: 900px) {
+      .hide-on-mobile { display: none !important; }
+      #mc-site-header nav { flex-wrap: wrap; gap: 12px !important; }
+      .mc-right-panel { 
+        width: 100%; 
+        margin-left: 0; 
+        justify-content: flex-end; 
+        border-top: 1px solid rgba(255,255,255,0.15); 
+        padding-top: 12px; 
+        margin-top: 4px;
+      }
+      .mc-header-pad { height: 104px; }
+    }
   </style>
   <nav style="max-width:1400px;margin:0 auto;display:flex;align-items:center;gap:16px;overflow-x:auto;scrollbar-width:none;">
     <a href="/" style="color:#fff;text-decoration:none;font-weight:700;font-size:18px;">MC4DB 2.0</a>
     <div style="flex:1"></div>
-    <a href="/" style="color:#cfe6ff;text-decoration:none;margin-right:4px;">Home</a>
+    <a href="/" class="header-hide-1300" style="color:#cfe6ff;text-decoration:none;margin-right:4px;">Home</a>
     <a href="/card-list" style="color:#cfe6ff;text-decoration:none;margin-right:4px;">Cards</a>
     <a href="/sets" style="color:#cfe6ff;text-decoration:none;margin-right:4px;">Sets</a>
     <a href="/decklists" style="color:#cfe6ff;text-decoration:none;margin-right:4px;">Public Decks</a>
     <a id="mc-my-decks-link" href="/my-decks" style="color:#cfe6ff;text-decoration:none;margin-right:4px;display:none;">My Decks</a>
-    <a href="/stories" style="color:#cfe6ff;text-decoration:none;margin-right:4px;">Stories</a>
-    <a href="/rules" style="color:#cfe6ff;text-decoration:none;margin-right:4px;">Rules &amp; Resources</a>
+    <a href="/stories" class="header-hide-1200" style="color:#cfe6ff;text-decoration:none;margin-right:4px;">Stories</a>
+    <a href="/rules" class="header-hide-1100" style="color:#cfe6ff;text-decoration:none;margin-right:4px;">Rules &amp; Resources</a>
     <a id="mc-dashboard-link" href="/dashboard" style="color:#cfe6ff;text-decoration:none;margin-right:4px;display:none;">Dashboard</a>
-    <span id="mc-username" style="margin-right:4px;display:none;color:#fff;font-weight:600;font-size:14px;"></span>
-    <span id="mc-user-badges" style="display:none;align-items:center;gap:6px;margin-right:12px;"></span>
-    <span id="mc-locale-badge"
-          title="Switch language"
-          style="cursor:pointer;padding:3px 9px;border-radius:999px;font-size:11px;font-weight:700;letter-spacing:0.06em;user-select:none;transition:background .15s;"
-    >EN</span>
-    <span id="mc-theme-toggle"
-          title="Toggle Dark Mode"
-          style="cursor:pointer;padding:3px 8px;border-radius:999px;font-size:14px;user-select:none;transition:background .15s;"
-    >☀️</span>
-    <a id="mc-login-btn" href="#"
-       style="color:#fff;background:#1f6fb6;padding:7px 14px;border-radius:6px;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;height:34px;font-size:14px;">
-      Login
-    </a>
-    <a id="mc-logout-btn" href="#"
-       style="color:#fff;background:#4b5563;padding:7px 14px;border-radius:6px;text-decoration:none;display:none;height:34px;align-items:center;justify-content:center;font-size:14px;">
-      Logout
-    </a>
+    <div class="mc-right-panel">
+      <span id="mc-username" style="margin-right:8px;display:none;color:#fff;font-weight:600;font-size:14px;"></span>
+      <span id="mc-user-badges" style="display:none;align-items:center;gap:6px;margin-right:12px;"></span>
+      <span id="mc-locale-badge"
+            title="Switch language"
+            style="cursor:pointer;padding:3px 9px;border-radius:999px;font-size:11px;font-weight:700;letter-spacing:0.06em;user-select:none;transition:background .15s;margin-right:8px;"
+      >EN</span>
+      <span id="mc-theme-toggle"
+            title="Toggle Dark Mode"
+            style="cursor:pointer;padding:3px 8px;border-radius:999px;font-size:14px;user-select:none;transition:background .15s;margin-right:12px;"
+      >☀️</span>
+      <a id="mc-login-btn" href="#"
+         style="color:#fff;background:#1f6fb6;padding:7px 14px;border-radius:6px;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;height:34px;font-size:14px;">
+        Login
+      </a>
+      <a id="mc-logout-btn" href="#"
+         style="color:#fff;background:#4b5563;padding:7px 14px;border-radius:6px;text-decoration:none;display:none;height:34px;align-items:center;justify-content:center;font-size:14px;">
+        Logout
+      </a>
+    </div>
   </nav>
   <script>
     (function(){
@@ -220,7 +240,7 @@ function renderSharedHeader() {
     })();
   </script>
 </header>
-<div style="height:64px"></div>
+<div class="mc-header-pad"></div>
 `;
 }
 
