@@ -102,7 +102,14 @@ export default function DeckCard({
               <span className="deck-hero-badge" style={{ color: isFFG ? 'var(--hero-title-color, #222)' : 'var(--st-accent-hover)', fontWeight: 700, textTransform: 'capitalize' }}>{deck.hero_name}</span>
               {isFFG && <span className="mc-badge mc-badge-official">Official</span>}
               {!isFFG && creator && String(creator).split(/[,&]/).map(c => c.trim()).filter(Boolean).map((c, i) => <span key={i} className="mc-badge mc-badge-creator">{c}</span>)}
-              {statusBadgeClass && <span className={`mc-badge ${statusBadgeClass}`}>{statusKey}</span>}
+              {statusBadgeClass && statusKey === 'current' ? (
+                <span className="dc-tooltip-wrap">
+                  <span className="mc-badge mc-badge-current">Std</span>
+                  <span className="dc-tooltip">Standard format</span>
+                </span>
+              ) : statusBadgeClass ? (
+                <span className={`mc-badge ${statusBadgeClass}`}>{statusKey}</span>
+              ) : null}
             </div>
             <div className="deck-hero-stats">
               {statsRow}

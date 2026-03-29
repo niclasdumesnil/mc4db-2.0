@@ -166,13 +166,19 @@ export function TooltipContent({ card, isLink = false }) {
                         {(!card.is_unique && card.quantity > 0) ? <span className="cl-qty tw-ml-1 tw-text-gray-400 tw-text-sm">(x{card.quantity})</span> : null}
                         {card.subname ? <span className="card-tooltip__subname tw-mr-1"> {card.subname}</span> : null}
                         {card.pack_environment === 'current' ? (
-                            <span className="mc-badge mc-badge-current tw-ml-1">Current</span>
+                            <span className="dc-tooltip-wrap tw-ml-1">
+                                <span className="mc-badge mc-badge-current">Std</span>
+                                <span className="dc-tooltip">Standard format</span>
+                            </span>
                         ) : null}
                         {(card.pack_creator || (card.creator && card.creator !== 'FFG')) ? (
                             String(card.pack_creator || card.creator).split(/[,&]/).map(c => c.trim()).filter(Boolean).map((c, i) => <span key={i} className="mc-badge mc-badge-creator tw-ml-1">{c}</span>)
                         ) : null}
                         {card.alt_art ? (
-                            <span className="mc-badge mc-badge-altart tw-ml-1" title="Alternative art">🎨</span>
+                            <span className="dc-tooltip-wrap tw-ml-1">
+                                <span className="mc-badge mc-badge-altart">🎨</span>
+                                <span className="dc-tooltip">Alternative art</span>
+                            </span>
                         ) : null}
                         {card.visibility === 'false' && (
                             <span className="mc-badge mc-badge-private tw-ml-1" title="Private">🔒</span>

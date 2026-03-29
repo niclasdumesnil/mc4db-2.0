@@ -89,6 +89,8 @@
   flex-wrap: wrap;
   gap: 5px;
   align-items: center;
+  flex: 1;
+  min-width: 0;
 }
 
 .editor-filter-pills--nowrap {

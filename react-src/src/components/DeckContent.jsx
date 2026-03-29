@@ -245,7 +245,12 @@ export default function DeckContent({ slots, mode = 'list', showBadges = true, h
                         {!!card.is_unique && <span className="icon-unique cl-unique-icon" title="Unique" />}
                         <span className="slot-name card-tip" data-code={card.code}>{card.name}</span>
                         {isInvalid && <span className="slot-invalid-badge" title="This card does not comply with deck rules">⚠</span>}
-                        {showBadges && card.pack_environment === 'current' ? <span className="mc-badge mc-badge-current" title="Standard format">Current</span> : null}
+                        {showBadges && card.pack_environment === 'current' && (
+                          <span className="dc-tooltip-wrap">
+                            <span className="mc-badge mc-badge-current">Std</span>
+                            <span className="dc-tooltip">Standard format</span>
+                          </span>
+                        )}
                         {showBadges && card.visibility === 'false' && <span className="mc-badge mc-badge-private" title="Private">🔒</span>}
                         {showBadges && card.creator && card.creator !== 'FFG' && (
                           <span className="dc-tooltip-wrap">
@@ -253,7 +258,12 @@ export default function DeckContent({ slots, mode = 'list', showBadges = true, h
                             <span className="dc-tooltip">Fan-made by {card.creator}</span>
                           </span>
                         )}
-                        {showBadges && card.alt_art ? <span className="mc-badge mc-badge-altart" title="Alternative art">🎨</span> : null}
+                        {showBadges && card.alt_art && (
+                          <span className="dc-tooltip-wrap">
+                            <span className="mc-badge mc-badge-altart">🎨</span>
+                            <span className="dc-tooltip">Alternative art</span>
+                          </span>
+                        )}
                         {onTransferToSide && !isHero && (
                           <span className="dc-tooltip-wrap">
                             <button
@@ -328,7 +338,12 @@ export default function DeckContent({ slots, mode = 'list', showBadges = true, h
                         {!!card.is_unique && <span className="icon-unique cl-unique-icon" title="Unique" />}
                         <span className="slot-name card-tip" data-code={card.code}>{card.name}</span>
                         {isInvalid && <span className="slot-invalid-badge" title="This card does not comply with deck rules">⚠</span>}
-                        {showBadges && card.pack_environment === 'current' ? <span className="mc-badge mc-badge-current" title="Standard format">Current</span> : null}
+                        {showBadges && card.pack_environment === 'current' && (
+                          <span className="dc-tooltip-wrap">
+                            <span className="mc-badge mc-badge-current">Std</span>
+                            <span className="dc-tooltip">Standard format</span>
+                          </span>
+                        )}
                         {showBadges && card.visibility === 'false' && <span className="mc-badge mc-badge-private" title="Private">🔒</span>}
                         {showBadges && card.creator && card.creator !== 'FFG' && (
                           <span className="dc-tooltip-wrap">
@@ -336,7 +351,12 @@ export default function DeckContent({ slots, mode = 'list', showBadges = true, h
                             <span className="dc-tooltip">Fan-made by {card.creator}</span>
                           </span>
                         )}
-                        {showBadges && card.alt_art ? <span className="mc-badge mc-badge-altart" title="Alternative art">🎨</span> : null}
+                        {showBadges && card.alt_art && (
+                          <span className="dc-tooltip-wrap">
+                            <span className="mc-badge mc-badge-altart">🎨</span>
+                            <span className="dc-tooltip">Alternative art</span>
+                          </span>
+                        )}
                         {onTransferToSide && !isHero && (
                           <span className="dc-tooltip-wrap">
                             <button
@@ -458,7 +478,12 @@ export default function DeckContent({ slots, mode = 'list', showBadges = true, h
                         {!!card.is_unique && <span className="icon-unique cl-unique-icon" title="Unique" />}
                         <span className="slot-name card-tip" data-code={card.code}>{card.name}</span>
                         {isInvalid && <span className="slot-invalid-badge" title="This card does not comply with deck rules">⚠</span>}
-                        {showBadges && card.pack_environment === 'current' ? <span className="mc-badge mc-badge-current" title="Standard format">Current</span> : null}
+                        {showBadges && card.pack_environment === 'current' && (
+                          <span className="dc-tooltip-wrap">
+                            <span className="mc-badge mc-badge-current">Std</span>
+                            <span className="dc-tooltip">Standard format</span>
+                          </span>
+                        )}
                         {showBadges && card.visibility === 'false' && <span className="mc-badge mc-badge-private" title="Private">🔒</span>}
                         {showBadges && card.creator && card.creator !== 'FFG' && (
                           <span className="dc-tooltip-wrap">
@@ -466,7 +491,12 @@ export default function DeckContent({ slots, mode = 'list', showBadges = true, h
                             <span className="dc-tooltip">Fan-made by {card.creator}</span>
                           </span>
                         )}
-                        {showBadges && card.alt_art ? <span className="mc-badge mc-badge-altart" title="Alternative art">🎨</span> : null}
+                        {showBadges && card.alt_art && (
+                          <span className="dc-tooltip-wrap">
+                            <span className="mc-badge mc-badge-altart">🎨</span>
+                            <span className="dc-tooltip">Alternative art</span>
+                          </span>
+                        )}
                         {onTransferToMain && (
                           <span className="dc-tooltip-wrap">
                             <button

@@ -164,10 +164,20 @@ export default function AvailableCardList({ cards, slotsMap = {}, onSetQty, side
                     <FactionDot card={card} />
                     {card.is_unique ? <span className="icon-unique cl-unique-icon" title="Unique" /> : null}
                     <span className="card-tip" data-code={card.code} style={{ color: 'var(--cl-text)', fontWeight: 500, cursor: 'pointer' }}>{card.name}</span>
-                    {card.pack_environment === 'current' && <span className="mc-badge mc-badge-current" title="Standard format">Standard</span>}
+                    {card.pack_environment === 'current' && (
+                      <span className="dc-tooltip-wrap">
+                        <span className="mc-badge mc-badge-current">Std</span>
+                        <span className="dc-tooltip">Standard format</span>
+                      </span>
+                    )}
                     {card.visibility === 'false' && <span className="mc-badge mc-badge-private" title="Private">🔒</span>}
                     {creator && String(creator).split(/[,&]/).map(c => c.trim()).filter(Boolean).map((c, i) => <span key={i} className="mc-badge mc-badge-creator" title={`Created by ${c}`}>{c}</span>)}
-                    {card.alt_art && <span className="mc-badge mc-badge-altart" title="Alternative art">🎨</span>}
+                    {card.alt_art && (
+                      <span className="dc-tooltip-wrap">
+                        <span className="mc-badge mc-badge-altart">🎨</span>
+                        <span className="dc-tooltip">Alternative art</span>
+                      </span>
+                    )}
                   </div>
                 </td>
 

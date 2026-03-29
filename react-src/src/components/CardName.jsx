@@ -58,7 +58,12 @@ function StatusTag({ card }) {
       {/* 1. Official */}
       {isFFG && !hasStatus && <span className="mc-badge mc-badge-official">Official</span>}
       {/* 2. Current */}
-      {card.pack_environment === 'current' && <span className="mc-badge mc-badge-current">Current</span>}
+      {card.pack_environment === 'current' && (
+        <span className="dc-tooltip-wrap">
+          <span className="mc-badge mc-badge-current">Std</span>
+          <span className="dc-tooltip">Standard format</span>
+        </span>
+      )}
       {/* 3. Private */}
       {card.visibility === 'false' && <span className="mc-badge mc-badge-private" title="Private">🔒</span>}
       {/* 4. Creator */}

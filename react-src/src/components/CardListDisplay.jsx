@@ -154,11 +154,21 @@ export default function CardListDisplay({ cards, mode = 'checklist', sort, onSor
                         ? <button className="cl-card-name-btn" onClick={() => onCardNameClick(card)}>{card.name}</button>
                         : <a href={`/card/${card.code}`} className="card-tip" data-code={card.code}>{card.name}</a>}
                       {(!card.is_unique && card.quantity > 0) ? <span className="cl-qty">(x{card.quantity})</span> : null}
-                      {card.pack_environment === 'current' ? <span className="mc-badge mc-badge-current" title="Standard format">Current</span> : null}
+                      {card.pack_environment === 'current' ? (
+                        <span className="dc-tooltip-wrap">
+                          <span className="mc-badge mc-badge-current">Std</span>
+                          <span className="dc-tooltip">Standard format</span>
+                        </span>
+                      ) : null}
                       {card.pack_creator ? String(card.pack_creator).split(/[,&]/).map(c => c.trim()).filter(Boolean).map((c, i) => <span key={i} className="mc-badge mc-badge-creator" title={`Created by ${c}`}>{c}</span>) : null}
                       <span className="cl-hover-action">
                         {card.visibility === 'false' && <span className="mc-badge mc-badge-private" title="Private">🔒</span>}
-                        {card.alt_art ? <span className="mc-badge mc-badge-altart" title="Alternative art">🎨</span> : null}
+                        {card.alt_art ? (
+                          <span className="dc-tooltip-wrap">
+                            <span className="mc-badge mc-badge-altart">🎨</span>
+                            <span className="dc-tooltip">Alternative art</span>
+                          </span>
+                        ) : null}
                       </span>
                     </div>
                     {/* Traits under Name */}
