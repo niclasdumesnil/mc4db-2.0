@@ -158,6 +158,7 @@ export default function CardFront({ card, showSpoilers, locale, langDir, preferW
 							locale={locale}
 							langDir={langDir}
 							preferWebpOnly={preferWebpOnly}
+							card={card}
 						/>
 					</div>
 					<div className="card-frame__promo">

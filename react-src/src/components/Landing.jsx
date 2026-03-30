@@ -313,6 +313,7 @@ export default function Landing() {
                                   alt="Card of the Day" 
                                   locale={locale}
                                   langDir={langDir}
+                                  card={data.card_of_the_day}
                                   style={{ width: '100%', maxWidth: 220, borderRadius: 10, boxShadow: '0 4px 12px rgba(0,0,0,0.5)' }} 
                                 />
                              </a>

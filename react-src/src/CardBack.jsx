@@ -136,6 +136,7 @@ export default function CardBack({ card, showSpoilers, preferWebpOnly, locale, i
               className="tw-w-full tw-h-auto"
               preferWebpOnly={preferWebpOnly}
               locale={locale}
+              card={card}
             />
           )}
         </div>

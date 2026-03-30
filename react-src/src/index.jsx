@@ -4,6 +4,7 @@ import CardFront from './CardFront';
 import CardBack from './CardBack';
 import PackNav from './components/PackNav';
 import '@css/style.css';
+import '@css/tailwind.css';
 import LoginMenu from './components/LoginMenu';
 import Menu from './components/Menu';
 import CardTooltip from './components/CardTooltip';

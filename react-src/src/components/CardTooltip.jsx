@@ -198,6 +198,7 @@ export function TooltipContent({ card, isLink = false }) {
                             alt={card.name}
                             locale={locale}
                             langDir={langDir}
+                            card={card}
                         />
                     </div>
                     {(card.linked_card?.imagesrc || card.backimagesrc) && (
@@ -207,6 +208,7 @@ export function TooltipContent({ card, isLink = false }) {
                                 alt={`${card.name} Back`}
                                 locale={locale}
                                 langDir={langDir}
+                                card={card.linked_card || card}
                             />
                         </div>
                     )}

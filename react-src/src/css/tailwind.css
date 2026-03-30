@@ -1,0 +1,3 @@
+/* Custom Tailwind Utilities (Excludes base/preflight to avoid breaking legacy Symfony CSS) */
+@tailwind components;
+@tailwind utilities;
