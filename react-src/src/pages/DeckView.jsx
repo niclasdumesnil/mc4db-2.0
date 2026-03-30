@@ -701,60 +701,68 @@ export default function DeckView() {
             </div>
           </>
         )}
+        
+        {/* Derived from / Inspiration for (Public Decks only) - Moved to bottom of deck-view-left */}
+        {!isPrivate && ( deck.derived_from_deck || (deck.inspiration_for_decks && deck.inspiration_for_decks.length > 0) ) && (
+          <div className="deck-stats" style={{ marginTop: '20px', marginBottom: '20px' }}>
+            <div className="set-stats-body">
+              {/* Derived From */}
+              <div className="set-stats-section">
+                <p className="set-stats-section-title" style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '12px' }}>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', background: '#3b82f6', color: '#fff', borderRadius: '3px', fontSize: '0.65rem', width: '16px', height: '16px', fontWeight: 'bold', textTransform: 'none', letterSpacing: 'normal' }}>&laquo;</span> Derived from
+                </p>
+                {deck.derived_from_deck ? (
+                  <div style={{ display: 'flex', alignItems: 'center', fontSize: '0.9rem', gap: '8px', padding: '4px 0', flexWrap: 'wrap' }}>
+                    <a href={`/decklists/${deck.derived_from_deck.id}`} style={{ color: '#1d4ed8', textDecoration: 'none', fontWeight: '600', maxWidth: '40%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={deck.derived_from_deck.name}>{deck.derived_from_deck.name}</a>
+                    <span className="deck-view-version" style={{ marginRight: '6px' }}>v{deck.derived_from_deck.version}</span>
+                    {deck.derived_from_deck.author_name && (
+                      <span style={{ fontSize: '0.85rem', color: 'var(--st-text-muted)', marginRight: '16px' }}>by {deck.derived_from_deck.author_name}</span>
+                    )}
+                    <span style={{ display: 'flex', gap: '14px', color: 'var(--st-text-muted)', alignItems: 'center' }}>
+                      <span title="Likes" style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>🤍 {deck.derived_from_deck.likes}</span>
+                      <span title="Favorites" style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>⭐ {deck.derived_from_deck.favorites}</span>
+                      <span title="Comments" style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>💬 {deck.derived_from_deck.comments}</span>
+                    </span>
+                  </div>
+                ) : (
+                  <div style={{ fontSize: '0.85rem', color: 'var(--st-text-muted)', fontStyle: 'italic' }}>None</div>
+                )}
+              </div>
+
+              {/* Inspiration For */}
+              <div className="set-stats-section">
+                <p className="set-stats-section-title" style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '12px' }}>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', background: '#3b82f6', color: '#fff', borderRadius: '3px', fontSize: '0.65rem', width: '16px', height: '16px', fontWeight: 'bold', textTransform: 'none', letterSpacing: 'normal' }}>&raquo;</span> Inspiration for
+                </p>
+                {deck.inspiration_for_decks && deck.inspiration_for_decks.length > 0 ? (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    {deck.inspiration_for_decks.map(d => (
+                      <div key={d.id} style={{ display: 'flex', alignItems: 'center', fontSize: '0.9rem', gap: '8px', padding: '4px 0', flexWrap: 'wrap' }}>
+                        <a href={`/decklists/${d.id}`} style={{ color: '#1d4ed8', textDecoration: 'none', fontWeight: '600', maxWidth: '40%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={d.name}>{d.name}</a>
+                        <span className="deck-view-version" style={{ marginRight: '6px' }}>v{d.version}</span>
+                        {d.author_name && (
+                          <span style={{ fontSize: '0.85rem', color: 'var(--st-text-muted)', marginRight: '16px' }}>by {d.author_name}</span>
+                        )}
+                        <span style={{ display: 'flex', gap: '14px', color: 'var(--st-text-muted)', alignItems: 'center' }}>
+                          <span title="Likes" style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>🤍 {d.likes}</span>
+                          <span title="Favorites" style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>⭐ {d.favorites}</span>
+                          <span title="Comments" style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>💬 {d.comments}</span>
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div style={{ fontSize: '0.85rem', color: 'var(--st-text-muted)', fontStyle: 'italic' }}>None yet</div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
         </div>
         {!showEditor && !showDescriptionPanel && (
           <div className="deck-view-middle">
             <div className="deck-stats">
               <DeckStatistics slots={liveSlots ?? deck.slots ?? []} packsRequired={deck.packs_required} />
-              
-              {/* Derived from / Inspiration for (Public Decks only) */}
-              {!isPrivate && (
-                <div className="set-stats-body">
-                  {/* Derived From */}
-                  <div className="set-stats-section" style={{ borderTop: '1px solid var(--st-border)' }}>
-                    <p className="set-stats-section-title" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', background: '#3b82f6', color: '#fff', borderRadius: '3px', fontSize: '0.65rem', width: '16px', height: '16px', fontWeight: 'bold', textTransform: 'none', letterSpacing: 'normal' }}>&laquo;</span> Derived from
-                    </p>
-                    {deck.derived_from_deck ? (
-                      <div style={{ display: 'flex', alignItems: 'center', fontSize: '0.85rem', gap: '12px' }}>
-                        <a href={`/decklists/${deck.derived_from_deck.id}`} style={{ color: '#1d4ed8', textDecoration: 'none', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '40%' }} title={deck.derived_from_deck.name}>{deck.derived_from_deck.name}</a>
-                        <span style={{ display: 'flex', gap: '12px', color: 'var(--st-text-muted)' }}>
-                          <span title="Likes" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>🤍 {deck.derived_from_deck.likes}</span>
-                          <span title="Favorites" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>⭐ {deck.derived_from_deck.favorites}</span>
-                          <span title="Comments" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>💬 {deck.derived_from_deck.comments}</span>
-                          <span title="Version" style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#6366f1' }}>v{deck.derived_from_deck.version}</span>
-                        </span>
-                      </div>
-                    ) : (
-                      <div style={{ fontSize: '0.8rem', color: 'var(--st-text-muted)', fontStyle: 'italic' }}>None</div>
-                    )}
-                  </div>
-
-                  {/* Inspiration For */}
-                  <div className="set-stats-section">
-                    <p className="set-stats-section-title" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', background: '#3b82f6', color: '#fff', borderRadius: '3px', fontSize: '0.65rem', width: '16px', height: '16px', fontWeight: 'bold', textTransform: 'none', letterSpacing: 'normal' }}>&raquo;</span> Inspiration for
-                    </p>
-                    {deck.inspiration_for_decks && deck.inspiration_for_decks.length > 0 ? (
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                        {deck.inspiration_for_decks.map(d => (
-                          <div key={d.id} style={{ display: 'flex', alignItems: 'center', fontSize: '0.85rem', gap: '12px' }}>
-                            <a href={`/decklists/${d.id}`} style={{ color: '#1d4ed8', textDecoration: 'none', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '40%' }} title={d.name}>{d.name}</a>
-                            <span style={{ display: 'flex', gap: '12px', color: 'var(--st-text-muted)' }}>
-                              <span title="Likes" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>🤍 {d.likes}</span>
-                              <span title="Favorites" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>⭐ {d.favorites}</span>
-                              <span title="Comments" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>💬 {d.comments}</span>
-                              <span title="Version" style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#6366f1' }}>v{d.version}</span>
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <div style={{ fontSize: '0.8rem', color: 'var(--st-text-muted)', fontStyle: 'italic' }}>None yet</div>
-                    )}
-                  </div>
-                </div>
-              )}
             </div>
           </div>
         )}
