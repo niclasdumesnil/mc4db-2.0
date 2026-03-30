@@ -112,8 +112,13 @@ router.get('/user/:id', async (req, res) => {
       show_icon_aspect: Number(row.show_icon_aspect) || 0,
       show_archetype: Number(row.show_archetype) || 0,
 
-
-      // Notification Settings
+      // Print & Export Settings
+      show_legacy_sch_order: row.show_legacy_sch_order === null ? 0 : Number(row.show_legacy_sch_order),
+      show_tag_default: row.show_tag_default === null ? 1 : Number(row.show_tag_default),
+      print_faction: row.print_faction === null ? 1 : Number(row.print_faction),
+      print_type: row.print_type === null ? 1 : Number(row.print_type),
+      print_tag: row.print_tag === null ? 1 : Number(row.print_tag),
+      print_side: row.print_side === null ? 0 : Number(row.print_side),      // Notification Settings
       notifications: {
         author: !!row.is_notif_author,
         commenter: !!row.is_notif_commenter,
@@ -196,6 +201,12 @@ router.put('/user/:id/settings', requireAuth, async (req, res) => {
     if (data.is_share_collection !== undefined) updateData.is_share_collection = data.is_share_collection ? 1 : 0;
     if (data.show_icon_aspect !== undefined) updateData.show_icon_aspect = data.show_icon_aspect ? 1 : 0;
     if (data.show_archetype !== undefined) updateData.show_archetype = data.show_archetype ? 1 : 0;
+    if (data.show_legacy_sch_order !== undefined) updateData.show_legacy_sch_order = data.show_legacy_sch_order ? 1 : 0;
+    if (data.show_tag_default !== undefined) updateData.show_tag_default = data.show_tag_default ? 1 : 0;
+    if (data.print_faction !== undefined) updateData.print_faction = data.print_faction ? 1 : 0;
+    if (data.print_type !== undefined) updateData.print_type = data.print_type ? 1 : 0;
+    if (data.print_tag !== undefined) updateData.print_tag = data.print_tag ? 1 : 0;
+    if (data.print_side !== undefined) updateData.print_side = data.print_side ? 1 : 0;
     if (data.show_theme !== undefined) updateData.show_theme = JSON.stringify(data.show_theme);
 
 

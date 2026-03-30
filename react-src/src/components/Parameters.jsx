@@ -21,6 +21,12 @@ export default function Parameters({ user }) {
     show_icon_aspect: false,
     show_archetype: false,
     show_theme: {},
+    show_legacy_sch_order: false,
+    show_tag_default: true,
+    print_faction: true,
+    print_type: true,
+    print_tag: true,
+    print_side: false,
   });
 
   // user local si la prop n'est pas fournie
@@ -46,6 +52,12 @@ export default function Parameters({ user }) {
         show_icon_aspect: u.show_icon_aspect === 1 || u.show_icon_aspect === true,
         show_archetype: u.show_archetype === 1 || u.show_archetype === true,
         show_theme: u.show_theme || {},
+        show_legacy_sch_order: u.show_legacy_sch_order === 1 || u.show_legacy_sch_order === true,
+        show_tag_default: u.show_tag_default === undefined ? true : (u.show_tag_default === 1 || u.show_tag_default === true),
+        print_faction: u.print_faction === undefined ? true : (u.print_faction === 1 || u.print_faction === true),
+        print_type: u.print_type === undefined ? true : (u.print_type === 1 || u.print_type === true),
+        print_tag: u.print_tag === undefined ? true : (u.print_tag === 1 || u.print_tag === true),
+        print_side: u.print_side === 1 || u.print_side === true,
       });
     }
   }, [user, localUser]);
@@ -104,6 +116,19 @@ export default function Parameters({ user }) {
     setSettings(prev => ({ ...prev, [key]: newValue }));
     setSaving(prev => ({ ...prev, [key]: true }));
     setErrors(prev => ({ ...prev, [key]: null }));
+
+    // Rule: Cannot turn off both print_faction and print_type
+    if (!newValue && (key === 'print_faction' || key === 'print_type')) {
+      const otherKey = key === 'print_faction' ? 'print_type' : 'print_faction';
+      if (!settings[otherKey]) {
+        // Validation failed
+        setSettings(prev => ({ ...prev, [key]: true }));
+        setSaving(prev => ({ ...prev, [key]: false }));
+        setErrors(prev => ({ ...prev, [key]: 'You must have at least one card property printed (faction or type)' }));
+        setTimeout(() => setErrors(prev => ({ ...prev, [key]: null })), 3000);
+        return;
+      }
+    }
 
     try {
       const response = await fetch(`/api/public/user/${userId}/settings`, {
@@ -261,6 +286,21 @@ export default function Parameters({ user }) {
           <span className="setting-label">Show icon aspect</span>
           <ToggleButton settingKey="show_icon_aspect" />
         </div>
+
+        <div className="setting-item">
+          <span className="setting-label">Show badges in Deck view: default</span>
+          <ToggleButton settingKey="show_tag_default" />
+        </div>
+        
+        <div className="setting-item">
+          <div className="setting-text-block">
+            <span className="setting-label">Show legacy order for attack</span>
+            <p className="setting-description">
+              Example: {settings.show_legacy_sch_order ? 'Attack: 3. Thwart: 1. Defense: 2.' : 'Thwart: 1. Attack: 3. Defense: 2.'}
+            </p>
+          </div>
+          <ToggleButton settingKey="show_legacy_sch_order" />
+        </div>
       </div>
 
       <div className="settings-group mt-20">
@@ -281,31 +321,26 @@ export default function Parameters({ user }) {
 
 
       <div className="settings-group mt-20">
-        <h4 className="settings-subtitle">Notifications</h4>
-        
+        <h4 className="settings-subtitle">Print & Export</h4>
+
         <div className="setting-item">
-          <span className="setting-label">Be notified when a user comments one of your decklists</span>
-          <ToggleButton settingKey="notif_author" />
+          <span className="setting-label">Print card faction</span>
+          <ToggleButton settingKey="print_faction" />
         </div>
         
         <div className="setting-item">
-          <span className="setting-label">Be notified when a user also comments a decklist you commented</span>
-          <ToggleButton settingKey="notif_commenter" />
+          <span className="setting-label">Print card type</span>
+          <ToggleButton settingKey="print_type" />
         </div>
         
         <div className="setting-item">
-          <span className="setting-label">Be notified when a user mentions you in a comment</span>
-          <ToggleButton settingKey="notif_mention" />
+          <span className="setting-label">Print tag</span>
+          <ToggleButton settingKey="print_tag" />
         </div>
 
         <div className="setting-item">
-          <span className="setting-label">Be notified when a user follows you</span>
-          <ToggleButton settingKey="notif_follow" />
-        </div>
-
-        <div className="setting-item">
-          <span className="setting-label">Be notified when a user copies one of your decklists</span>
-          <ToggleButton settingKey="notif_successor" />
+          <span className="setting-label">Print side deck</span>
+          <ToggleButton settingKey="print_side" />
         </div>
       </div>
     </div>

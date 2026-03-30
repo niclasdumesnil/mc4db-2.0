@@ -1,5 +1,16 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import FormattedValue from './FormattedValue';
+
+function useSettings() {
+  const [settings, setSettings] = useState({});
+  useEffect(() => {
+    try {
+      const u = JSON.parse(localStorage.getItem('mc_user')) || {};
+      setSettings(u);
+    } catch(e) {}
+  }, []);
+  return settings;
+}
 
 export default function CardInfo({ card, showSpoilers, showType = true }) {
   const isEncounter = card.faction_code === 'encounter';
@@ -29,15 +40,29 @@ function CardProps({ card }) {
   const t = card.type_code;
   let propsElement = null;
 
+  const settings = useSettings();
+  const attackFirst = settings.show_legacy_sch_order === 1 || settings.show_legacy_sch_order === true;
+
   if (['upgrade', 'event', 'support', 'ally'].includes(t)) {
     propsElement = (
       <div className="mc-card-props">
         {t === 'ally' && (
           <div>
-            Thwart: <FormattedValue value={card.thwart} star={card.thwart_star} />
-            <CostIcons count={card.thwart_cost} />.{' '}
-            Attack: <FormattedValue value={card.attack} star={card.attack_star} />
-            <CostIcons count={card.attack_cost} />.{' '}
+            {attackFirst ? (
+              <>
+                Attack: <FormattedValue value={card.attack} star={card.attack_star} />
+                <CostIcons count={card.attack_cost} />.{' '}
+                Thwart: <FormattedValue value={card.thwart} star={card.thwart_star} />
+                <CostIcons count={card.thwart_cost} />.{' '}
+              </>
+            ) : (
+              <>
+                Thwart: <FormattedValue value={card.thwart} star={card.thwart_star} />
+                <CostIcons count={card.thwart_cost} />.{' '}
+                Attack: <FormattedValue value={card.attack} star={card.attack_star} />
+                <CostIcons count={card.attack_cost} />.{' '}
+              </>
+            )}
             Health: <FormattedValue value={card.health} star={card.health_star} />.
           </div>
         )}
@@ -62,8 +87,17 @@ function CardProps({ card }) {
       <div className="mc-card-props">
         {t === 'hero' ? (
           <div>
-            Thwart: <FormattedValue value={card.thwart} star={card.thwart_star} />.{' '}
-            Attack: <FormattedValue value={card.attack} star={card.attack_star} />.{' '}
+            {attackFirst ? (
+              <>
+                Attack: <FormattedValue value={card.attack} star={card.attack_star} />.{' '}
+                Thwart: <FormattedValue value={card.thwart} star={card.thwart_star} />.{' '}
+              </>
+            ) : (
+              <>
+                Thwart: <FormattedValue value={card.thwart} star={card.thwart_star} />.{' '}
+                Attack: <FormattedValue value={card.attack} star={card.attack_star} />.{' '}
+              </>
+            )}
             Defense: <FormattedValue value={card.defense} star={card.defense_star} />.
           </div>
         ) : (
@@ -82,8 +116,17 @@ function CardProps({ card }) {
     propsElement = (
       <div className="mc-card-props">
         <div>
-          Scheme: <FormattedValue value={card.scheme} star={card.scheme_star} />.
-          {' '}Attack: <FormattedValue value={card.attack} star={card.attack_star} />.
+          {attackFirst ? (
+            <>
+              Attack: <FormattedValue value={card.attack} star={card.attack_star} />.
+              {' '}Scheme: <FormattedValue value={card.scheme} star={card.scheme_star} />.
+            </>
+          ) : (
+            <>
+              Scheme: <FormattedValue value={card.scheme} star={card.scheme_star} />.
+              {' '}Attack: <FormattedValue value={card.attack} star={card.attack_star} />.
+            </>
+          )}
           {' '}Health: <FormattedValue value={card.health} star={card.health_star} perHero={card.health_per_hero} perGroup={card.health_per_group} />.
         </div>
       </div>
@@ -97,11 +140,24 @@ function CardProps({ card }) {
       propsElement = (
         <div className="mc-card-props">
           <div>
-            {hasScheme && (
-              <>Scheme: {Number(card.scheme) > 0 && '+'}<FormattedValue value={card.scheme} star={card.scheme_star} />.{' '}</>
-            )}
-            {hasAttack && (
-              <>Attack: {Number(card.attack) > 0 && '+'}<FormattedValue value={card.attack} star={card.attack_star} />.</>
+            {attackFirst ? (
+              <>
+                {hasAttack && (
+                  <>Attack: {Number(card.attack) > 0 && '+'}<FormattedValue value={card.attack} star={card.attack_star} />.{' '}</>
+                )}
+                {hasScheme && (
+                  <>Scheme: {Number(card.scheme) > 0 && '+'}<FormattedValue value={card.scheme} star={card.scheme_star} />.</>
+                )}
+              </>
+            ) : (
+              <>
+                {hasScheme && (
+                  <>Scheme: {Number(card.scheme) > 0 && '+'}<FormattedValue value={card.scheme} star={card.scheme_star} />.{' '}</>
+                )}
+                {hasAttack && (
+                  <>Attack: {Number(card.attack) > 0 && '+'}<FormattedValue value={card.attack} star={card.attack_star} />.</>
+                )}
+              </>
             )}
           </div>
         </div>

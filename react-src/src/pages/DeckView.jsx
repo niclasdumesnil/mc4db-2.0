@@ -62,7 +62,15 @@ export default function DeckView() {
   const [deckTags, setDeckTags] = useState('');
   const [customTagsText, setCustomTagsText] = useState('');
   const [showUnauthorized, setShowUnauthorized] = useState(false);
-  const [showBadges, setShowBadges] = useState(true);
+  const [showBadges, setShowBadges] = useState(() => {
+    try {
+      const u = JSON.parse(localStorage.getItem('mc_user'));
+      if (u && typeof u.show_tag_default !== 'undefined') {
+        return u.show_tag_default === 1 || u.show_tag_default === true;
+      }
+    } catch (e) {}
+    return true;
+  });
   const [heroCard, setHeroCard] = useState(null);
   const [validationCards, setValidationCards] = useState([]);
   const [saveProblems, setSaveProblems] = useState([]); // problèmes vérifiés uniquement à la sauvegarde
@@ -408,7 +416,7 @@ export default function DeckView() {
                     return (
                       <>
                         {!showEditor && customTagsList.map(tag => (
-                          <span key={tag} style={{ background: '#374151', color: '#e2e8f0', padding: '2px 8px', borderRadius: '4px', fontSize: '0.8rem', display: 'inline-flex', alignItems: 'center' }}>
+                          <span key={tag} className="mc-badge mc-badge-legacy" style={{ padding: '2px 8px', fontSize: '0.85rem' }}>
                             {tag}
                           </span>
                         ))}

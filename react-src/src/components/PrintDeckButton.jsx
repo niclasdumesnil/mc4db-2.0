@@ -45,18 +45,45 @@ export default function PrintDeckButton({ deckId, deckName, isPrivate, className
       const slots    = deckData.slots || [];
       const safeName = (deckName || deckData.name || 'deck').replace(/[^a-z0-9_\- ]/gi, '_');
 
+      const u = JSON.parse(localStorage.getItem('mc_user') || '{}');
+      const shouldPrintFaction = u.print_faction === undefined ? true : !!u.print_faction;
+      const shouldPrintType = u.print_type === undefined ? true : !!u.print_type;
+      const shouldPrintTag = u.print_tag === undefined ? true : !!u.print_tag;
+      const shouldPrintSide = !!u.print_side;
+
       const deckInfo = {
         name:          deckData.name,
         hero_name:     deckData.hero_name,
         hero_imagesrc: deckData.hero_imagesrc,
-        tags:          deckData.tags,
+        tags:          shouldPrintTag ? deckData.tags : null,
       };
 
-      // Generate both images in parallel
-      const [blobByType, blobByFaction] = await Promise.all([
-        generateDeckImage(deckInfo, slots, locale, { sortByFaction: false }),
-        generateDeckImage(deckInfo, slots, locale, { sortByFaction: true }),
-      ]);
+      const locSuffix = locale.toUpperCase();
+      const tasks = [];
+      const files = [];
+
+      if (shouldPrintType) {
+        tasks.push(generateDeckImage(deckInfo, slots, locale, { sortByFaction: false }));
+        files.push(`${safeName}-type-${locSuffix}.jpg`);
+      }
+      if (shouldPrintFaction) {
+        tasks.push(generateDeckImage(deckInfo, slots, locale, { sortByFaction: true }));
+        files.push(`${safeName}-faction-${locSuffix}.jpg`);
+      }
+
+      const sideSlots = deckData.side_slots || [];
+      if (shouldPrintSide && sideSlots.length > 0) {
+        if (shouldPrintType) {
+          tasks.push(generateDeckImage(deckInfo, sideSlots, locale, { sortByFaction: false, isSideDeck: true }));
+          files.push(`${safeName}-side-type-${locSuffix}.jpg`);
+        }
+        if (shouldPrintFaction) {
+          tasks.push(generateDeckImage(deckInfo, sideSlots, locale, { sortByFaction: true, isSideDeck: true }));
+          files.push(`${safeName}-side-faction-${locSuffix}.jpg`);
+        }
+      }
+
+      const blobs = await Promise.all(tasks);
 
       // Helper: trigger a download then revoke the object URL
       function download(blob, filename) {
@@ -71,9 +98,9 @@ export default function PrintDeckButton({ deckId, deckName, isPrivate, className
       }
 
       // Stagger slightly so browser doesn't block the second download
-      const locSuffix = locale.toUpperCase();
-      download(blobByType,    `${safeName}-${locSuffix}.jpg`);
-      setTimeout(() => download(blobByFaction, `${safeName}-faction-${locSuffix}.jpg`), 200);
+      blobs.forEach((blob, i) => {
+        setTimeout(() => download(blob, files[i]), i * 200);
+      });
     } catch (err) {
       console.error('Print error:', err);
     } finally {

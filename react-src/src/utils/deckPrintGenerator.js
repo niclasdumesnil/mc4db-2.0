@@ -239,7 +239,7 @@ function drawCardColumns(ctx, groups, locale, sortByFaction, cardsTop, W) {
 }
 
 // ── Canvas scaffold (shared between both modes) ────────────────────────────
-async function buildCanvas(deck, slots, locale, sortByFaction) {
+async function buildCanvas(deck, slots, locale, sortByFaction, isSideDeck = false) {
   const W = 1500;
   const H = 2150;
 
@@ -354,6 +354,45 @@ async function buildCanvas(deck, slots, locale, sortByFaction) {
     boxesBottom = tagY + 15;
   }
 
+  // Draw Deck Type indicator (Main or Side) with card count
+  const totalCards = slots.reduce((acc, slot) => acc + (slot.quantity || 1), 0);
+  const qtyLabel = locale === 'fr' ? 'CARTES' : 'CARDS';
+  const deckTypeText = isSideDeck 
+    ? `${totalCards} ${qtyLabel} - SIDE DECK` 
+    : `${totalCards} ${qtyLabel} - MAIN DECK`;
+
+  ctx.font = `bold ${TAG_SIZE}px Arial, sans-serif`;
+  const badgeW = ctx.measureText(deckTypeText).width;
+  const paddingX = 26;
+  const paddingY = 12;
+  
+  // Draw pill
+  const tagCX = titleBoxX + (titleBoxW + 16 + PORTRAIT_W) / 2;
+  const rx = tagCX - badgeW/2 - paddingX;
+  const ry = boxesBottom + 10;
+  const rw = badgeW + paddingX * 2;
+  const rh = TAG_SIZE + paddingY * 2;
+  
+  if (isSideDeck) {
+    ctx.fillStyle = '#fff7ed'; // very light orange
+    ctx.strokeStyle = '#f97316'; // distinct orange border
+  } else {
+    ctx.fillStyle = '#f8fafc'; // very light grey/slate
+    ctx.strokeStyle = '#94a3b8'; // clear grey border
+  }
+
+  ctx.lineWidth = 4;
+  roundRect(ctx, rx, ry, rw, rh, 16);
+  ctx.fill();
+  ctx.stroke();
+
+  ctx.fillStyle = isSideDeck ? '#ea580c' : '#475569'; // darker text depending on type
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(deckTypeText, tagCX, ry + rh/2);
+  
+  boxesBottom = ry + rh + 30;
+
   // Cards area
   const cardsTop = boxesBottom;
   const cardsH = H - cardsTop - 40;
@@ -380,8 +419,8 @@ async function buildCanvas(deck, slots, locale, sortByFaction) {
  * options.sortByFaction = true → group by faction instead of card type.
  */
 export async function generateDeckImage(deck, slots, locale = 'en', options = {}) {
-  const { sortByFaction = false } = options;
-  const canvas = await buildCanvas(deck, slots, locale, sortByFaction);
+  const { sortByFaction = false, isSideDeck = false } = options;
+  const canvas = await buildCanvas(deck, slots, locale, sortByFaction, isSideDeck);
   return new Promise((resolve, reject) => {
     canvas.toBlob(
       blob => (blob ? resolve(blob) : reject(new Error('Canvas blob failed'))),
