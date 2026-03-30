@@ -273,6 +273,7 @@
 }
 /* Base badge colors tailored for LIGHT mode legibility */
 .mc-badge-official { background: rgba(0, 0, 0, 0.65); color: #fff; border-color: rgba(0, 0, 0, 0.8); }
+.mc-badge-published { background: rgba(51, 65, 85, 0.12); color: #334155; border-color: rgba(51, 65, 85, 0.4); }
 .mc-badge-current  { background: rgba(180, 186, 195, 0.15);  color: #64748b; border-color: rgba(180,186,195,0.6); }
 .mc-badge-fanmade  { background: rgba(18, 120, 216, 0.12);   color: #1d4ed8; border-color: rgba(18,120,216,0.45); }
 .mc-badge-creator {  background: rgba(18, 120, 216, 0.12);    color: var(--st-accent-hover);  border-color: rgba(18,120,216,0.45);  }
@@ -287,6 +288,7 @@
 
 /* Restore original bright badge colors for DARK mode */
 html.dark .mc-badge-official { background: rgba(0, 0, 0, 0.35);        color: #ccc;    border-color: rgba(200,200,200,0.35); }
+html.dark .mc-badge-published { background: rgba(148, 163, 184, 0.15); color: #cbd5e1; border-color: rgba(148, 163, 184, 0.5); }
 html.dark .mc-badge-current  { background: rgba(180, 186, 195, 0.15);  color: #bac0ca; border-color: rgba(180,186,195,0.4); }
 html.dark .mc-badge-fanmade  { background: rgba(18, 120, 216, 0.15);   color: #6db3f2; border-color: rgba(18,120,216,0.45); }
 html.dark .mc-badge-creator {  background: rgba(18, 120, 216, 0.15);    color: var(--st-accent-hover);  border-color: rgba(18,120,216,0.45);  }

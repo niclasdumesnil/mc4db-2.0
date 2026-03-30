@@ -241,11 +241,11 @@ export default function MyDecks() {
           {/* Action Buttons inside Filters */}
           <div className="deck-filters__actions">
             {limitReached ? (
-              <span className="deck-filters__btn deck-filters__btn-primary" style={{ opacity: 0.5, cursor: 'not-allowed' }}>
+              <span className="deck-filters__btn" style={{ opacity: 0.5, cursor: 'not-allowed' }}>
                 New Deck
               </span>
             ) : (
-              <a href="/deck/new" className="deck-filters__btn deck-filters__btn-primary">
+              <a href="/deck/new" className="deck-filters__btn">
                 New Deck
               </a>
             )}

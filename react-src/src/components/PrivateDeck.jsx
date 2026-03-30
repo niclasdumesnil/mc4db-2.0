@@ -73,7 +73,9 @@ export default function PrivateDeck({ deck }) {
       ? new Date(deck.date_creation).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
       : null;
 
-  const footerLeft = (
+  const footerLeft = deck.parent_decklist_id ? (
+    <span className="mc-badge mc-badge-published" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '0.85em', marginLeft: '6px' }} title="This deck is currently published on the site.">🌍 Published</span>
+  ) : (
     <span className="deck-footer-private-badge">🔒 Private</span>
   );
 

@@ -279,6 +279,22 @@ router.get('/decks/:id', async (req, res) => {
     const alterEgoCode = heroCode.endsWith('b') ? heroCode.slice(0, -1) + 'a' : heroCode.endsWith('a') ? heroCode.slice(0, -1) + 'b' : heroCode + 'b';
     const hero_special_cards = await fetchHeroSpecialCards(heroCode, locale);
 
+    // Derived From (previous_deck)
+    let derivedFrom = null;
+    if (deck.previous_deck) {
+      derivedFrom = await db('decklist as d')
+        .join('user as u', 'd.user_id', 'u.id')
+        .select('d.id', 'd.name', 'd.version', 'd.nb_votes as likes', 'd.nb_favorites as favorites', 'd.nb_comments as comments', 'u.username as author_name')
+        .where('d.id', deck.previous_deck).first();
+    }
+
+    // Inspiration For (decks that derived from THIS one)
+    const inspirationsRows = await db('decklist as d')
+      .join('user as u', 'd.user_id', 'u.id')
+      .select('d.id', 'd.name', 'd.version', 'd.nb_votes as likes', 'd.nb_favorites as favorites', 'd.nb_comments as comments', 'u.username as author_name')
+      .where('d.previous_deck', id)
+      .orderBy('d.date_creation', 'desc');
+
     return res.json({
       ok: true, data: {
         ...deck,
@@ -288,6 +304,8 @@ router.get('/decks/:id', async (req, res) => {
         hero_special_cards,
         hero_imagesrc: resolveImage(heroCode, deck.pack_code),
         alter_ego_imagesrc: resolveImage(alterEgoCode, deck.pack_code),
+        derived_from_deck: derivedFrom,
+        inspiration_for_decks: inspirationsRows,
       }
     });
   } catch (err) {
@@ -547,6 +565,14 @@ router.post('/user/:userId/decklists/:deckId/clone', async (req, res) => {
     const decklist = await db('decklist').where({ id: deckId }).first();
     if (!decklist) return res.status(404).json({ error: 'Decklist not found' });
 
+    // Parse meta to correctly inject the origin
+    let metaObj = {};
+    if (decklist.meta) {
+      try { metaObj = typeof decklist.meta === 'string' ? JSON.parse(decklist.meta) : decklist.meta; }
+      catch(e) {}
+    }
+    metaObj.cloned_from_decklist_id = deckId;
+
     const [newId] = await db('deck').insert({
       user_id: userId,
       character_id: decklist.card_id,
@@ -557,13 +583,16 @@ router.post('/user/:userId/decklists/:deckId/clone', async (req, res) => {
       problem: decklist.problem || '',
       tags: decklist.tags || '',
       major_version: 0,
-      minor_version: 0,
+      minor_version: 1,
+      // On ne l'accroche plus jamais aux chaînes privées historiques lors d'un clone.
+      previous_deck: null,
+      parent_decklist_id: null,
       xp: decklist.xp || 0,
       xp_spent: decklist.xp_spent || 0,
       xp_adjustment: decklist.xp_adjustment || 0,
       upgrades: decklist.upgrades || 0,
       exiles: decklist.exiles || '',
-      meta: decklist.meta,
+      meta: JSON.stringify(metaObj),
       date_creation: db.fn.now(),
       date_update: db.fn.now(),
     });
@@ -699,7 +728,7 @@ router.get('/user/:id/decks', async (req, res) => {
       .select(
         'd.id', 'd.uuid', 'd.name', 'd.date_creation', 'd.date_update',
         'd.major_version', 'd.minor_version',
-        'd.tags', 'd.meta', 'd.problem',
+        'd.tags', 'd.meta', 'd.problem', 'd.parent_decklist_id',
         'c.code as hero_code', 'c.name as hero_name',
         'f.code as faction_code',
         'p.code as pack_code', 'p.creator as pack_creator', 'p.environment as pack_environment', 'p.status as pack_status', 'p.visibility as pack_visibility'
@@ -1051,7 +1080,9 @@ router.post('/user/:userId/decks/:deckId/clone', async (req, res) => {
       problem: deck.problem,
       tags: deck.tags,
       major_version: 0,
-      minor_version: 0,
+      minor_version: 1,
+      previous_deck: null,
+      parent_decklist_id: null,
       xp: deck.xp,
       xp_spent: deck.xp_spent,
       xp_adjustment: deck.xp_adjustment,
@@ -1094,15 +1125,22 @@ router.put('/user/:userId/decks/:deckId/publish', async (req, res) => {
       return res.status(403).json({ error: 'Cannot publish a deck with a hero from a private pack.' });
     }
 
-    const newMajor = deck.major_version + 1;
+    const newMajor = deck.major_version > 0 ? deck.major_version + 1 : 1;
     const newVersion = `${newMajor}.0`;
     const nameCanonical = (deck.name || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 
-    // Trouver le decklist précédent pour cet utilisateur / ce héros (pour chaîner les versions)
-    const prevDecklist = await db('decklist')
-      .where({ user_id: userId, card_id: deck.character_id })
-      .orderBy('date_creation', 'desc')
-      .first();
+    // Le decklist précédent est STRICTEMENT la version publique précédente de ce workspace privé exact.
+    const predecessorId = deck.parent_decklist_id || null;
+
+    // Si on avait cloné un deck public au tout début, on stocke ce lien "Inspiration/Dérivé" dans previous_deck
+    let derivedFromDecklistId = null;
+    let deckMeta = {};
+    if (deck.meta) {
+      try { deckMeta = typeof deck.meta === 'string' ? JSON.parse(deck.meta) : deck.meta; } catch(e){}
+    }
+    if (deckMeta && deckMeta.cloned_from_decklist_id) {
+      derivedFromDecklistId = parseInt(deckMeta.cloned_from_decklist_id, 10);
+    }
 
     // Créer l'entrée dans decklist
     const [newDecklistId] = await db('decklist').insert({
@@ -1110,7 +1148,8 @@ router.put('/user/:userId/decks/:deckId/publish', async (req, res) => {
       card_id: deck.character_id,
       last_pack_id: deck.last_pack_id,
       parent_deck_id: deckId,
-      precedent_decklist_id: prevDecklist ? prevDecklist.id : null,
+      precedent_decklist_id: predecessorId,
+      previous_deck: derivedFromDecklistId,
       uuid: require('crypto').randomUUID(),
       name: deck.name,
       name_canonical: nameCanonical,
@@ -1151,12 +1190,20 @@ router.put('/user/:userId/decks/:deckId/publish', async (req, res) => {
       })));
     }
 
-    // Incrémenter la version majeure du deck privé
+    // Incrémenter la version majeure du deck privé et pointer vers le deck public publié
     await db('deck').where({ id: deckId }).update({
       major_version: newMajor,
       minor_version: 0,
+      parent_decklist_id: newDecklistId,
       date_update: db.fn.now(),
     });
+
+    // Chaîner l'ancienne version avec la nouvelle pour la cacher de la liste publique
+    if (predecessorId) {
+      await db('decklist').where({ id: predecessorId }).update({
+        next_deck: newDecklistId
+      });
+    }
 
     return res.json({ ok: true, data: { decklistId: newDecklistId, version: newVersion } });
   } catch (err) {

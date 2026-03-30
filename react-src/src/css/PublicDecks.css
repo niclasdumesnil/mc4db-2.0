@@ -509,7 +509,7 @@
   background: var(--st-surface-2);
   border: 1px solid var(--st-border);
   border-radius: 6px;
-  color: #c9d6ea;
+  color: var(--st-title, #111);
   font-size: 0.82rem;
   font-weight: 600;
   padding: 6px 12px;
@@ -520,20 +520,21 @@
 }
 
 .deck-filters__btn:hover {
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--st-border);
   border-color: var(--st-border-hover);
-  color: #fff;
+  color: var(--st-title, #111);
 }
 
 .deck-filters__btn-primary {
-  background: rgba(43, 128, 197, 0.35);
-  border-color: rgba(43, 128, 197, 0.7);
+  background: #2b80c5;
+  border-color: #20629b;
   color: #fff;
 }
 
 .deck-filters__btn-primary:hover {
-  background: rgba(43, 128, 197, 0.5);
-  border-color: rgba(43, 128, 197, 0.9);
+  background: #20629b;
+  border-color: #174872;
+  color: #fff;
 }
 
 .deck-filters__import-panel {

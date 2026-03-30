@@ -352,7 +352,11 @@ export default function DeckView() {
                 {deck.version && <span className="deck-view-version">v{deck.version}</span>}
                 <span className="deck-view-aspect-dot" style={{ background: headerColor }} />
                 <span className="deck-view-aspect-name">{factionsMap[aspect] || aspect.charAt(0).toUpperCase() + aspect.slice(1)}</span>
-                {isPrivate && <span className="deck-view-private-badge">🔒 Private</span>}
+                {isPrivate && (
+                  deck.parent_decklist_id 
+                    ? <span className="mc-badge mc-badge-published" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '0.9em', marginLeft: '6px' }} title="This deck is currently published on the site.">🌍 Published</span>
+                    : <span className="deck-view-private-badge" style={{ marginLeft: '6px' }}>🔒 Private</span>
+                )}
                 {deck.author_name && <span className="deck-view-author">by {deck.author_name}</span>}
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -429,15 +433,15 @@ export default function DeckView() {
                               onChange={e => setCustomTagsText(e.target.value)}
                               title="Separate multiple custom tags with commas (e.g. 'tournament, funny, testing')"
                               style={{ 
-                                background: '#1e293b', border: '1px solid #334155', color: '#fff', 
+                                background: 'var(--st-surface)', border: '1px solid var(--st-border)', color: 'var(--st-text)', 
                                 padding: '4px 8px', borderRadius: '4px', fontSize: '0.8rem', 
                                 minWidth: '220px'
                               }}
                             />
                             {/* Petit message explicatif sous l'input */}
                             {customTagsText.length > 0 && typeof customTagsText === 'string' && !customTagsText.includes(',') && customTagsText.indexOf(' ') !== -1 && (
-                              <div style={{ position: 'absolute', top: '100%', left: 0, marginTop: '4px', fontSize: '0.65rem', color: '#94a3b8', whiteSpace: 'nowrap' }}>
-                                Separate multiple tags with a comma <code style={{ color: '#fff' }}>,</code>
+                              <div style={{ position: 'absolute', top: '100%', left: 0, marginTop: '4px', fontSize: '0.65rem', color: 'var(--st-text-muted, #94a3b8)', whiteSpace: 'nowrap' }}>
+                                Separate multiple tags with a comma <code style={{ color: 'var(--st-title, #fff)' }}>,</code>
                               </div>
                             )}
                           </div>
@@ -585,6 +589,20 @@ export default function DeckView() {
             className={`deck-view-mode-btn${showBadges ? ' active' : ''}`}
             onClick={() => setShowBadges(!showBadges)}
           >🏷 Show Badge</button>
+          {deck?.precedent_decklist_id && (
+            <button
+              className="deck-view-mode-btn"
+              onClick={() => window.location.href = `/decklists/${deck.precedent_decklist_id}`}
+              title="See the previous version of this deck"
+            >⬅ Previous</button>
+          )}
+          {deck?.next_deck && (
+            <button
+              className="deck-view-mode-btn"
+              onClick={() => window.location.href = `/decklists/${deck.next_deck}`}
+              title="See the next version of this deck"
+            >Next ➡</button>
+          )}
         </div>
 
         {showEditor && (
@@ -688,6 +706,55 @@ export default function DeckView() {
           <div className="deck-view-middle">
             <div className="deck-stats">
               <DeckStatistics slots={liveSlots ?? deck.slots ?? []} packsRequired={deck.packs_required} />
+              
+              {/* Derived from / Inspiration for (Public Decks only) */}
+              {!isPrivate && (
+                <div className="set-stats-body">
+                  {/* Derived From */}
+                  <div className="set-stats-section" style={{ borderTop: '1px solid var(--st-border)' }}>
+                    <p className="set-stats-section-title" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', background: '#3b82f6', color: '#fff', borderRadius: '3px', fontSize: '0.65rem', width: '16px', height: '16px', fontWeight: 'bold', textTransform: 'none', letterSpacing: 'normal' }}>&laquo;</span> Derived from
+                    </p>
+                    {deck.derived_from_deck ? (
+                      <div style={{ display: 'flex', alignItems: 'center', fontSize: '0.85rem', gap: '12px' }}>
+                        <a href={`/decklists/${deck.derived_from_deck.id}`} style={{ color: '#1d4ed8', textDecoration: 'none', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '40%' }} title={deck.derived_from_deck.name}>{deck.derived_from_deck.name}</a>
+                        <span style={{ display: 'flex', gap: '12px', color: 'var(--st-text-muted)' }}>
+                          <span title="Likes" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>🤍 {deck.derived_from_deck.likes}</span>
+                          <span title="Favorites" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>⭐ {deck.derived_from_deck.favorites}</span>
+                          <span title="Comments" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>💬 {deck.derived_from_deck.comments}</span>
+                          <span title="Version" style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#6366f1' }}>v{deck.derived_from_deck.version}</span>
+                        </span>
+                      </div>
+                    ) : (
+                      <div style={{ fontSize: '0.8rem', color: 'var(--st-text-muted)', fontStyle: 'italic' }}>None</div>
+                    )}
+                  </div>
+
+                  {/* Inspiration For */}
+                  <div className="set-stats-section">
+                    <p className="set-stats-section-title" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', background: '#3b82f6', color: '#fff', borderRadius: '3px', fontSize: '0.65rem', width: '16px', height: '16px', fontWeight: 'bold', textTransform: 'none', letterSpacing: 'normal' }}>&raquo;</span> Inspiration for
+                    </p>
+                    {deck.inspiration_for_decks && deck.inspiration_for_decks.length > 0 ? (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                        {deck.inspiration_for_decks.map(d => (
+                          <div key={d.id} style={{ display: 'flex', alignItems: 'center', fontSize: '0.85rem', gap: '12px' }}>
+                            <a href={`/decklists/${d.id}`} style={{ color: '#1d4ed8', textDecoration: 'none', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '40%' }} title={d.name}>{d.name}</a>
+                            <span style={{ display: 'flex', gap: '12px', color: 'var(--st-text-muted)' }}>
+                              <span title="Likes" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>🤍 {d.likes}</span>
+                              <span title="Favorites" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>⭐ {d.favorites}</span>
+                              <span title="Comments" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>💬 {d.comments}</span>
+                              <span title="Version" style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#6366f1' }}>v{d.version}</span>
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div style={{ fontSize: '0.8rem', color: 'var(--st-text-muted)', fontStyle: 'italic' }}>None yet</div>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}
