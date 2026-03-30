@@ -44,7 +44,7 @@ export default function Menu() {
   function logout(){
     localStorage.removeItem('mc_user');
     window.dispatchEvent(new Event('mc_user_changed'));
-    // Optionally reload to refresh server-side sections
+    window.location.href = '/';
   }
 
   if (!enabled) return null;
@@ -52,23 +52,28 @@ export default function Menu() {
   return (
     <nav style={{ position: 'fixed', left:0, right:0, top:0, height:56, background:'#071026', display:'flex', alignItems:'center', padding:'0 16px', zIndex:9998 }}>
       <style>{`
-        @media (max-width: 1300px) { .header-hide-1300 { display: none !important; } }
-        @media (max-width: 1200px) { .header-hide-1200 { display: none !important; } }
-        @media (max-width: 1100px) { .header-hide-1100 { display: none !important; } }
+        @media (max-width: 1200px) { .hide-stories { display: none !important; } }
         @media (max-width: 900px) { .hide-on-mobile { display: none !important; } }
+        @media (max-width: 600px) { 
+          #client-menu-links a { font-size: 15px !important; }
+          #client-menu-links { gap: 12px !important; }
+        }
       `}</style>
-      <div style={{ color:'#fff', fontWeight:700 }}>MarvelCDB</div>
-      <div style={{ marginLeft:24, display:'flex', gap:12 }}>
-        <a href="/" className="header-hide-1300" style={{ color:'#9fb4d8' }}>Home</a>
+      <div style={{ color:'#fff', fontWeight:700, display: 'flex', alignItems: 'center', gap: '4px', flexShrink: 0 }}>
+        MC4DB
+        <span style={{ fontSize: '12px', fontWeight: 500, opacity: 0.7 }}>2.0</span>
+      </div>
+      <div id="client-menu-links" style={{ display:'flex', gap:14, flex:1, overflowX: 'auto', scrollbarWidth: 'none' }}>
+        <div style={{ marginLeft: 'auto', flexShrink: 0 }}></div>
         <a href="/sets" style={{ color:'#9fb4d8' }}>Sets</a>
         <a href="/card-list" style={{ color:'#9fb4d8' }}>Cards</a>
-        <a href="/stories" className="header-hide-1200" style={{ color:'#9fb4d8' }}>Stories</a>
+        <a href="/stories" className="hide-stories" style={{ color:'#9fb4d8' }}>Stories</a>
         <a href="/decklists" style={{ color:'#9fb4d8' }}>Public Decks</a>
         {user && <a href="/my-decks" style={{ color:'#9fb4d8' }}>My Decks</a>}
-        <a href="/rules" className="header-hide-1100" style={{ color:'#9fb4d8' }}>Rules &amp; Resources</a>
+        <a href="/rules" className={user ? "hide-on-mobile" : ""} style={{ color:'#9fb4d8' }}>Rules &amp; Resources</a>
         {user && <a href="/dashboard" style={{ color:'#9fb4d8' }}>Dashboard</a>}
       </div>
-      <div style={{ marginLeft:'auto' }}>
+      <div style={{ marginLeft:'14px', flexShrink: 0 }}>
         {!user ? (
           <a href="#" onClick={(e)=>{e.preventDefault(); window.dispatchEvent(new Event('mc_show_login'));}} style={{ color:'#fff' }}>Login</a>
         ) : (

@@ -333,10 +333,14 @@ function HorizontalSetsBar({ setsData, setsLoading, selectedSet, onSelect }) {
   const getSets = useCallback((key) => {
     if (!setsData) return [];
     
-    // Custom filter based on user active themes
+    // Custom filter based on user active themes and 'current' toggle
     let showTheme = {};
+    let showCurrentOnly = false;
     const u = currentUser();
-    if (u && u.show_theme) showTheme = u.show_theme;
+    if (u) {
+      if (u.show_theme) showTheme = u.show_theme;
+      if (u.show_current_only_default) showCurrentOnly = true;
+    }
     const normalizeTheme = t => t ? t.charAt(0).toUpperCase() + t.slice(1) : 'Marvel';
     
     const isThemeVisible = (t) => {
@@ -345,7 +349,12 @@ function HorizontalSetsBar({ setsData, setsLoading, selectedSet, onSelect }) {
       return showTheme[txt] !== false && showTheme[norm] !== false && showTheme[txt.toLowerCase()] !== false;
     };
 
-    const off = (setsData.official[key] || []).filter(s => isThemeVisible(s.theme)).map(s => ({ ...s, _src: 'official' }));
+    const off = (setsData.official[key] || []).filter(s => {
+      if (!isThemeVisible(s.theme)) return false;
+      if (showCurrentOnly && s.pack_environment !== 'current') return false;
+      return true;
+    }).map(s => ({ ...s, _src: 'official' }));
+
     const fm  = (setsData.fanmade[key]  || []).filter(s => isThemeVisible(s.theme)).map(s => ({ ...s, _src: 'fanmade' }));
     let list = [];
     if (source === 'official') list = off;
@@ -471,6 +480,7 @@ function HorizontalSetsBar({ setsData, setsLoading, selectedSet, onSelect }) {
                             onClick={(e) => { e.stopPropagation(); handleSelect(set); }}
                           >
                             <span>{set.name}</span>
+                            {set.pack_environment === 'current' && <span className="mc-badge mc-badge-current sets-topbar-badge" title="Current format">Current</span>}
                             {themeNorm !== 'marvel' && <span className="mc-badge sets-topbar-badge sets-theme-badge">{set.theme}</span>}
                             {set.private && <span className="mc-badge mc-badge-private sets-topbar-badge" title="Pack privé">🔒</span>}
                             {set.creator && set.creator !== 'FFG' && String(set.creator).split(/[,&]/).map(c => c.trim()).filter(Boolean).map((c, i) => <span key={i} className="mc-badge mc-badge-creator sets-topbar-badge">{c}</span>)}

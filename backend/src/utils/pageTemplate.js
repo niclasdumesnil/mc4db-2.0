@@ -41,14 +41,12 @@ function renderSharedHeader() {
   <style>
     #mc-site-header a { white-space: nowrap; }
     #mc-site-header nav::-webkit-scrollbar { display: none; }
+    .mc-nav-links::-webkit-scrollbar { display: none; }
     .mc-header-pad { height: 64px; }
     .mc-right-panel { display: flex; align-items: center; margin-left: auto; }
-    @media (max-width: 1300px) and (min-width: 901px) { .header-hide-1300 { display: none !important; } }
-    @media (max-width: 1200px) and (min-width: 901px) { .header-hide-1200 { display: none !important; } }
-    @media (max-width: 1100px) and (min-width: 901px) { .header-hide-1100 { display: none !important; } }
-    @media (max-width: 600px) {
-      .header-hide-1300, .header-hide-1200, .header-hide-1100 { display: none !important; }
-    }
+    
+    @media (max-width: 1200px) { .hide-stories { display: none !important; } }
+
     @media (max-width: 900px) {
       .hide-on-mobile { display: none !important; }
       #mc-site-header nav { flex-wrap: wrap; gap: 12px !important; }
@@ -62,21 +60,28 @@ function renderSharedHeader() {
       }
       .mc-header-pad { height: 104px; }
     }
+    @media (max-width: 600px) {
+      #mc-site-header a:not(:first-child) { font-size: 15px !important; }
+      .mc-nav-links { gap: 12px !important; }
+    }
   </style>
-  <nav style="max-width:1400px;margin:0 auto;display:flex;align-items:center;gap:16px;overflow-x:auto;scrollbar-width:none;">
-    <a href="/" style="color:#fff;text-decoration:none;font-weight:700;font-size:18px;display:inline-flex;align-items:center;gap:8px;">
+  <nav style="max-width:1400px;margin:0 auto;display:flex;align-items:center;gap:14px;overflow-x:auto;scrollbar-width:none;">
+    <a href="/" style="color:#fff;text-decoration:none;font-weight:700;font-size:18px;display:inline-flex;align-items:center;gap:8px;flex-shrink:0;">
       <img src="/react/images/favicon-dark.png" alt="Logo" width="28" height="28" style="height:28px; width:28px; border-radius:4px; object-fit:contain;" onerror="this.style.display='none'">
-      MC4DB 2.0
+      MC4DB <span style="font-size: 13px; font-weight: 500; opacity: 0.7; margin-left: -2px;">2.0</span>
     </a>
-    <div style="flex:1"></div>
-    <a href="/" class="header-hide-1300" style="color:#cfe6ff;text-decoration:none;margin-right:4px;">Home</a>
-    <a href="/card-list" style="color:#cfe6ff;text-decoration:none;margin-right:4px;">Cards</a>
-    <a href="/sets" style="color:#cfe6ff;text-decoration:none;margin-right:4px;">Sets</a>
-    <a href="/decklists" style="color:#cfe6ff;text-decoration:none;margin-right:4px;">Public Decks</a>
-    <a id="mc-my-decks-link" href="/my-decks" style="color:#cfe6ff;text-decoration:none;margin-right:4px;display:none;">My Decks</a>
-    <a href="/stories" class="header-hide-1200" style="color:#cfe6ff;text-decoration:none;margin-right:4px;">Stories</a>
-    <a href="/rules" class="header-hide-1100" style="color:#cfe6ff;text-decoration:none;margin-right:4px;">Rules &amp; Resources</a>
-    <a id="mc-dashboard-link" href="/dashboard" style="color:#cfe6ff;text-decoration:none;margin-right:4px;display:none;">Dashboard</a>
+    
+    <div class="mc-nav-links" style="display:flex; align-items:center; gap:14px; flex:1; overflow-x:auto; scrollbar-width:none;">
+      <div style="margin-left:auto; flex-shrink:0;"></div>
+      <a href="/card-list" style="color:#cfe6ff;text-decoration:none;">Cards</a>
+      <a href="/sets" style="color:#cfe6ff;text-decoration:none;">Sets</a>
+      <a href="/decklists" style="color:#cfe6ff;text-decoration:none;">Public Decks</a>
+      <a id="mc-my-decks-link" href="/my-decks" style="color:#cfe6ff;text-decoration:none;display:none;">My Decks</a>
+      <a href="/stories" class="hide-stories" style="color:#cfe6ff;text-decoration:none;">Stories</a>
+      <a id="mc-rules-link" href="/rules" style="color:#cfe6ff;text-decoration:none;">Rules &amp; Resources</a>
+      <a id="mc-dashboard-link" href="/dashboard" style="color:#cfe6ff;text-decoration:none;display:none;">Dashboard</a>
+    </div>
+
     <div class="mc-right-panel">
       <span id="mc-username" style="margin-right:8px;display:none;color:#fff;font-weight:600;font-size:14px;"></span>
       <span id="mc-user-badges" style="display:none;align-items:center;gap:6px;margin-right:12px;"></span>
@@ -103,6 +108,7 @@ function renderSharedHeader() {
       function _mcRenderHeader(){
         var dash       = document.getElementById('mc-dashboard-link');
         var myDecks    = document.getElementById('mc-my-decks-link');
+        var rulesLink  = document.getElementById('mc-rules-link');
         var userSpan   = document.getElementById('mc-username');
         var loginBtn = document.getElementById('mc-login-btn');
         var logoutBtn= document.getElementById('mc-logout-btn');
@@ -130,6 +136,7 @@ function renderSharedHeader() {
           if (userSpan)  { userSpan.style.display  = 'inline-block'; userSpan.textContent = displayName; }
           if (dash)      { dash.style.display       = 'inline-block'; }
           if (myDecks)   { myDecks.style.display    = 'inline-block'; }
+          if (rulesLink) { rulesLink.classList.add('hide-on-mobile'); }
           if (loginBtn)  { loginBtn.style.display   = 'none'; }
           if (logoutBtn) { logoutBtn.style.display  = 'inline-flex'; }
           
@@ -154,6 +161,7 @@ function renderSharedHeader() {
           if (userSpan)  { userSpan.style.display  = 'none'; }
           if (dash)      { dash.style.display      = 'none'; }
           if (myDecks)   { myDecks.style.display   = 'none'; }
+          if (rulesLink) { rulesLink.classList.remove('hide-on-mobile'); }
           if (loginBtn)  { loginBtn.style.display  = 'inline-flex'; }
           if (logoutBtn) { logoutBtn.style.display = 'none'; }
           if (badgesSpan) { badgesSpan.style.display = 'none'; }
@@ -177,6 +185,7 @@ function renderSharedHeader() {
           e.preventDefault();
           localStorage.removeItem('mc_user');
           window.dispatchEvent(new Event('mc_user_changed'));
+          window.location.href = '/';
         });
       }
 

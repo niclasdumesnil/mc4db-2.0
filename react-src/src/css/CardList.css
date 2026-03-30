@@ -547,6 +547,19 @@ html:not(.dark) .cardlist-current-btn--active {
   vertical-align: middle;
 }
 
+html:not(.dark) .cl-checklist th {
+  border-bottom: 2px solid rgba(0, 0, 0, 0.1);
+}
+html:not(.dark) .cl-checklist tr:nth-child(even) td {
+  background: rgba(0, 0, 0, 0.03);
+}
+html:not(.dark) .cl-checklist tr:hover td {
+  background: rgba(59, 130, 246, 0.08);
+}
+html:not(.dark) .cl-checklist td {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+
 /* Name column */
 .cl-card-name {
   display: flex;
