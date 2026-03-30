@@ -634,15 +634,21 @@ export default function Sets() {
         .finally(() => { if (active) setCardsLoading(false); });
     } else {
       // Hero set: load hero set + nemesis set together
-      // Try nemesis_code from set data, or fall back to "{code}_nemesis"
       const nemesisCode = selectedSet.nemesis_code || (selectedSet.code + '_nemesis');
-      Promise.all([
+      const fetchPromises = [
         fetchSetCards(selectedSet.code, locale),
         fetchSetCards(nemesisCode, locale),
-      ]).then(([hero, nemesis]) => {
+      ];
+
+      if (selectedSet.special_code) {
+        fetchPromises.push(fetchSetCards(selectedSet.special_code, locale));
+      }
+
+      Promise.all(fetchPromises).then(([hero, nemesis, special]) => {
         if (active) {
           setHeroCards(hero);
-          setEncounterCards(nemesis);
+          const specialCards = (special || []).map(c => ({...c, is_special_deck: true}));
+          setEncounterCards([...specialCards, ...nemesis]);
         }
       }).finally(() => { if (active) setCardsLoading(false); });
     }
@@ -728,9 +734,16 @@ export default function Sets() {
     const obligationCards = heroCards.filter(c => (c.type_code || '').toLowerCase() === 'obligation');
     const deckCards       = heroCards.filter(c => !['obligation', 'hero', 'alter_ego'].includes((c.type_code || '').toLowerCase()) && !c.hidden);
     const deckSlots       = deckCards.map(c => ({ ...c, quantity: c.quantity ?? 1, permanent: false }));
-    const encounterForStats = [...obligationCards, ...encounterCards.filter(c => !['villain', 'leader'].includes((c.type_code || '').toLowerCase()))];
+    const encounterForStats = [...obligationCards, ...encounterCards.filter(c => !['villain', 'leader'].includes((c.type_code || '').toLowerCase()) && !c.is_special_deck)];
     return (
       <>
+        {selectedSet.special_code && (
+           <div className="set-stats-section" style={{ textAlign: 'center', padding: '6px 16px', background: 'var(--st-surface-2)' }}>
+              <span style={{ fontSize: '0.75em', color: 'var(--st-text-muted)', fontStyle: 'italic' }}>
+                 Special deck excluded
+              </span>
+           </div>
+        )}
         <DeckStatistics
           slots={deckSlots}
           packsRequired={1}

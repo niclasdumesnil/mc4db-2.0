@@ -115,6 +115,8 @@ export default function Landing() {
     padding: 24,
     display: 'flex',
     flexDirection: 'column',
+    boxSizing: 'border-box',
+    minWidth: 0,
   };
 
   const titleStyle = {
@@ -141,12 +143,28 @@ export default function Landing() {
   return (
     <div className="landing-page page-wrapper">
       <div className="landing-inner">
-        {/* Banner */}
-        <header className="page-header">
-          <h1 className="page-title">Welcome to MC4DB 2.0</h1>
-          <p className="page-subtitle">
-            A modern fan-made database for Marvel Champions cards — browse cards, check promos, and build decks.
-          </p>
+        <style>{`
+          .home-logo-wrapper { flex-shrink: 0; width: 80px; }
+          .home-logo-light { display: block; width: 100%; height: auto; }
+          .home-logo-dark { display: none; width: 100%; height: auto; }
+          html.dark .home-logo-light { display: none; }
+          html.dark .home-logo-dark { display: block; }
+          @media (max-width: 600px) {
+            .landing-header-flex { flex-direction: column; align-items: flex-start; text-align: left; }
+            .home-logo-wrapper { width: 64px; }
+          }
+        `}</style>
+        <header className="page-header landing-header-flex" style={{ display: 'flex', alignItems: 'center', gap: 24, paddingBottom: 24 }}>
+          <div className="home-logo-wrapper">
+             <img src="/react/images/logo-light.png" className="home-logo-light" alt="MC4DB Logo" />
+             <img src="/react/images/logo-dark.png" className="home-logo-dark" alt="MC4DB Logo" />
+          </div>
+          <div>
+            <h1 className="page-title" style={{ margin: '0 0 4px 0' }}>Welcome to MC4DB 2.0</h1>
+            <p className="page-subtitle" style={{ margin: 0 }}>
+              A modern fan-made database for Marvel Champions cards — browse cards, check promos, and build decks.
+            </p>
+          </div>
         </header>
 
         {loading ? (
@@ -156,32 +174,38 @@ export default function Landing() {
               
               {/* Row 1: Left (Community + Heroes) / Right (Top Cards) */}
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 24 }}>
-                 {/* Left Column */}
-                 <div style={{ flex: '2 1 600px', display: 'flex', flexDirection: 'column', gap: 24 }}>
+                 {/* Left Column (Community ONLY on desktop, full width) */}
+                 <div style={{ flex: '1 1 100%', minWidth: 0 }}>
                     {/* Total Community */}
                     {data.total_decks > 0 && (
-                       <div style={{ display: 'flex', alignItems: 'center', boxSizing: 'border-box', gap: 16, padding: '16px 20px', background: 'var(--st-surface-2)', border: '1px solid var(--st-border)', borderRadius: 12, boxShadow: '0 4px 12px rgba(0,0,0,0.2)' }}>
+                       <div style={{ display: 'flex', alignItems: 'center', boxSizing: 'border-box', gap: 16, padding: '16px 20px', background: 'var(--st-surface-2)', border: '1px solid var(--st-border)', borderRadius: 12, boxShadow: '0 4px 12px rgba(0,0,0,0.2)', flexWrap: 'wrap' }}>
                           <span style={{ fontSize: '2rem' }}>📚</span>
-                          <div style={{ flex: 1 }}>
+                          <div style={{ flex: '1 1 300px' }}>
                             <div style={{ fontSize: '0.85em', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--st-text-muted)', fontWeight: 700, marginBottom: 4 }}>Total Community</div>
                             <div style={{ display: 'flex', alignItems: 'baseline', gap: 24, flexWrap: 'wrap' }}>
                                <div style={{ fontSize: '1.3em', fontWeight: 600, color: 'var(--st-title)' }}>{data.total_decks.toLocaleString()} Public Decks</div>
                                <div style={{ fontSize: '1.05em', fontWeight: 500, color: 'var(--st-text-muted)' }}>🔒 {data.total_private_decks?.toLocaleString() || 0} Private Decks</div>
                             </div>
                           </div>
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: 4, textAlign: 'left', borderLeft: '1px solid var(--st-border)', paddingLeft: 16 }}>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: 4, textAlign: 'left', paddingLeft: 16, flex: '1 1 200px', minWidth: '150px' }}>
                             <div style={{ fontSize: '0.85em', color: 'var(--st-text-muted)' }}><strong style={{ color: 'var(--st-title)' }}>{data.total_official_cards?.toLocaleString() || 0}</strong> Official cards</div>
                             <div style={{ fontSize: '0.85em', color: 'var(--st-text-muted)' }}><strong style={{ color: 'var(--st-title)' }}>{data.total_fanmade_cards?.toLocaleString() || 0}</strong> Fan-made cards</div>
                           </div>
                        </div>
                     )}
-                    
-                    {/* Top 3 Heroes */}
+                 </div>
+              </div>
+
+              {/* Row 1.5: Top 3 Heroes and Top 3 Cards side by side */}
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 24 }}>
+                 {/* Top 3 Heroes Column */}
+                 <div style={{ flex: '1 1 300px', minWidth: 0 }}>
                     <div style={panelStyle}>
                        <h2 style={titleStyle}>🏆 Top 3 Heroes</h2>
+                       <p style={{ fontSize: '0.85em', color: 'var(--st-text-muted)', margin: '-8px 0 12px 0' }}>Note: Including official and fanmade heroes.</p>
                        <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
                           {data.top_heroes?.map((h, i) => (
-                              <div key={h.code} style={badgeStyle}>
+                              <div key={h.code} style={{...badgeStyle, flex: '1 1 100%'}}>
                                  <span style={{ color: ['#ffd700', '#c0c0c0', '#cd7f32'][i] || 'var(--st-title)', fontWeight: 'bold' }}>#{i+1}</span>
                                  <a href={`/card/${h.code}`} className="card-tip" data-code={h.code} style={{ color: 'var(--st-title)', textDecoration: 'none', fontWeight: 600 }}>{h.name}</a>
                                  <span style={{ color: 'var(--st-text-muted)', fontSize: '0.85em', marginLeft: 'auto' }}>{h.count} decks</span>
@@ -191,9 +215,9 @@ export default function Landing() {
                     </div>
                  </div>
 
-                 {/* Right Column */}
-                 <div style={{ flex: '1 1 300px' }}>
-                    <div style={{...panelStyle, boxSizing: 'border-box'}}>
+                 {/* Top 3 Cards Column */}
+                 <div style={{ flex: '1 1 300px', minWidth: 0 }}>
+                    <div style={panelStyle}>
                        <h2 style={titleStyle}>🌐 Top 3 Cards</h2>
                        <p style={{ fontSize: '0.85em', color: 'var(--st-text-muted)', margin: '-8px 0 12px 0' }}>Note: Resource cards are ignored in this calculation.</p>
                        <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
@@ -212,7 +236,7 @@ export default function Landing() {
               {/* Row 2: Left (Deck of the Day + Week) / Right (Card of the Day) */}
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 24 }}>
                  {/* Left Column */}
-                 <div style={{ flex: '2 1 600px', display: 'flex', flexDirection: 'column', gap: 24 }}>
+                 <div style={{ flex: '2 1 600px', display: 'flex', flexDirection: 'column', gap: 24, minWidth: 0 }}>
                     <div style={panelStyle}>
                        <h2 style={titleStyle}>📆 Deck of the Day</h2>
                        {data.card_of_the_day_deck ? (

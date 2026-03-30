@@ -228,14 +228,20 @@ router.get('/sets', async (req, res, next) => {
     // 1. Use explicit parent_code if available
     // 2. Fall back to convention: nemesis code = hero_code + '_nemesis'
     const nemesisMap = {};
-    // First pass: build a set of all known nemesis codes
+    const specialMap = {};
     const allNemesisCodes = new Set(
       visible.filter(r => (r.type_code || '').toLowerCase() === 'nemesis').map(r => r.code)
     );
     for (const row of visible) {
-      if ((row.type_code || '').toLowerCase() === 'nemesis') {
+      const tcode = (row.type_code || '').toLowerCase();
+      if (tcode === 'nemesis') {
         const parentCode = row.parent_code || row.code.replace(/_nemesis$/, '');
         nemesisMap[parentCode] = row.code;
+      }
+      if (tcode === 'hero_special') {
+        if (row.parent_code) {
+          specialMap[row.parent_code] = row.code;
+        }
       }
     }
 
@@ -249,7 +255,7 @@ router.get('/sets', async (req, res, next) => {
 
     for (const row of visible) {
       const typeCode = (row.type_code || '').toLowerCase();
-      if (typeCode === 'nemesis') continue; // skip — attached to hero sets
+      if (typeCode === 'nemesis' || typeCode === 'hero_special') continue; // skip — attached to hero sets
       if (!INCLUDED_TYPES.includes(typeCode)) continue;
 
       // NULL creator means official (FFG)
@@ -265,6 +271,7 @@ router.get('/sets', async (req, res, next) => {
         type_code: row.type_code,
         type_name: row.type_name,
         nemesis_code: nemesisMap[row.code] || null,
+        special_code: specialMap[row.code] || null,
         creator: row.creator || 'FFG',
         theme: row.theme || null,
         card_count: Number(row.card_count) || 0,

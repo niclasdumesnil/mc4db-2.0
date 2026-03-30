@@ -64,7 +64,10 @@ function renderSharedHeader() {
     }
   </style>
   <nav style="max-width:1400px;margin:0 auto;display:flex;align-items:center;gap:16px;overflow-x:auto;scrollbar-width:none;">
-    <a href="/" style="color:#fff;text-decoration:none;font-weight:700;font-size:18px;">MC4DB 2.0</a>
+    <a href="/" style="color:#fff;text-decoration:none;font-weight:700;font-size:18px;display:inline-flex;align-items:center;gap:8px;">
+      <img src="/react/images/favicon-dark.png" alt="Logo" width="28" height="28" style="height:28px; width:28px; border-radius:4px; object-fit:contain;" onerror="this.style.display='none'">
+      MC4DB 2.0
+    </a>
     <div style="flex:1"></div>
     <a href="/" class="header-hide-1300" style="color:#cfe6ff;text-decoration:none;margin-right:4px;">Home</a>
     <a href="/card-list" style="color:#cfe6ff;text-decoration:none;margin-right:4px;">Cards</a>

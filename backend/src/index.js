@@ -262,6 +262,10 @@ app.get(['/card/:code.html', '/card/:code'], async (req, res, next) => {
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>${card.name ? card.name + ' — MarvelCDB' : 'Card ' + card.code}</title>
     <link rel="stylesheet" href="/react/css/mc4db.css?v=">
+  
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="/react/images/favicon-light.png" media="(prefers-color-scheme: light)">
+    <link rel="icon" type="image/png" href="/react/images/favicon-dark.png" media="(prefers-color-scheme: dark)">
   </head>
   <body>
     ${renderSharedHeader()}
@@ -320,6 +324,10 @@ app.get(['/', '/index.html'], async (req, res) => {
     <meta name="twitter:image" content="${image}">
 
     <link rel="stylesheet" href="/react/css/mc4db.css?v=">
+  
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="/react/images/favicon-light.png" media="(prefers-color-scheme: light)">
+    <link rel="icon" type="image/png" href="/react/images/favicon-dark.png" media="(prefers-color-scheme: dark)">
   </head>
   <body>
     ${renderSharedHeader()}
@@ -367,6 +375,10 @@ app.get(['/dashboard', '/dashboard/'], async (req, res) => {
     <meta name="twitter:image" content="${image}">
 
     <link rel="stylesheet" href="/react/css/mc4db.css?v=">
+  
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="/react/images/favicon-light.png" media="(prefers-color-scheme: light)">
+    <link rel="icon" type="image/png" href="/react/images/favicon-dark.png" media="(prefers-color-scheme: dark)">
   </head>
   <body>
     ${renderSharedHeader()}
@@ -409,6 +421,10 @@ app.get(['/decklists', '/decklists/'], async (req, res) => {
     <meta name="twitter:description" content="${description}">
     <meta name="twitter:image" content="${image}">
     <link rel="stylesheet" href="/react/css/mc4db.css?v=">
+  
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="/react/images/favicon-light.png" media="(prefers-color-scheme: light)">
+    <link rel="icon" type="image/png" href="/react/images/favicon-dark.png" media="(prefers-color-scheme: dark)">
   </head>
   <body>
     ${renderSharedHeader()}
@@ -452,6 +468,10 @@ app.get(['/card-list', '/card-list/'], (req, res) => {
     <meta property="og:image" content="${image}">
     <link rel="stylesheet" href="/react/css/mc4db.css?v=">
     <script>window.__MC_LOCALE__ = ${JSON.stringify(locale)};</script>
+  
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="/react/images/favicon-light.png" media="(prefers-color-scheme: light)">
+    <link rel="icon" type="image/png" href="/react/images/favicon-dark.png" media="(prefers-color-scheme: dark)">
   </head>
   <body>
     ${renderSharedHeader()}
@@ -490,6 +510,10 @@ app.get(['/my-decks', '/my-decks/'], (req, res) => {
     <meta property="og:url" content="${url}">
     <meta property="og:image" content="${image}">
     <link rel="stylesheet" href="/react/css/mc4db.css?v=">
+  
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="/react/images/favicon-light.png" media="(prefers-color-scheme: light)">
+    <link rel="icon" type="image/png" href="/react/images/favicon-dark.png" media="(prefers-color-scheme: dark)">
   </head>
   <body>
     ${renderSharedHeader()}
@@ -531,6 +555,10 @@ app.get(['/decklists', '/decklists/'], (req, res) => {
     <meta property="og:image" content="${image}">
     <link rel="stylesheet" href="/react/css/mc4db.css?v=">
     <script>window.__MC_LOCALE__ = ${JSON.stringify(locale)};</script>
+  
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="/react/images/favicon-light.png" media="(prefers-color-scheme: light)">
+    <link rel="icon" type="image/png" href="/react/images/favicon-dark.png" media="(prefers-color-scheme: dark)">
   </head>
   <body>
     ${renderSharedHeader()}
@@ -572,6 +600,10 @@ app.get(['/my-decks', '/my-decks/'], (req, res) => {
     <meta property="og:image" content="${image}">
     <link rel="stylesheet" href="/react/css/mc4db.css?v=">
     <script>window.__MC_LOCALE__ = ${JSON.stringify(locale)};</script>
+  
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="/react/images/favicon-light.png" media="(prefers-color-scheme: light)">
+    <link rel="icon" type="image/png" href="/react/images/favicon-dark.png" media="(prefers-color-scheme: dark)">
   </head>
   <body>
     ${renderSharedHeader()}
@@ -610,6 +642,10 @@ app.get(['/rules', '/rules/'], (req, res) => {
     <meta property="og:url" content="${url}">
     <meta property="og:image" content="${image}">
     <link rel="stylesheet" href="/react/css/mc4db.css?v=">
+  
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="/react/images/favicon-light.png" media="(prefers-color-scheme: light)">
+    <link rel="icon" type="image/png" href="/react/images/favicon-dark.png" media="(prefers-color-scheme: dark)">
   </head>
   <body>
     ${renderSharedHeader()}
@@ -648,6 +684,10 @@ app.get(['/stories', '/stories/'], (req, res) => {
     <meta property="og:url" content="${url}">
     <meta property="og:image" content="${image}">
     <link rel="stylesheet" href="/react/css/mc4db.css?v=">
+  
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="/react/images/favicon-light.png" media="(prefers-color-scheme: light)">
+    <link rel="icon" type="image/png" href="/react/images/favicon-dark.png" media="(prefers-color-scheme: dark)">
   </head>
   <body>
     ${renderSharedHeader()}
@@ -689,6 +729,10 @@ app.get(['/sets', '/sets/'], (req, res) => {
     <meta property="og:image" content="${image}">
     <link rel="stylesheet" href="/react/css/mc4db.css?v=">
     <script>window.__MC_LOCALE__ = ${JSON.stringify(locale)};</script>
+  
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="/react/images/favicon-light.png" media="(prefers-color-scheme: light)">
+    <link rel="icon" type="image/png" href="/react/images/favicon-dark.png" media="(prefers-color-scheme: dark)">
   </head>
   <body>
     ${renderSharedHeader()}
@@ -724,6 +768,10 @@ app.get(['/decklist/:id', '/decklist/view/:id'], (req, res) => {
     <meta name="description" content="View a Marvel Champions deck on MarvelCDB.">
     <link rel="stylesheet" href="/react/css/mc4db.css?v=">
     <script>window.__MC_LOCALE__ = ${JSON.stringify(locale)};</script>
+  
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="/react/images/favicon-light.png" media="(prefers-color-scheme: light)">
+    <link rel="icon" type="image/png" href="/react/images/favicon-dark.png" media="(prefers-color-scheme: dark)">
   </head>
   <body>
     ${renderSharedHeader()}
@@ -759,6 +807,10 @@ app.get('/deck/new', (req, res) => {
     <meta property="og:url" content="${url}">
     <meta property="og:image" content="${image}">
     <link rel="stylesheet" href="/react/css/mc4db.css?v=">
+  
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="/react/images/favicon-light.png" media="(prefers-color-scheme: light)">
+    <link rel="icon" type="image/png" href="/react/images/favicon-dark.png" media="(prefers-color-scheme: dark)">
   </head>
   <body>
     ${renderSharedHeader()}
@@ -788,6 +840,10 @@ app.get(['/my-decks/:id', '/deck/view/:id'], (req, res) => {
     <meta name="description" content="View your private deck on MarvelCDB.">
     <link rel="stylesheet" href="/react/css/mc4db.css?v=">
     <script>window.__MC_LOCALE__ = ${JSON.stringify(locale)};</script>
+  
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="/react/images/favicon-light.png" media="(prefers-color-scheme: light)">
+    <link rel="icon" type="image/png" href="/react/images/favicon-dark.png" media="(prefers-color-scheme: dark)">
   </head>
   <body>
     ${renderSharedHeader()}

@@ -5,6 +5,58 @@
 const { Router } = require('express');
 const db = require('../config/database');
 const { resolveImage } = require('../utils/cardSerializer');
+const fs = require('fs');
+const path = require('path');
+
+const ROTATION_FILE = path.join(__dirname, '../../data/rotations.json');
+
+function getCurrentRotationId() {
+  const now = new Date();
+  const pivot = new Date(now);
+  pivot.setHours(8, 0, 0, 0); // Today at 08:00
+  let dayOfWeek = pivot.getDay();
+  let daysSinceMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+  // If today is Monday but before 8am, we are technically in the previous week
+  if (daysSinceMonday === 0 && now.getTime() < pivot.getTime()) {
+    daysSinceMonday = 7;
+  }
+  pivot.setDate(pivot.getDate() - daysSinceMonday);
+  return pivot.getTime();
+}
+
+function getCurrentDayId() {
+  const now = new Date();
+  const pivot = new Date(now);
+  pivot.setHours(8, 0, 0, 0); // Today at 08:00
+  if (now.getTime() < pivot.getTime()) {
+    pivot.setDate(pivot.getDate() - 1);
+  }
+  return pivot.getTime();
+}
+
+function getRotationData() {
+  if (fs.existsSync(ROTATION_FILE)) {
+    try {
+      const data = JSON.parse(fs.readFileSync(ROTATION_FILE, 'utf8'));
+      if (!data.cardHistory) data.cardHistory = [];
+      if (!data.history) data.history = [];
+      return data;
+    } catch(e) {}
+  }
+  return { currentWeekId: null, currentDeckId: null, history: [], currentDayId: null, currentCardId: null, currentCotdDeckId: null, cardHistory: [] };
+}
+
+function saveRotationData(data) {
+  try {
+    const dir = path.dirname(ROTATION_FILE);
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+    fs.writeFileSync(ROTATION_FILE, JSON.stringify(data, null, 2));
+  } catch(e) {
+    console.error('Failed to save rotation data', e);
+  }
+}
 
 const router = Router();
 
@@ -76,37 +128,147 @@ router.get('/home', async (req, res) => {
       lastPackVillains = mappedCards.filter(c => c.type_code === 'villain');
     }
 
-    // 4. Card of the Day
-    // Fetch an array of candidate card codes
-    const candidates = await db('card as c')
-      .join('faction as f', 'c.faction_id', 'f.id')
-      .join('type as t', 'c.type_id', 't.id')
-      .join('pack as p', 'c.pack_id', 'p.id')
-      .whereIn('f.code', ['justice', 'leadership', 'aggression', 'protection', 'pool', 'basic'])
-      .whereIn('t.code', ['event', 'support', 'upgrade', 'ally'])
-      .whereNull('c.duplicate_id')
-      .where(function() {
-        this.where('p.visibility', '!=', 'false').orWhereNull('p.visibility');
-      })
-      .select('c.id', 'c.code', 'p.code as pack_code');
+    // 4. Card of the Day (frozen rotating selection)
+    const currentDayId = getCurrentDayId();
+    let rotData = getRotationData();
+
+    if (rotData.currentDayId !== currentDayId || !rotData.currentCardId) {
+      const excludeCardIds = rotData.cardHistory || [];
+
+      const candidatesQuery = db('card as c')
+        .join('faction as f', 'c.faction_id', 'f.id')
+        .join('type as t', 'c.type_id', 't.id')
+        .join('pack as p', 'c.pack_id', 'p.id')
+        .whereIn('f.code', ['justice', 'leadership', 'aggression', 'protection', 'pool', 'basic'])
+        .whereIn('t.code', ['event', 'support', 'upgrade', 'ally'])
+        .whereNull('c.duplicate_id')
+        .where(function() {
+          this.where('p.visibility', '!=', 'false').orWhereNull('p.visibility');
+        })
+        .select('c.id');
+
+      if (excludeCardIds.length > 0) {
+        candidatesQuery.whereNotIn('c.id', excludeCardIds);
+      }
+
+      let newCard = await candidatesQuery.orderByRaw('RAND()').first();
+
+      if (!newCard && excludeCardIds.length > 0) {
+        // Failsafe: pick from anywhere if all excluded
+        newCard = await db('card as c')
+          .join('faction as f', 'c.faction_id', 'f.id')
+          .join('type as t', 'c.type_id', 't.id')
+          .join('pack as p', 'c.pack_id', 'p.id')
+          .whereIn('f.code', ['justice', 'leadership', 'aggression', 'protection', 'pool', 'basic'])
+          .whereIn('t.code', ['event', 'support', 'upgrade', 'ally'])
+          .whereNull('c.duplicate_id')
+          .where(function() {
+            this.where('p.visibility', '!=', 'false').orWhereNull('p.visibility');
+          })
+          .select('c.id')
+          .orderByRaw('RAND()').first();
+      }
+
+      if (newCard) {
+        const potentialCotdDeck = await db('decklistslot as s')
+          .join('decklist as d', 's.decklist_id', 'd.id')
+          .where('s.card_id', newCard.id)
+          .whereNull('d.next_deck')
+          .select('d.id')
+          .orderByRaw('RAND()')
+          .first();
+
+        rotData.currentCardId = newCard.id;
+        rotData.currentCotdDeckId = potentialCotdDeck ? potentialCotdDeck.id : null;
+        rotData.currentDayId = currentDayId;
+        rotData.cardHistory = [newCard.id, ...excludeCardIds].slice(0, 30);
+        saveRotationData(rotData);
+      }
+    }
 
     let cardOfTheDay = null;
     let cotdDeck = null;
-    if (candidates.length > 0) {
-      const idx = Math.floor(Math.random() * candidates.length);
-      const chosenCardId = candidates[idx].id;
-      const chosenCardCode = candidates[idx].code;
-      const chosenImageSrc = resolveImage(candidates[idx].code, candidates[idx].pack_code);
 
-      // Fetch 1 random deck that includes this card
-      const randomDeckRow = await db('decklistslot as s')
-        .join('decklist as d', 's.decklist_id', 'd.id')
+    if (rotData.currentCardId) {
+      const cardInfo = await db('card as c')
+        .join('pack as p', 'c.pack_id', 'p.id')
+        .where('c.id', rotData.currentCardId)
+        .select('c.code', 'p.code as pack_code')
+        .first();
+
+      if (cardInfo) {
+        cardOfTheDay = { code: cardInfo.code, imagesrc: resolveImage(cardInfo.code, cardInfo.pack_code) };
+      }
+
+      if (rotData.currentCotdDeckId) {
+        const randomDeckRow = await db('decklist as d')
+          .join('user as u', 'd.user_id', 'u.id')
+          .join('card as c', 'd.card_id', 'c.id')
+          .leftJoin('faction as f', 'c.faction_id', 'f.id')
+          .leftJoin('pack as p', 'c.pack_id', 'p.id')
+          .where('d.id', rotData.currentCotdDeckId)
+          .select(
+            'd.id', 'd.name', 'd.date_creation', 'd.user_id',
+            'd.nb_votes as likes', 'd.nb_favorites as favorites', 'd.nb_comments as comments',
+            'd.version', 'd.tags', 'd.meta',
+            'u.username as author_name', 'u.reputation as author_reputation',
+            'c.code as hero_code', 'c.name as hero_name',
+            'f.code as faction_code',
+            'p.code as pack_code', 'p.creator as pack_creator', 'p.environment as pack_environment', 'p.status as pack_status'
+          )
+          .first();
+
+        if (randomDeckRow) {
+          cotdDeck = {
+            ...randomDeckRow,
+            hero_imagesrc: resolveImage(randomDeckRow.hero_code, randomDeckRow.pack_code)
+          };
+        }
+      }
+    }
+
+    // 3.5 Deck of the Week (frozen rotating selection)
+    const currentWeekId = getCurrentRotationId();
+
+    // Check if we need to pick a new deck
+    if (rotData.currentWeekId !== currentWeekId || !rotData.currentDeckId) {
+      const excludeIds = rotData.history || [];
+
+      const newDeckRowQ = db('decklist as d')
+        .whereNull('d.next_deck')
+        .select('d.id');
+
+      if (excludeIds.length > 0) {
+        newDeckRowQ.whereNotIn('d.id', excludeIds);
+      }
+
+      const potentialNewDeck = await newDeckRowQ.orderByRaw('RAND()').first();
+
+      if (potentialNewDeck) {
+        rotData.currentDeckId = potentialNewDeck.id;
+        rotData.currentWeekId = currentWeekId;
+        rotData.history = [potentialNewDeck.id, ...excludeIds].slice(0, 10);
+        saveRotationData(rotData);
+      } else if (excludeIds.length > 0) {
+        // Failsafe: if we excluded all decks, pick any!
+        const fallback = await db('decklist as d').whereNull('d.next_deck').orderByRaw('RAND()').first();
+        if (fallback) {
+          rotData.currentDeckId = fallback.id;
+          rotData.currentWeekId = currentWeekId;
+          rotData.history = [fallback.id];
+          saveRotationData(rotData);
+        }
+      }
+    }
+
+    let randomWeeklyDeckRow = null;
+    if (rotData.currentDeckId) {
+      randomWeeklyDeckRow = await db('decklist as d')
         .join('user as u', 'd.user_id', 'u.id')
         .join('card as c', 'd.card_id', 'c.id')
         .leftJoin('faction as f', 'c.faction_id', 'f.id')
         .leftJoin('pack as p', 'c.pack_id', 'p.id')
-        .where('s.card_id', chosenCardId)
-        .whereNull('d.next_deck')
+        .where('d.id', rotData.currentDeckId)
         .select(
           'd.id', 'd.name', 'd.date_creation', 'd.user_id',
           'd.nb_votes as likes', 'd.nb_favorites as favorites', 'd.nb_comments as comments',
@@ -116,36 +278,8 @@ router.get('/home', async (req, res) => {
           'f.code as faction_code',
           'p.code as pack_code', 'p.creator as pack_creator', 'p.environment as pack_environment', 'p.status as pack_status'
         )
-        .orderByRaw('RAND()')
         .first();
-
-      cardOfTheDay = { code: chosenCardCode, imagesrc: chosenImageSrc };
-      if (randomDeckRow) {
-        cotdDeck = {
-          ...randomDeckRow,
-          hero_imagesrc: resolveImage(randomDeckRow.hero_code, randomDeckRow.pack_code)
-        };
-      }
     }
-
-    // 3.5 Deck of the Week (random public deck)
-    const randomWeeklyDeckRow = await db('decklist as d')
-      .join('user as u', 'd.user_id', 'u.id')
-      .join('card as c', 'd.card_id', 'c.id')
-      .leftJoin('faction as f', 'c.faction_id', 'f.id')
-      .leftJoin('pack as p', 'c.pack_id', 'p.id')
-      .whereNull('d.next_deck')
-      .select(
-        'd.id', 'd.name', 'd.date_creation', 'd.user_id',
-        'd.nb_votes as likes', 'd.nb_favorites as favorites', 'd.nb_comments as comments',
-        'd.version', 'd.tags', 'd.meta',
-        'u.username as author_name', 'u.reputation as author_reputation',
-        'c.code as hero_code', 'c.name as hero_name',
-        'f.code as faction_code',
-        'p.code as pack_code', 'p.creator as pack_creator', 'p.environment as pack_environment', 'p.status as pack_status'
-      )
-      .orderByRaw('RAND()')
-      .first();
 
     let deckOfTheWeek = null;
     if (randomWeeklyDeckRow) {
