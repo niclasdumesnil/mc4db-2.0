@@ -176,6 +176,10 @@ export default function Profile({ user }) {
           <span className="label">Private Decks</span>
           <span className="value">{user.private_decks_count ?? 0}</span>
         </div>
+        <div className="info-item">
+          <span className="label">Reviews Published</span>
+          <span className="value">{user.reviews_count ?? 0}</span>
+        </div>
         {user.top_private_hero && (
           <div className="info-item">
             <span className="label">Favourite Hero</span>

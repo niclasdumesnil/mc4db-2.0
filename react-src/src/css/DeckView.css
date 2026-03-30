@@ -690,37 +690,14 @@
 }
 
 @media (max-width: 768px) {
-  /* On phone, the cards move above the info panel instead of flanking it */
+  /* On phone, hide the hero and alterego cards as they take too much space */
   .banner-cards-layer {
-    position: relative;
-    display: flex;
-    justify-content: space-between;
-    width: 100%;
-    padding: 0 10px;
-    box-sizing: border-box;
-    margin: 0;
-    margin-top: -10px;
-    margin-bottom: 15px; /* Visual space above the panel */
-    pointer-events: none;
-    z-index: 20;
-  }
-
-  .banner-card {
-    position: relative;
-    width: 110px; /* Smaller for phone */
-    pointer-events: auto;
+    display: none !important;
   }
   
-  .card-hero {
-    transform: rotate(-6deg) !important;
-    left: 0;
-    bottom: -10px;
-  }
-
-  .card-alterego {
-    transform: rotate(6deg) !important;
-    right: 0;
-    bottom: -10px;
+  .deck-view-banner {
+    min-height: auto;
+    padding-top: 5px; /* Less space at top since cards are gone */
   }
 
   .deck-view-banner-info,

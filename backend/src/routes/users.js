@@ -47,6 +47,11 @@ router.get('/user/:id', async (req, res) => {
       .orderBy('cnt', 'desc')
       .first();
 
+    // Reviews count
+    const [{ reviews_count }] = await db('review')
+      .where('user_id', id)
+      .count('* as reviews_count');
+
     // Collection stats: count official + fan-made cards from owned packs
     const ownedPackIds = (row.owned_packs || '')
       .split(',')
@@ -115,6 +120,7 @@ router.get('/user/:id', async (req, res) => {
       // Print & Export Settings
       show_legacy_sch_order: row.show_legacy_sch_order === null ? 0 : Number(row.show_legacy_sch_order),
       show_tag_default: row.show_tag_default === null ? 1 : Number(row.show_tag_default),
+      show_current_only_default: row.show_current_only_default === null ? 0 : Number(row.show_current_only_default),
       print_faction: row.print_faction === null ? 1 : Number(row.print_faction),
       print_type: row.print_type === null ? 1 : Number(row.print_type),
       print_tag: row.print_tag === null ? 1 : Number(row.print_tag),
@@ -137,7 +143,10 @@ router.get('/user/:id', async (req, res) => {
       private_decks_count: Number(private_count) || 0,
       top_private_hero: topPrivateHeroRow
         ? { name: topPrivateHeroRow.hero_name, code: topPrivateHeroRow.hero_code, count: Number(topPrivateHeroRow.cnt) }
-        : null
+        : null,
+
+      // Engagement
+      reviews_count: Number(reviews_count) || 0
     };
 
     // Calculate show_theme defaults if empty
@@ -203,6 +212,7 @@ router.put('/user/:id/settings', requireAuth, async (req, res) => {
     if (data.show_archetype !== undefined) updateData.show_archetype = data.show_archetype ? 1 : 0;
     if (data.show_legacy_sch_order !== undefined) updateData.show_legacy_sch_order = data.show_legacy_sch_order ? 1 : 0;
     if (data.show_tag_default !== undefined) updateData.show_tag_default = data.show_tag_default ? 1 : 0;
+    if (data.show_current_only_default !== undefined) updateData.show_current_only_default = data.show_current_only_default ? 1 : 0;
     if (data.print_faction !== undefined) updateData.print_faction = data.print_faction ? 1 : 0;
     if (data.print_type !== undefined) updateData.print_type = data.print_type ? 1 : 0;
     if (data.print_tag !== undefined) updateData.print_tag = data.print_tag ? 1 : 0;

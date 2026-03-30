@@ -236,11 +236,18 @@
   white-space: nowrap;
 }
 
-/* Official = actif par défaut : blanc */
+/* Official = actif par défaut */
 .cardlist-filtertype-btn--official {
   background: var(--st-surface-hover, rgba(226, 232, 240, 0.08));
   border-color: var(--st-border-focus, rgba(226, 232, 240, 0.35));
   color: var(--st-title, #e2e8f0);
+}
+
+html:not(.dark) .cardlist-filtertype-btn--official {
+  background: rgba(15, 23, 42, 0.06);
+  border-color: rgba(15, 23, 42, 0.25);
+  color: #0f172a;
+  font-weight: 700;
 }
 
 .cardlist-filtertype-btn--official:hover {
@@ -265,6 +272,12 @@
   border-color: var(--st-border, rgba(255, 255, 255, 0.05)) !important;
   text-decoration: line-through;
   opacity: 0.8;
+}
+
+html:not(.dark) .cardlist-filtertype-btn--off {
+  background: rgba(0, 0, 0, 0.02) !important;
+  color: rgba(0, 0, 0, 0.35) !important;
+  border-color: rgba(0, 0, 0, 0.1) !important;
 }
 
 .cardlist-filtertype-btn--off:hover {
@@ -411,10 +424,23 @@
   border-color: rgba(100, 116, 139, 0.4);
 }
 
+html:not(.dark) .cardlist-current-btn--active {
+  background: rgba(15, 23, 42, 0.1);
+  color: #0f172a;
+  border-color: rgba(15, 23, 42, 0.4);
+  font-weight: 700;
+}
+
 .cardlist-current-btn:disabled,
 .cardlist-current-btn[disabled] {
   opacity: 0.4;
   cursor: not-allowed;
+}
+
+/* Forced ON should not look completely faded */
+.cardlist-current-btn--active:disabled,
+.cardlist-current-btn--active[disabled] {
+  opacity: 0.9;
 }
 
 /* ── Loading / empty ─────────────────────────────── */

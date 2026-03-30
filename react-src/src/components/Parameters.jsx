@@ -23,6 +23,7 @@ export default function Parameters({ user }) {
     show_theme: {},
     show_legacy_sch_order: false,
     show_tag_default: true,
+    show_current_only_default: false,
     print_faction: true,
     print_type: true,
     print_tag: true,
@@ -54,6 +55,7 @@ export default function Parameters({ user }) {
         show_theme: u.show_theme || {},
         show_legacy_sch_order: u.show_legacy_sch_order === 1 || u.show_legacy_sch_order === true,
         show_tag_default: u.show_tag_default === undefined ? true : (u.show_tag_default === 1 || u.show_tag_default === true),
+        show_current_only_default: u.show_current_only_default === 1 || u.show_current_only_default === true,
         print_faction: u.print_faction === undefined ? true : (u.print_faction === 1 || u.print_faction === true),
         print_type: u.print_type === undefined ? true : (u.print_type === 1 || u.print_type === true),
         print_tag: u.print_tag === undefined ? true : (u.print_tag === 1 || u.print_tag === true),
@@ -150,6 +152,9 @@ export default function Parameters({ user }) {
           if (u) {
             u[key] = newValue ? 1 : 0;
             localStorage.setItem('mc_user', JSON.stringify(u));
+          }
+          if (key === 'show_current_only_default') {
+            sessionStorage.setItem('mc4db_cardlist_showOnlyCurrent', JSON.stringify(newValue));
           }
         } catch(e) {}
       }
@@ -290,6 +295,11 @@ export default function Parameters({ user }) {
         <div className="setting-item">
           <span className="setting-label">Show badges in Deck view: default</span>
           <ToggleButton settingKey="show_tag_default" />
+        </div>
+        
+        <div className="setting-item">
+          <span className="setting-label">Enable "Show Current Only"</span>
+          <ToggleButton settingKey="show_current_only_default" />
         </div>
         
         <div className="setting-item">

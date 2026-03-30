@@ -86,16 +86,39 @@ export default forwardRef(function DeckEditor(
     }
     return { main, side };
   });
-  // --- FILTRES --- (Basic par defaut)
+  // Handle cross-tab settings updates and BFCache
+  useEffect(() => {
+    const handlePageShow = (e) => { if (e.persisted) window.location.reload(); };
+    const handleStorage = (e) => { if (e.key === 'mc_user') window.location.reload(); };
+    window.addEventListener('pageshow', handlePageShow);
+    window.addEventListener('storage', handleStorage);
+    return () => {
+      window.removeEventListener('pageshow', handlePageShow);
+      window.removeEventListener('storage', handleStorage);
+    };
+  }, []);
+
+  // --- DERIVED / CACHED --- (Basic par defaut)
   const [selectedFaction, setSelectedFaction] = useState('basic');
   const [selectedType, setSelectedType] = useState(null);
   const [lang, setLang] = useState(
     () => localStorage.getItem('mc_locale') || 'en'
   );
-  const [filters, setFilters] = useState({
-    showFanMade: true,
-    showCurrent: false,
-    showAltArt: true,
+  const isCurrentOnlyForced = useMemo(() => {
+    try {
+      const u = JSON.parse(localStorage.getItem('mc_user'));
+      return u && (u.show_current_only_default === 1 || u.show_current_only_default === true);
+    } catch {}
+    return false;
+  }, []);
+
+  const [filters, setFilters] = useState(() => {
+    return {
+      showFanMade: true,
+      // If forced by preference, default it to true, otherwise false
+      showCurrent: isCurrentOnlyForced,
+      showAltArt: true,
+    };
   });
   const [sortBy, setSortBy] = useState('name');   // 'name' | 'cost'
   const [sortOrder, setSortOrder] = useState('asc');
@@ -929,10 +952,11 @@ export default forwardRef(function DeckEditor(
                 onClick={() => handleToggle('showAltArt')}
                 title={filters.showAltArt ? 'Hide alt-art' : 'Show alt-art'}
               >🎨 Alt-Art</button>
-              <button
+              <button 
                 className={`editor-filter-badge editor-filter-badge--current${filters.showCurrent ? ' editor-filter-badge--on' : ' editor-filter-badge--off'}`}
-                onClick={() => handleToggle('showCurrent')}
-                title={filters.showCurrent ? 'Show all cards' : 'Show current format only'}
+                onClick={() => { if (!isCurrentOnlyForced) handleToggle('showCurrent'); }}
+                title={isCurrentOnlyForced ? 'Forced by your Parameter settings' : (filters.showCurrent ? 'Show all cards' : 'Show current format only')}
+                style={isCurrentOnlyForced ? { opacity: 0.5, cursor: 'not-allowed' } : {}}
               >⚡ Show Current Only</button>
               <button
                 className={`dvt-unauthorized-btn${showUnauthorized ? ' dvt-unauthorized-btn--active' : ''}`}

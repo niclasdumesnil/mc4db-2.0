@@ -175,6 +175,19 @@ export default function CardList() {
   }, []);
   const [cards, setCards] = useState([]);
   const [loading, setLoading] = useState(true);
+  
+  // Handle Back-Forward Cache (BFCache): if back button is used after changing settings
+  useEffect(() => {
+    const handlePageShow = (e) => { if (e.persisted) window.location.reload(); };
+    const handleStorage = (e) => { if (e.key === 'mc_user') window.location.reload(); };
+    window.addEventListener('pageshow', handlePageShow);
+    window.addEventListener('storage', handleStorage);
+    return () => {
+      window.removeEventListener('pageshow', handlePageShow);
+      window.removeEventListener('storage', handleStorage);
+    };
+  }, []);
+
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
@@ -190,7 +203,24 @@ export default function CardList() {
   const [showAltArt, setShowAltArt] = useState(() => getSessionItem('cardlist_showAltArt', true));
   const [showOfficial, setShowOfficial] = useState(() => getSessionItem('cardlist_showOfficial', true));
   const [showFanmade, setShowFanmade] = useState(() => getSessionItem('cardlist_showFanmade', true));
-  const [showOnlyCurrent, setShowOnlyCurrent] = useState(() => getSessionItem('cardlist_showOnlyCurrent', false));
+  const isCurrentOnlyForced = useMemo(() => {
+    try {
+      const u = JSON.parse(localStorage.getItem('mc_user'));
+      return u && (u.show_current_only_default === 1 || u.show_current_only_default === true);
+    } catch {}
+    return false;
+  }, []);
+
+  const [showOnlyCurrent, setShowOnlyCurrent] = useState(() => {
+    if (isCurrentOnlyForced) return true;
+    
+    // If user has manually toggled it this session, use that session value
+    const sessionVal = getSessionItem('cardlist_showOnlyCurrent', null);
+    if (sessionVal !== null) return sessionVal;
+    
+    // Default to false for anonymous or old settings
+    return false;
+  });
   const [totalSumDuplicates, setTotalSumDuplicates] = useState(0);
   const [totalCurrentOfficial, setTotalCurrentOfficial] = useState(0);
   const [totalSumCurrentOfficial, setTotalSumCurrentOfficial] = useState(0);
@@ -224,11 +254,15 @@ export default function CardList() {
     setSessionItem('cardlist_showAltArt', showAltArt);
     setSessionItem('cardlist_showOfficial', showOfficial);
     setSessionItem('cardlist_showFanmade', showFanmade);
-    setSessionItem('cardlist_showOnlyCurrent', showOnlyCurrent);
+    if (!isCurrentOnlyForced) {
+      setSessionItem('cardlist_showOnlyCurrent', showOnlyCurrent);
+    } else {
+      try { sessionStorage.removeItem('mc4db_cardlist_showOnlyCurrent'); } catch {}
+    }
     setSessionItem('display_mode', mode);
     setSessionItem('cardlist_sort', sort);
     setSessionItem('cardlist_order', order);
-  }, [showDuplicates, showAltArt, showOfficial, showFanmade, showOnlyCurrent, mode, sort, order]);
+  }, [showDuplicates, showAltArt, showOfficial, showFanmade, showOnlyCurrent, mode, sort, order, isCurrentOnlyForced]);
 
   useEffect(() => {
     setSessionItem('cardlist_filters', filters);
@@ -484,13 +518,13 @@ export default function CardList() {
                 {showDuplicates ? '⊕' : '⊕'} Duplicates
               </button>
               <button
-                className={`cardlist-current-btn${!showOnlyCurrent ? ' cardlist-filtertype-btn--off' : ' cardlist-current-btn--active'}`}
+                className={`cardlist-current-btn${!(showOnlyCurrent || isCurrentOnlyForced) ? ' cardlist-filtertype-btn--off' : ' cardlist-current-btn--active'}`}
                 onClick={() => {
-                  if (!showOfficial) return; // Cannot toggle if official is off
+                  if (!showOfficial || isCurrentOnlyForced) return; // Cannot toggle if official is off or forced
                   setShowOnlyCurrent(v => !v); setPage(1);
                 }}
-                disabled={!showOfficial}
-                title={showOnlyCurrent ? 'Show all official cards' : 'Show only current official cards'}
+                disabled={!showOfficial || isCurrentOnlyForced}
+                title={isCurrentOnlyForced ? 'Forced by your Parameter settings' : (showOnlyCurrent ? 'Show all official cards' : 'Show only current official cards')}
               >
                 Show Current Only
               </button>
