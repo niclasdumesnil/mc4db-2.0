@@ -133,10 +133,10 @@ router.get('/heroes', async (req, res, next) => {
             ? row.pack_date_release.toISOString().slice(0, 10)
             : String(row.pack_date_release).slice(0, 10))
         : null,
-      imagesrc: resolveImage(row.code, row.pack_code),
+      imagesrc: resolveImage(row.code, row.pack_code, '', locale),
       alt_images: [
-        row.code_b ? { src: resolveImage(row.code_b, row.pack_code), code: row.code_b } : null,
-        row.code_c ? { src: resolveImage(row.code_c, row.pack_code), code: row.code_c } : null,
+        row.code_b ? { src: resolveImage(row.code_b, row.pack_code, '', locale), code: row.code_b } : null,
+        row.code_c ? { src: resolveImage(row.code_c, row.pack_code, '', locale), code: row.code_c } : null,
       ].filter(Boolean),
     }));
 
