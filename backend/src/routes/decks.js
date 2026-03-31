@@ -229,7 +229,7 @@ router.get('/decks', async (req, res) => {
 
       const query = baseQuery()
       .select(
-        'd.id', 'd.name', 'd.date_creation', 'd.user_id',
+        'd.id', 'd.name', 'd.date_creation', 'd.user_id', 'd.parent_deck_id',
         'd.nb_votes as likes', 'd.nb_favorites as favorites', 'd.nb_comments as comments',
         'd.version', 'd.tags', 'd.meta',
         'u.username as author_name', 'u.reputation as author_reputation',
@@ -634,24 +634,32 @@ router.delete('/user/:userId/decklists/:deckId', async (req, res) => {
     const decklist = await db('decklist').where({ id: deckId, user_id: userId }).first();
     if (!decklist) return res.status(404).json({ error: 'Decklist not found or unauthorized' });
 
-    // Clear constraints on private decks that link to this decklist
-    await db('deck').where({ parent_decklist_id: deckId }).update({ parent_decklist_id: null });
-    await db('deck').where({ next_deck: deckId }).update({ next_deck: null });
+    let decklistIds = [deckId];
+    if (decklist.parent_deck_id) {
+      const chain = await db('decklist')
+        .where({ parent_deck_id: decklist.parent_deck_id, user_id: userId })
+        .select('id');
+      decklistIds = [...new Set(chain.map(d => d.id))];
+    }
 
-    // Clear constraints on other decklists that link to this decklist
-    await db('decklist').where({ next_deck: deckId }).update({ next_deck: null });
-    await db('decklist').where({ previous_deck: deckId }).update({ previous_deck: null });
-    await db('decklist').where({ precedent_decklist_id: deckId }).update({ precedent_decklist_id: null });
+    // Clear constraints on private decks that link to this decklist chain
+    await db('deck').whereIn('parent_decklist_id', decklistIds).update({ parent_decklist_id: null });
+    await db('deck').whereIn('next_deck', decklistIds).update({ next_deck: null });
 
-    // Delete child records
-    await db('comment').where({ decklist_id: deckId }).delete();
-    await db('favorite').where({ decklist_id: deckId }).delete();
-    await db('vote').where({ decklist_id: deckId }).delete();
-    await db('decklistslot').where({ decklist_id: deckId }).delete();
-    await db('sidedecklistslot').where({ decklist_id: deckId }).delete();
+    // Clear constraints on other decklists that link to these decklists
+    await db('decklist').whereIn('next_deck', decklistIds).update({ next_deck: null });
+    await db('decklist').whereIn('previous_deck', decklistIds).update({ previous_deck: null });
+    await db('decklist').whereIn('precedent_decklist_id', decklistIds).update({ precedent_decklist_id: null });
+
+    // Delete child records for the entire chain
+    await db('comment').whereIn('decklist_id', decklistIds).delete();
+    await db('favorite').whereIn('decklist_id', decklistIds).delete();
+    await db('vote').whereIn('decklist_id', decklistIds).delete();
+    await db('decklistslot').whereIn('decklist_id', decklistIds).delete();
+    await db('sidedecklistslot').whereIn('decklist_id', decklistIds).delete();
     
-    // Finally, delete the decklist itself
-    await db('decklist').where({ id: deckId }).delete();
+    // Finally, delete the decklist chain itself
+    await db('decklist').whereIn('id', decklistIds).delete();
 
     return res.json({ ok: true });
   } catch (err) {

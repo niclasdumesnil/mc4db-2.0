@@ -531,10 +531,10 @@ export default function DeckView() {
                   <span className="dc-tooltip">Already published</span>
                 </span>
                 <span className="dc-tooltip-wrap deck-view-action-btn-wrap">
-                  <button className="deck-view-action-btn" disabled={!isOwner || deleting} onClick={isOwner ? handleDeleteClick : undefined}>
+                  <button className="deck-view-action-btn" disabled={!isOwner || deleting || deck?.parent_deck_id === null} onClick={isOwner && deck?.parent_deck_id !== null ? handleDeleteClick : undefined}>
                     {deleting ? '…' : '📥'} Unpublish
                   </button>
-                  <span className="dc-tooltip">{isOwner ? "Unpublish" : "You can only unpublish your own decks"}</span>
+                  <span className="dc-tooltip">{deck?.parent_deck_id === null ? "Cannot unpublish: original private deck has been deleted" : isOwner ? "Unpublish" : "You can only unpublish your own decks"}</span>
                 </span>
                 <span className="dc-tooltip-wrap deck-view-action-btn-wrap">
                   <PrintDeckButton className="deck-view-action-btn" deckId={deckId} deckName={deck.name} isPrivate={false} label="Print" />
@@ -568,7 +568,12 @@ export default function DeckView() {
                         }
                         const titleToSave = (liveTitle ?? deck?.name ?? '').trim() || undefined;
                         const descriptionToSave = (liveDescription ?? deck?.description_md ?? '').trim() || undefined;
-                        const metaToSave = { aspect: deckAspect || undefined };
+                        
+                        let existingMeta = {};
+                        if (deck?.meta) {
+                          try { existingMeta = typeof deck.meta === 'string' ? JSON.parse(deck.meta) : deck.meta; } catch(e){}
+                        }
+                        const metaToSave = { ...existingMeta, aspect: deckAspect || undefined };
                         
                         const iconTags = deckTags.split(',').map(t => t.trim()).filter(t => t && DECK_TAGS[t]);
                         const extraTags = customTagsText.split(',').map(t => t.trim()).filter(Boolean);
@@ -909,9 +914,9 @@ export default function DeckView() {
         cancelText="Cancel"
         isDestructive={true}
       >
-        <p><strong>Are you sure you want to delete this {isPrivate ? 'deck' : 'decklist'}?</strong></p>
+        <p><strong>Are you sure you want to {isPrivate ? 'delete' : 'unpublish'} this {isPrivate ? 'deck' : 'public deck chain'}?</strong></p>
         <p style={{ marginTop: '10px', fontSize: '0.9rem', color: 'var(--st-text)', opacity: 0.8 }}>
-          This action cannot be undone.
+          {isPrivate ? 'This action cannot be undone.' : 'This will remove the deck and its entire version history from the community. Links from other decks will be preserved without exposing this content. This action cannot be undone.'}
         </p>
       </ModalDialog>
     </div>

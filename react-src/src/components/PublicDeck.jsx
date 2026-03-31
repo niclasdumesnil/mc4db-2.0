@@ -2,9 +2,13 @@ import React from 'react';
 import PrintDeckButton from '@components/PrintDeckButton';
 import ExportOctgnButton from '@components/ExportOctgnButton';
 import DeckCard, { RepBadge } from '@components/DeckCard';
+import ModalDialog from '@components/ModalDialog';
 
 export default function PublicDeck({ deck }) {
   const [busy, setBusy] = React.useState(null);
+
+  const [unpublishModalOpen, setUnpublishModalOpen] = React.useState(false);
+  const [cloneModalOpen, setCloneModalOpen] = React.useState(false);
 
   const currentUserId = () => {
     try {
@@ -15,9 +19,13 @@ export default function PublicDeck({ deck }) {
 
   const handleCardClick = () => { window.location.href = `/decklist/view/${deck.id}`; };
 
-  const handleClone = async (e) => {
+  const handleClone = (e) => {
     e.stopPropagation();
-    if (!window.confirm('Are you sure you want to clone this deck?')) return;
+    setCloneModalOpen(true);
+  };
+
+  const confirmClone = async () => {
+    setCloneModalOpen(false);
     setBusy('clone');
     try {
       const uid = currentUserId();
@@ -29,9 +37,13 @@ export default function PublicDeck({ deck }) {
     finally { setBusy(null); }
   };
 
-  const handleUnpublish = async (e) => {
+  const handleUnpublish = (e) => {
     e.stopPropagation();
-    if (!window.confirm('Are you sure you want to unpublish this public deck?')) return;
+    setUnpublishModalOpen(true);
+  };
+
+  const confirmUnpublish = async () => {
+    setUnpublishModalOpen(false);
     setBusy('unpublish');
     try {
       const uid = currentUserId();
@@ -79,10 +91,10 @@ export default function PublicDeck({ deck }) {
         <span className="dc-tooltip">Already published</span>
       </span>
       <span className="dc-tooltip-wrap" onClick={e => e.stopPropagation()}>
-        <button className="deck-action-btn" disabled={!isOwner || busy === 'unpublish'} onClick={isOwner ? handleUnpublish : undefined}>
+        <button className="deck-action-btn" disabled={!isOwner || deck.parent_deck_id === null || busy === 'unpublish'} onClick={isOwner && deck.parent_deck_id !== null ? handleUnpublish : undefined}>
           {busy === 'unpublish' ? '…' : '📥'}
         </button>
-        <span className="dc-tooltip">{isOwner ? "Unpublish" : "You can only unpublish your own decks"}</span>
+        <span className="dc-tooltip">{deck.parent_deck_id === null ? "Cannot unpublish: the original private deck has been deleted" : isOwner ? "Unpublish" : "You can only unpublish your own decks"}</span>
       </span>
       <span className="dc-tooltip-wrap" onClick={e => e.stopPropagation()}>
         <PrintDeckButton deckId={deck.id} deckName={deck.name} isPrivate={false} />
@@ -99,12 +111,43 @@ export default function PublicDeck({ deck }) {
   );
 
   return (
-    <DeckCard
-      deck={deck}
-      onClick={handleCardClick}
-      statsRow={statsRow}
-      footerLeft={footerLeft}
-      actionButtons={actionButtons}
-    />
+    <>
+      <DeckCard
+        deck={deck}
+        onClick={handleCardClick}
+        statsRow={statsRow}
+        footerLeft={footerLeft}
+        actionButtons={actionButtons}
+      />
+
+      <ModalDialog
+        isOpen={unpublishModalOpen}
+        onClose={() => setUnpublishModalOpen(false)}
+        onConfirm={confirmUnpublish}
+        title=""
+        confirmText="Unpublish"
+        cancelText="Cancel"
+        isDestructive={true}
+      >
+        <p><strong>Are you sure you want to unpublish this public deck chain?</strong></p>
+        <p style={{ marginTop: '10px', fontSize: '0.9rem', color: 'var(--st-text)', opacity: 0.8 }}>
+          This will remove the deck and its entire version history from the community. Links from other decks will be preserved without exposing this content. This action cannot be undone.
+        </p>
+      </ModalDialog>
+
+      <ModalDialog
+        isOpen={cloneModalOpen}
+        onClose={() => setCloneModalOpen(false)}
+        onConfirm={confirmClone}
+        title=""
+        confirmText="Clone"
+        cancelText="Cancel"
+      >
+        <p><strong>Are you sure you want to clone this deck?</strong></p>
+        <p style={{ marginTop: '10px', fontSize: '0.9rem', color: 'var(--st-text)', opacity: 0.8 }}>
+          This will create a new private deck copy in your workspace.
+        </p>
+      </ModalDialog>
+    </>
   );
 }
