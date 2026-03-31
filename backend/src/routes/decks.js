@@ -1052,6 +1052,10 @@ router.delete('/user/:userId/decks/:deckId', async (req, res) => {
     await db('sidedeckslot').where({ deck_id: deckId }).delete();
     await db('deckslot').where({ deck_id: deckId }).delete();
     await db('deckchange').where({ deck_id: deckId }).delete();
+    
+    // Détacher les decklists publics publiés avant de supprimer le deck privé
+    await db('decklist').where({ parent_deck_id: deckId }).update({ parent_deck_id: null });
+
     await db('deck').where({ id: deckId }).delete();
 
     return res.json({ ok: true });
