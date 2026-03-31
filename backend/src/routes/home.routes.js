@@ -201,7 +201,7 @@ router.get('/home', async (req, res) => {
       }
 
       if (rotData.currentCotdDeckId) {
-        const randomDeckRow = await db('decklist as d')
+        let randomDeckRow = await db('decklist as d')
           .join('user as u', 'd.user_id', 'u.id')
           .join('card as c', 'd.card_id', 'c.id')
           .leftJoin('faction as f', 'c.faction_id', 'f.id')
@@ -217,6 +217,41 @@ router.get('/home', async (req, res) => {
             'p.code as pack_code', 'p.creator as pack_creator', 'p.environment as pack_environment', 'p.status as pack_status'
           )
           .first();
+
+        // If the selected deck was unpublished (deleted), try to pick a new one for this card
+        if (!randomDeckRow) {
+          const potentialCotdDeck = await db('decklistslot as s')
+            .join('decklist as d', 's.decklist_id', 'd.id')
+            .where('s.card_id', rotData.currentCardId)
+            .whereNull('d.next_deck')
+            .select('d.id')
+            .orderByRaw('RAND()')
+            .first();
+
+          if (potentialCotdDeck) {
+            rotData.currentCotdDeckId = potentialCotdDeck.id;
+            saveRotationData(rotData);
+            randomDeckRow = await db('decklist as d')
+              .join('user as u', 'd.user_id', 'u.id')
+              .join('card as c', 'd.card_id', 'c.id')
+              .leftJoin('faction as f', 'c.faction_id', 'f.id')
+              .leftJoin('pack as p', 'c.pack_id', 'p.id')
+              .where('d.id', potentialCotdDeck.id)
+              .select(
+                'd.id', 'd.name', 'd.date_creation', 'd.user_id',
+                'd.nb_votes as likes', 'd.nb_favorites as favorites', 'd.nb_comments as comments',
+                'd.version', 'd.tags', 'd.meta',
+                'u.username as author_name', 'u.reputation as author_reputation',
+                'c.code as hero_code', 'c.name as hero_name',
+                'f.code as faction_code',
+                'p.code as pack_code', 'p.creator as pack_creator', 'p.environment as pack_environment', 'p.status as pack_status'
+              )
+              .first();
+          } else {
+            rotData.currentCotdDeckId = null;
+            saveRotationData(rotData);
+          }
+        }
 
         if (randomDeckRow) {
           cotdDeck = {
@@ -279,6 +314,39 @@ router.get('/home', async (req, res) => {
           'p.code as pack_code', 'p.creator as pack_creator', 'p.environment as pack_environment', 'p.status as pack_status'
         )
         .first();
+
+      // If the weekly deck was unpublished, pick a new one
+      if (!randomWeeklyDeckRow) {
+        const excludeIds = rotData.history || [];
+        const newDeckRowQ = db('decklist as d').whereNull('d.next_deck').select('d.id');
+        if (excludeIds.length > 0) newDeckRowQ.whereNotIn('d.id', excludeIds);
+
+        const potentialNewDeck = await newDeckRowQ.orderByRaw('RAND()').first() || await db('decklist as d').whereNull('d.next_deck').orderByRaw('RAND()').first();
+
+        if (potentialNewDeck) {
+          rotData.currentDeckId = potentialNewDeck.id;
+          saveRotationData(rotData);
+          randomWeeklyDeckRow = await db('decklist as d')
+            .join('user as u', 'd.user_id', 'u.id')
+            .join('card as c', 'd.card_id', 'c.id')
+            .leftJoin('faction as f', 'c.faction_id', 'f.id')
+            .leftJoin('pack as p', 'c.pack_id', 'p.id')
+            .where('d.id', rotData.currentDeckId)
+            .select(
+              'd.id', 'd.name', 'd.date_creation', 'd.user_id',
+              'd.nb_votes as likes', 'd.nb_favorites as favorites', 'd.nb_comments as comments',
+              'd.version', 'd.tags', 'd.meta',
+              'u.username as author_name', 'u.reputation as author_reputation',
+              'c.code as hero_code', 'c.name as hero_name',
+              'f.code as faction_code',
+              'p.code as pack_code', 'p.creator as pack_creator', 'p.environment as pack_environment', 'p.status as pack_status'
+            )
+            .first();
+        } else {
+          rotData.currentDeckId = null;
+          saveRotationData(rotData);
+        }
+      }
     }
 
     let deckOfTheWeek = null;

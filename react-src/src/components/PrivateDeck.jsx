@@ -110,12 +110,14 @@ export default function PrivateDeck({ deck }) {
       <span className="dc-tooltip-wrap" onClick={e => e.stopPropagation()}>
         <button 
           className="deck-action-btn" 
-          disabled={busy === 'publish' || isPrivatePack} 
+          disabled={busy === 'publish' || isPrivatePack || (deck.parent_decklist_id && deck.minor_version === 0)} 
           onClick={handlePublishClick} 
         >
           {busy === 'publish' ? '…' : '📤'}
         </button>
-        <span className="dc-tooltip">{isPrivatePack ? 'Cannot publish a deck with a hero from a private pack.' : 'Publish'}</span>
+        <span className="dc-tooltip">
+          {isPrivatePack ? 'Cannot publish a deck with a hero from a private pack.' : (deck.parent_decklist_id && deck.minor_version === 0) ? 'Cannot publish: no cards have been changed since the last published version.' : 'Publish'}
+        </span>
       </span>
       <span className="dc-tooltip-wrap" onClick={e => e.stopPropagation()}>
         <button className="deck-action-btn" disabled={busy === 'delete'} onClick={handleDeleteClick}>

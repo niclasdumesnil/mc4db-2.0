@@ -247,6 +247,7 @@ export default function MyDecks() {
               className={`deck-published-btn${!filters.publishedOnly ? '' : ' deck-published-btn--active'}`}
               onClick={() => handleFilters({ ...filters, publishedOnly: !filters.publishedOnly })}
               title={filters.publishedOnly ? "Show all private decks" : "Show only private decks that have been published"}
+              style={{ textDecoration: !filters.publishedOnly ? 'line-through' : 'none' }}
             >
               🌍 Show published decks only
             </button>
