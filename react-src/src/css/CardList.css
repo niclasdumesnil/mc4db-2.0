@@ -568,7 +568,8 @@ html:not(.dark) .cl-checklist td {
   gap: 6px;
 }
 
-.cl-card-name a {
+.cl-card-name a,
+.cl-card-name .card-tip {
   color: var(--cl-text);
   text-decoration: none;
   font-weight: 500;
@@ -577,7 +578,8 @@ html:not(.dark) .cl-checklist td {
   line-height: 1.2;
 }
 
-.cl-card-name a:hover {
+.cl-card-name a:hover,
+.cl-card-name .card-tip:hover {
   color: var(--st-accent-hover, #93c5fd);
   text-decoration: underline;
 }

@@ -1,10 +1,11 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
+import { useLocale } from './useLocale';
 
 const cache = {};
 
 export function usePacks() {
   const [packs, setPacks] = useState({});
-  const locale = localStorage.getItem('mc_locale') || window.__MC_LOCALE__ || 'en';
+  const locale = useLocale();
   
   useEffect(() => {
     if (cache[locale]) {
@@ -26,3 +27,4 @@ export function usePacks() {
 
   return packs;
 }
+

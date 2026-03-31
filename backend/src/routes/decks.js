@@ -283,20 +283,20 @@ router.get('/decks/:id', async (req, res) => {
     const alterEgoCode = heroCode.endsWith('b') ? heroCode.slice(0, -1) + 'a' : heroCode.endsWith('a') ? heroCode.slice(0, -1) + 'b' : heroCode + 'b';
     const hero_special_cards = await fetchHeroSpecialCards(heroCode, locale);
 
-    // Derived From (previous_deck)
+    // Derived From (precedent_decklist_id)
     let derivedFrom = null;
-    if (deck.previous_deck) {
+    if (deck.precedent_decklist_id) {
       derivedFrom = await db('decklist as d')
         .join('user as u', 'd.user_id', 'u.id')
         .select('d.id', 'd.name', 'd.version', 'd.nb_votes as likes', 'd.nb_favorites as favorites', 'd.nb_comments as comments', 'u.username as author_name')
-        .where('d.id', deck.previous_deck).first();
+        .where('d.id', deck.precedent_decklist_id).first();
     }
 
     // Inspiration For (decks that derived from THIS one)
     const inspirationsRows = await db('decklist as d')
       .join('user as u', 'd.user_id', 'u.id')
       .select('d.id', 'd.name', 'd.version', 'd.nb_votes as likes', 'd.nb_favorites as favorites', 'd.nb_comments as comments', 'u.username as author_name')
-      .where('d.previous_deck', id)
+      .where('d.precedent_decklist_id', id)
       .orderBy('d.date_creation', 'desc');
 
     return res.json({
@@ -493,7 +493,7 @@ router.get(['/decklist/:id/history', '/decklist/:id.json/history'], async (req, 
       const current = await db('decklist').where('id', currentId).first();
       if (!current) break;
 
-      const sourceId = current.precedent_decklist_id || current.previous_deck;
+      const sourceId = current.previous_deck || current.precedent_decklist_id; // Try internal history first, then clone source
       if (!sourceId) break;
 
       const source = await db('decklist').where('id', sourceId).first();
@@ -1257,7 +1257,7 @@ router.put('/user/:userId/decks/:deckId/publish', async (req, res) => {
     // Le decklist précédent est STRICTEMENT la version publique précédente de ce workspace privé exact.
     const predecessorId = deck.parent_decklist_id || null;
 
-    // Si on avait cloné un deck public au tout début, on stocke ce lien "Inspiration/Dérivé" dans previous_deck
+    // Si on avait cloné un deck public au tout début, on stocke ce lien "Inspiration/Dérivé" dans precedent_decklist_id
     let derivedFromDecklistId = null;
     let deckMeta = {};
     if (deck.meta) {
@@ -1273,8 +1273,8 @@ router.put('/user/:userId/decks/:deckId/publish', async (req, res) => {
       card_id: deck.character_id,
       last_pack_id: deck.last_pack_id,
       parent_deck_id: deckId,
-      precedent_decklist_id: predecessorId,
-      previous_deck: derivedFromDecklistId,
+      previous_deck: predecessorId,
+      precedent_decklist_id: derivedFromDecklistId,
       uuid: require('crypto').randomUUID(),
       name: deck.name,
       name_canonical: nameCanonical,

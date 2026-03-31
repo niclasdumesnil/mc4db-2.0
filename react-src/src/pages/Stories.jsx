@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import '@css/Stories.css';
 import { useTypes } from '../hooks/useTypes';
+import { useLocale } from '../hooks/useLocale';
 
 /* ── Helpers ──────────────────────────────────────────────────── */
 
@@ -209,6 +210,7 @@ function SetStatsDisplay({ cards, loading }) {
    ══════════════════════════════════════════════════════════════ */
 
 function ChallengeTab() {
+  const locale = useLocale();
   // allCards = every challenge card from fm_theme packs (loaded once)
   const [allCards, setAllCards] = useState([]);
   // packs = only fm_theme packs that actually have ≥1 challenge card
@@ -221,7 +223,6 @@ function ChallengeTab() {
 
     // 1. Fetch fm_theme pack list
     // 2. Fetch ALL challenge cards (high limit) in one search request
-    const locale = localStorage.getItem('mc_locale') || window.__MC_LOCALE__ || 'en';
     const packsParams = new URLSearchParams({ locale });
     if (userId) packsParams.set('user_id', userId);
 
@@ -251,7 +252,7 @@ function ChallengeTab() {
       })
       .catch(() => {})
       .finally(() => setLoading(false));
-  }, []);
+  }, [locale]);
 
   // Derived: cards to display = allCards filtered to selectedPacks
   const cards = useMemo(() => {
@@ -435,6 +436,7 @@ function MainSchemeRow({ card }) {
 }
 
 function ScenarioStatsSidebar({ scenario, onDeselect }) {
+  const locale = useLocale();
   // Standard/Expert available sets (loaded once on mount)
   const [availableStandards, setAvailableStandards] = useState([]);
   const [availableExperts, setAvailableExperts]     = useState([]);
@@ -505,7 +507,7 @@ function ScenarioStatsSidebar({ scenario, onDeselect }) {
     // Fetch main scheme & villain cards for briefing section
     if (scenario.villain_set_code) {
       const userId = currentUserId();
-      const locale = localStorage.getItem('mc_locale') || window.__MC_LOCALE__ || 'en';
+      
       const p = new URLSearchParams({ cardset: scenario.villain_set_code, limit: '100', include_hidden: '1', locale });
       if (userId) p.set('user_id', userId);
       fetch(`/api/public/cards/search?${p}`)
@@ -540,7 +542,7 @@ function ScenarioStatsSidebar({ scenario, onDeselect }) {
       setVillainCards([]);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [scenario?.id]);
+  }, [scenario?.id, locale]);
 
   // Also reset encounter when sets composition changes (new standard/expert selection)
   useEffect(() => { setEncounterCards(null); }, [sets]);
@@ -556,7 +558,7 @@ function ScenarioStatsSidebar({ scenario, onDeselect }) {
     setLoadingSet(true);
     setCachedCards(null);
     const userId = currentUserId();
-    const locale = localStorage.getItem('mc_locale') || window.__MC_LOCALE__ || 'en';
+    
     const params = new URLSearchParams({ cardset: activeSet, limit: '500', locale });
     if (userId) params.set('user_id', userId);
     fetch(`/api/public/cards/search?${params}`)
@@ -569,7 +571,7 @@ function ScenarioStatsSidebar({ scenario, onDeselect }) {
       .catch(() => { cacheRef.current[`${scenario.id}__${activeSet}`] = []; setCachedCards([]); })
       .finally(() => setLoadingSet(false));
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeSet, scenario?.id]);
+  }, [activeSet, scenario?.id, locale]);
 
   // When Encounter tab is activated, aggregate cards from all sets
   useEffect(() => {
@@ -579,7 +581,7 @@ function ScenarioStatsSidebar({ scenario, onDeselect }) {
     const userId = currentUserId();
     const toFetch = sets.filter(s => cacheRef.current[`${scenario.id}__${s.code}`] === undefined);
     const fetchSet = (code) => {
-      const locale = localStorage.getItem('mc_locale') || window.__MC_LOCALE__ || 'en';
+      
       const params = new URLSearchParams({ cardset: code, limit: '500', locale });
       if (userId) params.set('user_id', userId);
       return fetch(`/api/public/cards/search?${params}`)
@@ -598,7 +600,7 @@ function ScenarioStatsSidebar({ scenario, onDeselect }) {
       setLoadingEncounter(false);
     });
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeSet, scenario?.id, sets]);
+  }, [activeSet, scenario?.id, sets, locale]);
 
   // No scenario selected → empty sidebar placeholder
   if (!scenario) {
@@ -791,6 +793,7 @@ const DIFFICULTY_FILTERS = [
 ];
 
 function ScenarioTab() {
+  const locale = useLocale();
   const [scenarios, setScenarios] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchText, setSearchText] = useState('');
@@ -817,7 +820,7 @@ function ScenarioTab() {
 
   const fetchScenarios = useCallback(() => {
     const userId = currentUserId();
-    const locale = localStorage.getItem('mc_locale') || window.__MC_LOCALE__ || 'en';
+    
     const params = new URLSearchParams({ locale });
     if (userId) params.set('user_id', userId);
     setLoading(true);

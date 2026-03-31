@@ -111,7 +111,7 @@ export default function AvailableCardList({ cards, slotsMap = {}, onSetQty, side
   };
 
   return (
-    <div className="available-cards-wrapper" style={{ overflowX: 'auto' }}>
+    <div className="available-cards-wrapper">
       <table className="cl-checklist cl-checklist--compact">
         <thead>
           <tr>

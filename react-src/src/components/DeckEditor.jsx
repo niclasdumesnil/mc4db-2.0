@@ -274,6 +274,9 @@ export default forwardRef(function DeckEditor(
           creator: card.creator,
           duplicate_of_code: card.duplicate_of_code || null,
           card_set_code: card.card_set_code || null,
+          is_unique: card.is_unique || false,
+          deck_limit: card.deck_limit ?? 3,
+          traits: card.traits || '',
         };
       })
       .filter(Boolean);
@@ -310,6 +313,9 @@ export default forwardRef(function DeckEditor(
           creator: card.creator,
           duplicate_of_code: card.duplicate_of_code || null,
           card_set_code: card.card_set_code || null,
+          is_unique: card.is_unique || false,
+          deck_limit: card.deck_limit ?? 3,
+          traits: card.traits || '',
         };
       })
       .filter(Boolean);
@@ -556,7 +562,7 @@ export default forwardRef(function DeckEditor(
   // --- TRANSFER : déplacer 1 copie entre main et side en 1 clic ---
   const transfer = useCallback((code, direction) => {
     const card = allCards.find(c => c.code === code);
-    const deckLimit = card?.is_unique ? 1 : 3;
+    const deckLimit = card?.is_unique ? 1 : (card?.deck_limit ?? 3);
     setDeckState(prev => {
       if (direction === 'toSide') {
         const srcQty = prev.main[code] || 0;
