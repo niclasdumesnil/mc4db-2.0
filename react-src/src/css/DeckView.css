@@ -508,7 +508,10 @@
 }
 
 .deck-view-history-col {
-  flex: 0 0 320px;
+  width: 100%;
+}
+.deck-view-history-col:empty {
+  display: none;
 }
 
 .deck-view-editor-panel {

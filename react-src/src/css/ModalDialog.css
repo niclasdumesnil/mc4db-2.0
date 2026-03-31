@@ -1,0 +1,174 @@
+/* =========================================================================
+   Modal Dialog Styles
+   Handles themes (dark/light mode) and responsive sizing
+   ========================================================================= */
+
+.mc-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.5); /* Backdrop */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 99999;
+  backdrop-filter: blur(2px);
+  animation: fadeIn 0.2s ease-out;
+}
+
+.mc-modal-box {
+  background-color: var(--st-surface);
+  border: 1px solid var(--st-border);
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: slideUp 0.2s ease-out;
+
+  /* Responsive sizing */
+  width: 90%;
+  max-width: 480px;
+  min-height: 180px;
+  max-height: 90vh;
+}
+
+/* ── Header ── */
+.mc-modal-header {
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--st-border);
+  background-color: var(--st-surface-2);
+}
+
+.mc-modal-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--st-title);
+}
+
+.mc-modal-logo {
+  height: 28px;
+  width: auto;
+  object-fit: contain;
+}
+
+.dark-mode-logo {
+  display: none;
+}
+
+html.dark .light-mode-logo {
+  display: none;
+}
+
+html.dark .dark-mode-logo {
+  display: block;
+}
+
+/* ── Body ── */
+.mc-modal-body {
+  padding: 24px 20px;
+  flex: 1;
+  overflow-y: auto;
+  font-size: 1rem;
+  color: var(--st-text);
+  line-height: 1.5;
+}
+
+/* ── Footer ── */
+.mc-modal-footer {
+  padding: 16px 20px;
+  background-color: var(--st-surface-2);
+  border-top: 1px solid var(--st-border);
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+/* ── Buttons ── */
+.mc-modal-btn {
+  padding: 8px 18px;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  min-width: 100px;
+  border: 1px solid;
+}
+
+/* Confirm Button (Blue by default) */
+.mc-modal-btn--confirm {
+  background-color: #2b80c5;
+  color: #fff;
+  border-color: #1a64a0;
+}
+
+.mc-modal-btn--confirm:hover {
+  background-color: #3b91d6;
+  border-color: #2b80c5;
+  box-shadow: 0 2px 6px rgba(43, 128, 197, 0.3);
+}
+
+/* Destructive Confirm Button (Red) */
+.mc-modal-btn--destructive {
+  background-color: #d32f2f;
+  border-color: #b71c1c;
+}
+
+.mc-modal-btn--destructive:hover {
+  background-color: #e53935;
+  border-color: #d32f2f;
+  box-shadow: 0 2px 6px rgba(211, 47, 47, 0.3);
+}
+
+/* Cancel Button (Neutral) */
+.mc-modal-btn--cancel {
+  background-color: var(--st-surface);
+  color: var(--st-text);
+  border-color: var(--st-border);
+}
+
+.mc-modal-btn--cancel:hover {
+  background-color: var(--st-surface-2);
+  color: var(--st-title);
+  border-color: var(--st-border-hover);
+}
+
+/* ── Animations ── */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(20px) scale(0.98); opacity: 0; }
+  to { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+/* ── Responsive adjustments ── */
+@media screen and (min-width: 768px) {
+  .mc-modal-box {
+    max-width: 520px;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .mc-modal-box {
+    width: 95%;
+  }
+  .mc-modal-footer {
+    flex-direction: column;
+    gap: 8px;
+  }
+  .mc-modal-btn {
+    width: 100%;
+  }
+}

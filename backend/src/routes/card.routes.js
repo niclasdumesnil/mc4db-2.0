@@ -135,8 +135,8 @@ router.get('/heroes', async (req, res, next) => {
         : null,
       imagesrc: resolveImage(row.code, row.pack_code),
       alt_images: [
-        row.code_b ? resolveImage(row.code_b, row.pack_code) : null,
-        row.code_c ? resolveImage(row.code_c, row.pack_code) : null,
+        row.code_b ? { src: resolveImage(row.code_b, row.pack_code), code: row.code_b } : null,
+        row.code_c ? { src: resolveImage(row.code_c, row.pack_code), code: row.code_c } : null,
       ].filter(Boolean),
     }));
 

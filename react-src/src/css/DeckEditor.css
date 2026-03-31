@@ -445,7 +445,7 @@
 
 .cl-checklist--compact td,
 .cl-checklist--compact th {
-  padding: 3px 8px;
+  padding: 3px 4px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -455,13 +455,13 @@
 .cl-checklist--compact th:nth-child(1),
 .cl-checklist--compact td:nth-child(1) { width: 98px; min-width: 98px; overflow: visible; white-space: nowrap; }
 .cl-checklist--compact th:nth-child(2),
-.cl-checklist--compact td:nth-child(2) { width: 98px; min-width: 98px; overflow: visible; white-space: nowrap; }
+.cl-checklist--compact td:nth-child(2) { width: 108px; min-width: 108px; overflow: visible; white-space: nowrap; }
 .cl-checklist--compact th:nth-child(3),
-.cl-checklist--compact td:nth-child(3) { width: auto; min-width: 140px; white-space: normal; overflow: visible; text-overflow: unset; }
+.cl-checklist--compact td:nth-child(3) { width: auto; min-width: 80px; white-space: normal; overflow: visible; text-overflow: unset; }
 .cl-checklist--compact th:nth-child(4),
 .cl-checklist--compact td:nth-child(4) { width: 36px;  min-width: 36px;  text-align: center; }
 .cl-checklist--compact th:nth-child(5),
-.cl-checklist--compact td:nth-child(5) { width: 95px;  min-width: 90px; }
+.cl-checklist--compact td:nth-child(5) { width: 90px;  min-width: 80px; }
 .cl-checklist--compact th:nth-child(6),
 .cl-checklist--compact td:nth-child(6) { width: 36px;  min-width: 32px; overflow: visible; }
 
@@ -481,7 +481,7 @@
 /* ── Quantity selector ────────────────────────────── */
 .cl-qty-cell {
   white-space: nowrap;
-  padding: 2px 6px !important;
+  padding: 2px 2px !important;
 }
 
 .qty-selector {
@@ -522,6 +522,10 @@
 }
 
 /* Side deck qty cell — amber active state */
+.cl-qty-cell--side {
+  padding-left: 12px !important;
+}
+
 .cl-qty-cell--side .qty-btn--active {
   background: #d97706;
   color: var(--st-text);

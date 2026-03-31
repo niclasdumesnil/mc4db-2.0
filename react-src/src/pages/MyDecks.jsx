@@ -36,7 +36,7 @@ function Pagination({ page, totalPages, onPage }) {
 }
 
 const LIMIT = 12;
-const EMPTY_FILTERS = { hero: '', aspects: [], tags: [] };
+const EMPTY_FILTERS = { hero: '', aspects: [], tags: [], publishedOnly: false };
 
 export default function MyDecks() {
   const id = currentUserId();
@@ -86,6 +86,7 @@ export default function MyDecks() {
     if (f.hero) params.set('hero', f.hero);
     if (f.aspects && f.aspects.length) f.aspects.forEach(a => params.append('aspect', a));
     if (f.tags && f.tags.length) f.tags.forEach(t => params.append('tag', t));
+    if (f.publishedOnly) params.set('published', '1');
     return `/api/public/user/${id}/decks?${params}`;
   }, [id]);
 
@@ -239,24 +240,37 @@ export default function MyDecks() {
 
         <DeckFilters filters={filters} onChange={handleFilters} heroes={heroes}>
           {/* Action Buttons inside Filters */}
-          <div className="deck-filters__actions">
-            {limitReached ? (
-              <span className="deck-filters__btn" style={{ opacity: 0.5, cursor: 'not-allowed' }}>
-                New Deck
-              </span>
-            ) : (
-              <a href="/deck/new" className="deck-filters__btn">
-                New Deck
-              </a>
-            )}
+          <div className="deck-filters__actions-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', flexWrap: 'wrap', gap: '10px' }}>
+            
+            {/* Left side : Published filter */}
             <button
-              onClick={() => !limitReached && setShowImport(!showImport)}
-              className="deck-filters__btn"
-              style={{ opacity: limitReached ? 0.5 : 1, cursor: limitReached ? 'not-allowed' : 'pointer' }}
-              disabled={limitReached}
+              className={`deck-published-btn${!filters.publishedOnly ? '' : ' deck-published-btn--active'}`}
+              onClick={() => handleFilters({ ...filters, publishedOnly: !filters.publishedOnly })}
+              title={filters.publishedOnly ? "Show all private decks" : "Show only private decks that have been published"}
             >
-              Import Deck
+              🌍 Show published decks only
             </button>
+
+            {/* Right side : "New / Import" Buttons */}
+            <div className="deck-filters__actions" style={{ marginLeft: 'auto' }}>
+              {limitReached ? (
+                <span className="deck-filters__btn" style={{ opacity: 0.5, cursor: 'not-allowed' }}>
+                  New Deck
+                </span>
+              ) : (
+                <a href="/deck/new" className="deck-filters__btn">
+                  New Deck
+                </a>
+              )}
+              <button
+                onClick={() => !limitReached && setShowImport(!showImport)}
+                className="deck-filters__btn"
+                style={{ opacity: limitReached ? 0.5 : 1, cursor: limitReached ? 'not-allowed' : 'pointer' }}
+                disabled={limitReached}
+              >
+                Import Deck
+              </button>
+            </div>
           </div>
 
           {/* Import Panel directly beneath buttons in filters */}
@@ -265,7 +279,7 @@ export default function MyDecks() {
               <h3>Import from MarvelCDB</h3>
               <form onSubmit={submitImport} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                 <div className="deck-filters__import-row">
-                  <label style={{ color: '#7a8fa8', fontSize: '0.8rem', fontWeight: 'bold' }}>MarvelCDB Deck ID</label>
+                  <label style={{ color: 'var(--st-text, #7a8fa8)', fontSize: '0.8rem', fontWeight: 'bold' }}>MarvelCDB Deck ID</label>
                   <input
                     type="text"
                     required
@@ -285,13 +299,26 @@ export default function MyDecks() {
                 </label>
                 {importError && <div className="deck-filters__import-error">{importError}</div>}
 
-                <div style={{ alignSelf: 'flex-start', marginTop: '4px' }}>
+                <div style={{ alignSelf: 'flex-start', marginTop: '4px', display: 'flex', gap: '8px' }}>
                   <button
                     type="submit"
                     disabled={importLoading}
                     className="deck-filters__import-btn"
                   >
                     {importLoading ? 'Importing...' : 'Start Import'}
+                  </button>
+                  <button
+                    type="button"
+                    disabled={importLoading}
+                    className="deck-filters__import-btn"
+                    style={{ background: 'var(--st-surface-2)', borderColor: 'var(--st-border)', color: 'var(--st-text-muted)' }}
+                    onClick={() => {
+                        setShowImport(false);
+                        setImportError(null);
+                        setImportId('');
+                    }}
+                  >
+                    Cancel
                   </button>
                 </div>
               </form>

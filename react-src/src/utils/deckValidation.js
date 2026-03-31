@@ -28,10 +28,10 @@ function normalizeDeckReqs(heroCard) {
  */
 export function parseTeamUpHeroes(text) {
   if (!text) return [];
-  const match = text.match(/team[-\s]?up\s*\(([^)]+)\)/i);
+  const match = text.match(/(?:team[-\s]?up|en\s*équipe|en\s*equipe)\s*\(([^)]+)\)/i);
   if (!match) return [];
   return match[1]
-    .split(/\s+and\s+/i)
+    .split(/\s+(?:and|et|y)\s+/i)
     .map(h => h.trim())
     .filter(Boolean);
 }
@@ -40,8 +40,8 @@ export function parseTeamUpHeroes(text) {
  * Returns true if the card text contains a Team-Up declaration.
  */
 export function isTeamUpCard(card) {
-  const text = card.text || card.real_text || '';
-  return /team[-\s]?up\s*\(/i.test(text);
+  const text = card.real_text || card.text || '';
+  return /(?:team[-\s]?up|en\s*équipe|en\s*equipe)\s*\(/i.test(text);
 }
 
 // ── Deck-option checking ─────────────────────────────────────────────────────
@@ -300,7 +300,7 @@ export function canIncludeCard(
   //    Applies to ALL factions (including basic) so that basic Team-Up events
   //    are restricted to decks whose hero is listed in the card text.
   if (isTeamUpCard(card)) {
-    const teamHeroes = parseTeamUpHeroes(card.text || card.real_text || '');
+    const teamHeroes = parseTeamUpHeroes(card.real_text || card.text || '');
     if (teamHeroes.length > 0) {
       if (!heroCard) return false; // can't verify without hero info
       const heroName = (heroCard.real_name || heroCard.name || '').toLowerCase();

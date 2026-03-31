@@ -38,18 +38,23 @@ function HeroCard({ hero, isOwned, onCreateDeck, creating }) {
       <div className="ndeck-hero-body">
         <div className={`ndeck-hero-faces${hero.alt_images?.length ? ' ndeck-hero-faces--multi' : ''}`}>
           {hero.imagesrc
-            ? <img className="ndeck-face ndeck-face--a" src={hero.imagesrc} alt={hero.name} loading="lazy" />
-            : <div className="ndeck-face ndeck-face--a ndeck-face--placeholder">🦸</div>
+            ? <img className="ndeck-face ndeck-face--a card-tip" data-code={hero.code} src={hero.imagesrc} alt={hero.name} loading="lazy" />
+            : <div className="ndeck-face ndeck-face--a ndeck-face--placeholder card-tip" data-code={hero.code}>🦸</div>
           }
-          {(hero.alt_images || []).map((src, i) => (
-            <img
-              key={i}
-              className={`ndeck-face ndeck-face--${i === 0 ? 'b' : 'c'}`}
-              src={src}
-              alt={`${hero.name} face ${i + 2}`}
-              loading="lazy"
-            />
-          ))}
+          {(hero.alt_images || []).map((alt, i) => {
+            const src = typeof alt === 'string' ? alt : alt.src;
+            const code = typeof alt === 'string' ? hero.code : alt.code;
+            return (
+              <img
+                key={i}
+                className={`ndeck-face ndeck-face--${i === 0 ? 'b' : 'c'} card-tip`}
+                data-code={code}
+                src={src}
+                alt={`${hero.name} face ${i + 2}`}
+                loading="lazy"
+              />
+            );
+          })}
         </div>
 
         {/* Info */}
@@ -113,6 +118,7 @@ export default function NewDeck() {
   const [tab, setTab] = useState('official');
   const [scope, setScope] = useState('all'); // 'all' | 'mine'
   const [theme, setTheme] = useState('');    // theme filter for fanmade/private
+  const [nameFilter, setNameFilter] = useState(''); // text filter for hero name
   const [sort, setSort] = useState('alpha-asc'); // 'alpha-asc'|'alpha-desc'|'date-asc'|'date-desc'
   const [creating, setCreating] = useState(null); // hero code being created
 
@@ -188,6 +194,7 @@ export default function NewDeck() {
       if (heroCategory(h) !== tab) return false;
       if (scope === 'mine' && !ownedPackIds.has(h.pack_id)) return false;
       if (theme && normalizeTheme(h.pack_theme) !== theme) return false;
+      if (nameFilter && !h.name.toLowerCase().includes(nameFilter.toLowerCase())) return false;
       return true;
     });
     return filtered.sort((a, b) => {
@@ -197,7 +204,7 @@ export default function NewDeck() {
       if (sort === 'date-desc') return (b.pack_date_release || '').localeCompare(a.pack_date_release || '');
       return 0;
     });
-  }, [heroes, tab, scope, theme, sort, ownedPackIds]);
+  }, [heroes, tab, scope, theme, sort, ownedPackIds, nameFilter]);
 
   // Create deck
   const handleCreateDeck = useCallback(async (hero) => {
@@ -251,6 +258,11 @@ export default function NewDeck() {
             {t.label}
           </button>
         ))}
+        {!loading && (
+          <span className="ndeck-count" style={{ marginLeft: 'auto', alignSelf: 'center', paddingRight: '12px' }}>
+            {visibleHeroes.length} hero{visibleHeroes.length !== 1 ? 's' : ''}
+          </span>
+        )}
       </nav>
 
       {/* Filter bar */}
@@ -271,6 +283,31 @@ export default function NewDeck() {
           >
             Your heroes
           </button>
+          <div className="ndeck-name-filter-wrapper">
+            <input
+              type="text"
+              className="ndeck-name-filter"
+              placeholder="Find hero..."
+              value={nameFilter}
+              onChange={e => setNameFilter(e.target.value)}
+            />
+          </div>
+        </div>
+
+        {/* Sort control */}
+        <div className="ndeck-sort" style={{ marginLeft: '12px', marginRight: 'auto' }}>
+          <button
+            className={`ndeck-sort-btn${sort.startsWith('alpha') ? ' ndeck-sort-btn--active' : ''}`}
+            onClick={() => setSort(s => s === 'alpha-asc' ? 'alpha-desc' : 'alpha-asc')} 
+            title={sort === 'alpha-desc' ? "Z → A (Click to reverse)" : "A → Z (Click to reverse)"}>
+            {sort === 'alpha-desc' ? 'Z↓A' : 'A↓Z'}
+          </button>
+          <button
+            className={`ndeck-sort-btn${sort.startsWith('date') ? ' ndeck-sort-btn--active' : ''}`}
+            onClick={() => setSort(s => s === 'date-asc' ? 'date-desc' : 'date-asc')} 
+            title={sort === 'date-desc' ? "Newest first (Click to reverse)" : "Oldest first (Click to reverse)"}>
+            📅 {sort === 'date-desc' ? '↓' : '↑'}
+          </button>
         </div>
 
         {/* Theme filter (fan made / private only) */}
@@ -290,35 +327,6 @@ export default function NewDeck() {
           </>
         )}
 
-        {/* Sort control */}
-        <div className="ndeck-sort">
-          <button
-            className={`ndeck-sort-btn${sort === 'alpha-asc' ? ' ndeck-sort-btn--active' : ''}`}
-            onClick={() => setSort('alpha-asc')} title="A → Z">
-            A↓Z
-          </button>
-          <button
-            className={`ndeck-sort-btn${sort === 'alpha-desc' ? ' ndeck-sort-btn--active' : ''}`}
-            onClick={() => setSort('alpha-desc')} title="Z → A">
-            Z↓A
-          </button>
-          <button
-            className={`ndeck-sort-btn${sort === 'date-asc' ? ' ndeck-sort-btn--active' : ''}`}
-            onClick={() => setSort('date-asc')} title="Oldest first">
-            📅↑
-          </button>
-          <button
-            className={`ndeck-sort-btn${sort === 'date-desc' ? ' ndeck-sort-btn--active' : ''}`}
-            onClick={() => setSort('date-desc')} title="Newest first">
-            📅↓
-          </button>
-        </div>
-
-        {!loading && (
-          <span className="ndeck-count">
-            {visibleHeroes.length} hero{visibleHeroes.length !== 1 ? 's' : ''}
-          </span>
-        )}
       </div>
 
       {/* Content */}

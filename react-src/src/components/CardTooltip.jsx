@@ -81,7 +81,7 @@ export default function CardTooltip() {
                     setData(cache.current[code]);
                 } else {
                     setData(null); // Show loading state briefly
-                    const locale = localStorage.getItem('mc_locale') || 'en';
+                    const locale = localStorage.getItem('mc_locale') || window.__MC_LOCALE__ || 'en';
                     const localeParam = locale !== 'en' ? `?locale=${locale}` : '';
 
                     fetch(`/api/public/card/${code}${localeParam}`)
@@ -147,7 +147,7 @@ export function TooltipContent({ card, isLink = false }) {
     const factionColor = getFactionColor(card.faction_code);
     const factionFgColor = getFactionFgColor(card.faction_code);
 
-    const locale = localStorage.getItem('mc_locale') || 'en';
+    const locale = localStorage.getItem('mc_locale') || window.__MC_LOCALE__ || 'en';
     const langDir = locale === 'fr' ? 'FR' : 'EN';
 
     return (

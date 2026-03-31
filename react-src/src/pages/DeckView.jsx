@@ -10,6 +10,7 @@ import MarkdownViewer from '@components/MarkdownViewer';
 import PrintDeckButton from '@components/PrintDeckButton';
 import ExportOctgnButton from '@components/ExportOctgnButton';
 import DeckComments from '@components/DeckComments';
+import ModalDialog from '@components/ModalDialog';
 import { useFactions } from '../hooks/useFactions';
 import '@css/DeckView.css';
 
@@ -47,6 +48,9 @@ export default function DeckView() {
   const [deleting, setDeleting] = useState(false);
   const [cloning, setCloning] = useState(false);
   const [publishing, setPublishing] = useState(false);
+  const [publishModalOpen, setPublishModalOpen] = useState(false);
+  const [cloneModalOpen, setCloneModalOpen] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [voting, setVoting] = useState(false);
 
   const [uid, setUid] = useState(currentUserId());
@@ -201,28 +205,42 @@ export default function DeckView() {
     window.history.back();
   };
 
-  const handleDelete = async () => {
-    if (!window.confirm(isPrivate ? `Delete "${deck?.name}"? This cannot be undone.` : 'Are you sure you want to unpublish this public deck?')) return;
+  const handleDeleteClick = () => {
+    setDeleteModalOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    setDeleteModalOpen(false);
     setDeleting(true);
     const userId = currentUserId();
     try {
-      const endpoint = isPrivate 
+      const endpoint = isPrivate
         ? `/api/public/user/${userId}/decks/${deckId}`
         : `/api/public/user/${userId}/decklists/${deckId}`;
+
       const r = await fetch(endpoint, { method: 'DELETE' });
       const data = await r.json();
-      if (data.ok) window.location.href = isPrivate ? '/my-decks' : '/decklists';
+      if (data.ok) window.location.href = isPrivate ? '/my-decks' : '/public-decks';
       else alert(data.error || 'Delete failed.');
     } catch { alert('Network error.'); }
     finally { setDeleting(false); }
   };
 
-  const handleClone = async () => {
-    if (!window.confirm('Are you sure you want to clone this deck?')) return;
+  const handleCloneClick = () => {
+    setCloneModalOpen(true);
+  };
+
+  const confirmClone = async () => {
+    setCloneModalOpen(false);
     setCloning(true);
     const userId = currentUserId();
+    if (!userId) {
+      alert('You must be logged in to clone a deck.');
+      setCloning(false);
+      return;
+    }
     try {
-      const endpoint = isPrivate 
+      const endpoint = isPrivate
         ? `/api/public/user/${userId}/decks/${deckId}/clone`
         : `/api/public/user/${userId}/decklists/${deckId}/clone`;
       const r = await fetch(endpoint, { method: 'POST' });
@@ -235,9 +253,13 @@ export default function DeckView() {
 
   const isPrivatePack = deck?.pack_visibility === 'false' || deck?.pack_visibility === false;
 
-  const handlePublish = async () => {
+  const handlePublishClick = () => {
     if (isPrivatePack) return;
-    if (!window.confirm('Are you sure you want to publish this deck?')) return;
+    setPublishModalOpen(true);
+  };
+
+  const confirmPublish = async () => {
+    setPublishModalOpen(false);
     setPublishing(true);
     const userId = currentUserId();
     try {
@@ -463,19 +485,19 @@ export default function DeckView() {
                   <span className="dc-tooltip">Edit</span>
                 </span>
                 <span className="dc-tooltip-wrap deck-view-action-btn-wrap">
-                  <button className="deck-view-action-btn" disabled={cloning} onClick={handleClone}>
+                  <button className="deck-view-action-btn" disabled={cloning} onClick={handleCloneClick}>
                     {cloning ? '…' : '📋'} Clone
                   </button>
                   <span className="dc-tooltip">Clone</span>
                 </span>
                 <span className="dc-tooltip-wrap deck-view-action-btn-wrap">
-                  <button className="deck-view-action-btn" disabled={publishing || isPrivatePack} onClick={handlePublish}>
+                  <button className="deck-view-action-btn" disabled={publishing || isPrivatePack} onClick={handlePublishClick}>
                     {publishing ? '…' : '📤'} Publish
                   </button>
                   <span className="dc-tooltip">{isPrivatePack ? 'Cannot publish a deck with a hero from a private pack.' : 'Publish'}</span>
                 </span>
                 <span className="dc-tooltip-wrap deck-view-action-btn-wrap">
-                  <button className="deck-view-action-btn" disabled={deleting} onClick={handleDelete}>
+                  <button className="deck-view-action-btn" disabled={deleting} onClick={handleDeleteClick}>
                     {deleting ? '…' : '🗑️'} Delete
                   </button>
                   <span className="dc-tooltip">Delete</span>
@@ -499,7 +521,7 @@ export default function DeckView() {
                   <span className="dc-tooltip">Cannot edit a public deck</span>
                 </span>
                 <span className="dc-tooltip-wrap deck-view-action-btn-wrap">
-                  <button className="deck-view-action-btn" disabled={cloning} onClick={handleClone}>
+                  <button className="deck-view-action-btn" disabled={cloning} onClick={handleCloneClick}>
                     {cloning ? '…' : '📋'} Clone
                   </button>
                   <span className="dc-tooltip">Clone</span>
@@ -509,7 +531,7 @@ export default function DeckView() {
                   <span className="dc-tooltip">Already published</span>
                 </span>
                 <span className="dc-tooltip-wrap deck-view-action-btn-wrap">
-                  <button className="deck-view-action-btn" disabled={!isOwner || deleting} onClick={isOwner ? handleDelete : undefined}>
+                  <button className="deck-view-action-btn" disabled={!isOwner || deleting} onClick={isOwner ? handleDeleteClick : undefined}>
                     {deleting ? '…' : '📥'} Unpublish
                   </button>
                   <span className="dc-tooltip">{isOwner ? "Unpublish" : "You can only unpublish your own decks"}</span>
@@ -775,16 +797,14 @@ export default function DeckView() {
         )}
         {!showEditor && !showDescriptionPanel && (
           <div className="deck-view-right-group">
-            {isPrivate && (
-              <div className="deck-view-history-col">
-                <DeckHistory
-                  deckId={deckId}
-                  isPrivate={isPrivate}
-                  locale={locale}
-                  refreshKey={historyRefreshKey}
-                />
-              </div>
-            )}
+            <div className="deck-view-history-col">
+              <DeckHistory
+                deckId={deckId}
+                isPrivate={isPrivate}
+                locale={locale}
+                refreshKey={historyRefreshKey}
+              />
+            </div>
             {!isPrivate && (
               <div className="deck-view-comments-col">
                 <DeckComments 
@@ -838,6 +858,62 @@ export default function DeckView() {
           </div>
         )}
       </div>
+
+      {/* Confirmation Modals */}
+      <ModalDialog
+        isOpen={publishModalOpen}
+        onClose={() => setPublishModalOpen(false)}
+        onConfirm={confirmPublish}
+        title=""
+        confirmText="Publish"
+        cancelText="Cancel"
+      >
+        {deck?.major_version > 0 ? (
+          <>
+            <p><strong>Are you sure you want to publish a new version of this deck?</strong></p>
+            <p style={{ marginTop: '10px', fontSize: '0.9rem', color: 'var(--st-text)', opacity: 0.8 }}>
+              This deck is currently published as version <strong>{deck.major_version}.0</strong>. 
+              Publishing will create version <strong>{deck.major_version + 1}.0</strong> while keeping the older versions accessible.
+            </p>
+          </>
+        ) : (
+          <>
+            <p><strong>Are you sure you want to publish this deck?</strong></p>
+            <p style={{ marginTop: '10px', fontSize: '0.9rem', color: 'var(--st-text)', opacity: 0.8 }}>
+              Publishing makes this deck visible to the community.
+            </p>
+          </>
+        )}
+      </ModalDialog>
+
+      <ModalDialog
+        isOpen={cloneModalOpen}
+        onClose={() => setCloneModalOpen(false)}
+        onConfirm={confirmClone}
+        title=""
+        confirmText="Clone"
+        cancelText="Cancel"
+      >
+        <p><strong>Are you sure you want to clone this deck?</strong></p>
+        <p style={{ marginTop: '10px', fontSize: '0.9rem', color: 'var(--st-text)', opacity: 0.8 }}>
+          This will create a new private copy in your collection.
+        </p>
+      </ModalDialog>
+
+      <ModalDialog
+        isOpen={deleteModalOpen}
+        onClose={() => setDeleteModalOpen(false)}
+        onConfirm={confirmDelete}
+        title=""
+        confirmText="Delete"
+        cancelText="Cancel"
+        isDestructive={true}
+      >
+        <p><strong>Are you sure you want to delete this {isPrivate ? 'deck' : 'decklist'}?</strong></p>
+        <p style={{ marginTop: '10px', fontSize: '0.9rem', color: 'var(--st-text)', opacity: 0.8 }}>
+          This action cannot be undone.
+        </p>
+      </ModalDialog>
     </div>
   );
 }

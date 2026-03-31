@@ -26,12 +26,21 @@ export default function DeckHistory({ deckId, isPrivate, locale = 'en', refreshK
   const [error, setError]     = useState(null);
 
   useEffect(() => {
-    if (!deckId || !isPrivate) { setLoading(false); return; }
-    const userId = currentUserId();
-    if (!userId) { setLoading(false); return; }
+    if (!deckId) { setLoading(false); return; }
+    
     setLoading(true);
     setError(null);
-    fetch(`/api/public/user/${userId}/decks/${deckId}/history?locale=${locale}`)
+
+    let url = '';
+    if (isPrivate) {
+      const userId = currentUserId();
+      if (!userId) { setLoading(false); return; }
+      url = `/api/public/user/${userId}/decks/${deckId}/history?locale=${locale}`;
+    } else {
+      url = `/api/public/decklist/${deckId}/history?locale=${locale}`;
+    }
+
+    fetch(url)
       .then(r => r.json())
       .then(data => {
         if (data.ok) setHistory(data.data || []);
@@ -41,7 +50,7 @@ export default function DeckHistory({ deckId, isPrivate, locale = 'en', refreshK
       .catch(() => { setError('Network error.'); setLoading(false); });
   }, [deckId, isPrivate, locale, refreshKey]);
 
-  if (!isPrivate) return null;
+  if (!isPrivate && !loading && history.length === 0) return null;
 
   return (
     <div className="deck-history">

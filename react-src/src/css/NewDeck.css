@@ -291,7 +291,7 @@
 .ndeck-hero-name {
   font-size: 1.05rem;
   font-weight: 700;
-  color: #e2e8f0;
+  color: var(--st-title, #e2e8f0);
   margin: 0 0 4px;
   line-height: 1.25;
   white-space: nowrap;
@@ -318,16 +318,16 @@
   align-items: center;
   gap: 5px;
   font-size: 0.78rem;
-  color: #94a3b8;
+  color: var(--st-text-muted, #94a3b8);
   line-height: 1.4;
 }
 
 .ndeck-hero-meta-label {
-  color: #64748b;
+  color: var(--st-text-muted, #64748b);
 }
 
 .ndeck-hero-meta-value {
-  color: #cbd5e1;
+  color: var(--st-text, #cbd5e1);
 }
 
 /* ── Create deck button ──────────────────────────────────────── */
@@ -415,3 +415,26 @@ html.dark .deck-hero-badge { --hero-title-color: #fff; }
 .deck-filters__tag-btn { opacity: 0.8 !important; filter: grayscale(0) !important; }
 .deck-filters__tag-btn--active { opacity: 1 !important; transform: scale(1.1); box-shadow: 0 0 0 2px var(--st-accent); }
 .deck-tag-icon { opacity: 0.9 !important; }
+
+/* Hero text filter wrapper */
+.ndeck-name-filter-wrapper {
+  display: flex;
+  align-items: center;
+  background: var(--st-surface, #fff);
+}
+.ndeck-name-filter {
+  border: none;
+  background: transparent;
+  padding: 7px 12px;
+  font-size: 0.85rem;
+  color: var(--st-text, #333);
+  width: 130px;
+  outline: none;
+  transition: width 0.2s;
+}
+.ndeck-name-filter::placeholder {
+  color: #94a3b8;
+}
+.ndeck-name-filter:focus {
+  width: 170px;
+}

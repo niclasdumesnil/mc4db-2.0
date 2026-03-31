@@ -22,9 +22,13 @@ function formatLegacyDate(d) {
  * Applique les filtres communs (Héros, Aspects, Tags) aux listes de decks.
  */
 function applyCommonFilters(queryBuilder, reqQuery) {
-  const { hero, aspect, tag } = reqQuery;
+  const { hero, aspect, tag, published } = reqQuery;
   const aspects = aspect ? (Array.isArray(aspect) ? aspect : [aspect]) : [];
   const tags = tag ? (Array.isArray(tag) ? tag : [tag]) : [];
+
+  if (published === '1') {
+    queryBuilder.whereNotNull('d.parent_decklist_id');
+  }
 
   if (hero) queryBuilder.where('c.code', hero);
 
@@ -472,7 +476,107 @@ router.get('/decklists/popular', async (req, res) => {
   }
 });
 
-// 1F. Deck Public - Récupérer un deck si partagé par l'utilisateur
+// 1F. Historique d'un deck public
+router.get(['/decklist/:id/history', '/decklist/:id.json/history'], async (req, res) => {
+  try {
+    const decklistId = parseInt(req.params.id, 10);
+    const locale = (req.query.locale || 'en').toLowerCase();
+    if (!decklistId) return res.status(400).json({ error: 'Missing ID' });
+
+    let currentId = decklistId;
+    const history = [];
+    let depth = 0;
+
+    // Iterate backwards through the parent/precedent chain up to 50 levels deep to avoid circular loops
+    while (currentId && depth < 50) {
+      depth++;
+      const current = await db('decklist').where('id', currentId).first();
+      if (!current) break;
+
+      const sourceId = current.precedent_decklist_id || current.previous_deck;
+      if (!sourceId) break;
+
+      const source = await db('decklist').where('id', sourceId).first();
+      if (!source) break;
+
+      // Fetch slots for current and source
+      const currentSlots = await db('decklistslot').join('card', 'decklistslot.card_id', 'card.id').where('decklistslot.decklist_id', currentId).select('card.code', 'decklistslot.quantity');
+      const sourceSlots = await db('decklistslot').join('card', 'decklistslot.card_id', 'card.id').where('decklistslot.decklist_id', sourceId).select('card.code', 'decklistslot.quantity');
+      
+      const currentSideSlots = await db('sidedecklistslot').join('card', 'sidedecklistslot.card_id', 'card.id').where('sidedecklistslot.decklist_id', currentId).select('card.code', 'sidedecklistslot.quantity');
+      const sourceSideSlots = await db('sidedecklistslot').join('card', 'sidedecklistslot.card_id', 'card.id').where('sidedecklistslot.decklist_id', sourceId).select('card.code', 'sidedecklistslot.quantity');
+
+      const allCodesList = [];
+      const mainChanges = [];
+      const sideChanges = [];
+
+      function processSlots(curS, srcS, changesArr) {
+        const curMap = {};
+        for (const s of curS) curMap[s.code] = s.quantity;
+        const srcMap = {};
+        for (const s of srcS) srcMap[s.code] = s.quantity;
+        
+        const allSet = new Set([...Object.keys(curMap), ...Object.keys(srcMap)]);
+        allSet.forEach(code => {
+          const delta = (curMap[code] || 0) - (srcMap[code] || 0);
+          if (delta !== 0) {
+            changesArr.push({ code, qty: delta });
+            allCodesList.push(code);
+          }
+        });
+      }
+
+      processSlots(currentSlots, sourceSlots, mainChanges);
+      processSlots(currentSideSlots, sourceSideSlots, sideChanges);
+
+      // Resolve names and factions
+      const nameMap = {};
+      const factionMap = {};
+      const uniqueCodes = [...new Set(allCodesList)];
+      
+      if (uniqueCodes.length > 0) {
+         const cardRows = await db('card').leftJoin('faction', 'card.faction_id', 'faction.id').whereIn('card.code', uniqueCodes).select('card.code', 'card.name', 'faction.code as faction_code');
+         for (const r of cardRows) {
+           nameMap[r.code] = r.name;
+           factionMap[r.code] = r.faction_code;
+         }
+         if (locale !== 'en') {
+           const transNames = await db('card_translation').whereIn('code', uniqueCodes).where('locale', locale).select('code', 'name');
+           for (const t of transNames) {
+             if (t.name) nameMap[t.code] = t.name;
+           }
+         }
+      }
+
+      const formatChanges = (changesArr) => changesArr.map(c => ({
+        code: c.code,
+        name: nameMap[c.code] || c.code,
+        faction_code: factionMap[c.code] || 'basic',
+        qty: c.qty
+      }));
+
+      // Add to history if there are real changes, or if it's the very first iteration
+      if (mainChanges.length > 0 || sideChanges.length > 0) {
+        history.push({
+          id: current.id,
+          date: current.date_creation,
+          version: current.version,
+          changes: formatChanges(mainChanges),
+          sideChanges: formatChanges(sideChanges)
+        });
+      }
+
+      currentId = sourceId;
+    }
+
+    return res.json({ ok: true, data: history });
+  } catch (err) {
+    console.error('GET /decklist/:id/history error', err);
+    return res.status(500).json({ error: 'Internal error' });
+  }
+});
+
+// 1G. Deck Public - Récupérer un deck si partagé par l'utilisateur
 router.get(['/deck/:id.json', '/deck/:id'], async (req, res) => {
   try {
     const id = parseInt(req.params.id, 10);
@@ -1053,6 +1157,15 @@ router.delete('/user/:userId/decks/:deckId', async (req, res) => {
     await db('deckslot').where({ deck_id: deckId }).delete();
     await db('deckchange').where({ deck_id: deckId }).delete();
     
+    // Si le deck fait partie d'une équipe, le retirer
+    if (await db.schema.hasTable('team_deck')) {
+      await db('team_deck').where({ deck_id: deckId }).delete();
+    }
+
+    // Détacher les versions (clones ou upgrades) avant de supprimer pour éviter les erreurs FK
+    await db('deck').where({ previous_deck: deckId }).update({ previous_deck: null });
+    await db('deck').where({ next_deck: deckId }).update({ next_deck: null });
+    
     // Détacher les decklists publics publiés avant de supprimer le deck privé
     await db('decklist').where({ parent_deck_id: deckId }).update({ parent_deck_id: null });
 
@@ -1318,8 +1431,8 @@ router.post('/user/:userId/decks/import', async (req, res) => {
         description_md: '',
         tags: tags || '',
         meta: meta ? JSON.stringify(meta) : null,
-        major_version: 1,
-        minor_version: 0,
+        major_version: 0,
+        minor_version: 1,
         xp: 0,
         xp_spent: 0,
         xp_adjustment: 0,
@@ -1342,15 +1455,6 @@ router.post('/user/:userId/decks/import', async (req, res) => {
       if (slotInserts.length > 0) {
         await trx('deckslot').insert(slotInserts);
       }
-
-      // 5. Initial Change log
-      await trx('deckchange').insert({
-        deck_id: deckId,
-        date_creation: db.fn.now(),
-        variation: JSON.stringify(slots), // Initial state
-        is_saved: 1,
-        version: '1.0'
-      });
 
       return res.json({ ok: true, data: { id: deckId } });
     });
