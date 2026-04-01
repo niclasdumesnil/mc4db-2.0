@@ -231,9 +231,10 @@ export default function CardList() {
     try {
       const params = new URLSearchParams(window.location.search);
       const pack = params.get('pack') || params.get('cardset');
-      if (pack) {
+      const type = params.get('type');
+      if (pack || type) {
         window.history.replaceState(null, '', window.location.pathname);
-        return { ..._INIT_FILTERS, pack };
+        return { ..._INIT_FILTERS, ...(pack ? { pack } : {}), ...(type ? { type } : {}) };
       }
     } catch (err) {}
     return session;

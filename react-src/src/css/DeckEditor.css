@@ -145,6 +145,7 @@
 .editor-filter-text-clear {
   position: absolute;
   right: 6px;
+  z-index: 3;
   display: flex;
   align-items: center;
   justify-content: center;

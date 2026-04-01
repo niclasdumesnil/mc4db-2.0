@@ -95,12 +95,11 @@ export function evaluateQueryMatch(query, cardFieldText) {
 
 // React Component
 export default function SmartSearchInput({ value, onChange, placeholder, className = '', style = {} }) {
-  const [hover, setHover] = useState(false);
+  const [focused, setFocused] = useState(false);
   const [tooltipPos, setTooltipPos] = useState({ top: 0, left: 0 });
   const [localValue, setLocalValue] = useState(value);
   const inputRef = useRef(null);
   const backdropRef = useRef(null);
-  const hideTimer = useRef(null);
   const debounceTimer = useRef(null);
 
   // Sync external changes (e.g., when clicking the global clear 'x' button)
@@ -120,8 +119,7 @@ export default function SmartSearchInput({ value, onChange, placeholder, classNa
   const tokens = parseQueryTokens(localValue);
   const isFr = (localStorage.getItem('mc_locale') || window.__MC_LOCALE__) === 'fr';
 
-  const handleMouseEnter = () => {
-    if (hideTimer.current) clearTimeout(hideTimer.current);
+  const handleFocus = () => {
     if (inputRef.current) {
       const rect = inputRef.current.parentElement.getBoundingClientRect();
       const scrollX = window.scrollX || window.pageXOffset;
@@ -138,11 +136,11 @@ export default function SmartSearchInput({ value, onChange, placeholder, classNa
         left: Math.max(10, safeLeft),
       });
     }
-    setHover(true);
+    setFocused(true);
   };
 
-  const handleMouseLeave = () => {
-    hideTimer.current = setTimeout(() => setHover(false), 200);
+  const handleBlur = () => {
+    setFocused(false);
   };
 
   const renderHighlights = () => {
@@ -160,8 +158,6 @@ export default function SmartSearchInput({ value, onChange, placeholder, classNa
     <div 
       className="smart-search-wrapper" 
       style={{ position: 'relative', display: 'flex', alignItems: 'center', width: '100%', ...style }}
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
     >
       <div 
         ref={backdropRef}
@@ -192,6 +188,8 @@ export default function SmartSearchInput({ value, onChange, placeholder, classNa
         placeholder={placeholder}
         value={localValue}
         onChange={handleInputChange}
+        onFocus={handleFocus}
+        onBlur={handleBlur}
         onScroll={e => {
           if (backdropRef.current) backdropRef.current.scrollLeft = e.target.scrollLeft;
         }}
@@ -205,8 +203,8 @@ export default function SmartSearchInput({ value, onChange, placeholder, classNa
         }}
       />
 
-      {/* Tooltip on Hover */}
-      {hover && typeof document !== 'undefined' && createPortal(
+      {/* Tooltip on Focus */}
+      {focused && typeof document !== 'undefined' && createPortal(
         <div style={{
           position: 'absolute',
           top: tooltipPos.top + 6,
@@ -221,7 +219,7 @@ export default function SmartSearchInput({ value, onChange, placeholder, classNa
           color: '#cbd5e1',
           width: 'max-content',
           maxWidth: '320px',
-          pointerEvents: 'none' // Don't block clicking things below
+          pointerEvents: 'none'
         }}>
           <h4 style={{ color: '#fff', margin: '0 0 6px 0', fontSize: '0.85rem' }}>
             {isFr ? 'Syntaxe de recherche' : 'Search Syntax'}

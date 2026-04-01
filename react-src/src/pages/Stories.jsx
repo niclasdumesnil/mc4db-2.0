@@ -1,7 +1,10 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import '@css/Stories.css';
+import '@css/CardList.css';
 import { useTypes } from '../hooks/useTypes';
 import { useLocale } from '../hooks/useLocale';
+import SmartSearchInput, { evaluateQueryMatch } from '../components/SmartSearchInput';
+import CardListDisplay from '../components/CardListDisplay';
 
 /* ── Helpers ──────────────────────────────────────────────────── */
 
@@ -211,18 +214,19 @@ function SetStatsDisplay({ cards, loading }) {
 
 function ChallengeTab() {
   const locale = useLocale();
-  // allCards = every challenge card from fm_theme packs (loaded once)
   const [allCards, setAllCards] = useState([]);
-  // packs = only fm_theme packs that actually have ≥1 challenge card
   const [packs, setPacks] = useState([]);
   const [selectedPacks, setSelectedPacks] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [sort, setSort] = useState('pack');
+  const [displayMode, setDisplayMode] = useState(() => {
+    try { const v = sessionStorage.getItem('challenge_display_mode'); if (v) return v; } catch {}
+    return 'checklist';
+  });
 
   useEffect(() => {
     const userId = currentUserId();
 
-    // 1. Fetch fm_theme pack list
-    // 2. Fetch ALL challenge cards (high limit) in one search request
     const packsParams = new URLSearchParams({ locale });
     if (userId) packsParams.set('user_id', userId);
 
@@ -241,10 +245,7 @@ function ChallengeTab() {
           ? cardsData.cards
           : Array.isArray(cardsData) ? cardsData : [];
 
-        // Build set of pack codes that have at least one challenge card
         const codesWithChallenge = new Set(challengeCards.map(c => c.pack_code));
-
-        // Keep only packs that truly have challenge cards
         const filteredPacks = fmThemePacks.filter(p => codesWithChallenge.has(p.code));
 
         setAllCards(challengeCards);
@@ -254,18 +255,42 @@ function ChallengeTab() {
       .finally(() => setLoading(false));
   }, [locale]);
 
-  // Derived: cards to display = allCards filtered to selectedPacks
+  useEffect(() => {
+    try { sessionStorage.setItem('challenge_display_mode', displayMode); } catch {}
+  }, [displayMode]);
+
+  const countByPack = useMemo(() => {
+    return allCards.reduce((acc, c) => {
+      acc[c.pack_code] = (acc[c.pack_code] || 0) + 1;
+      return acc;
+    }, {});
+  }, [allCards]);
+
   const cards = useMemo(() => {
     if (selectedPacks.length === 0) return [];
-    return allCards
-      .filter(c => selectedPacks.includes(c.pack_code))
-      .sort((a, b) => (a.pack_code || '').localeCompare(b.pack_code || '') || (a.position || 0) - (b.position || 0));
-  }, [allCards, selectedPacks]);
+    let list = allCards.filter(c => selectedPacks.includes(c.pack_code));
+    // Sort
+    list.sort((a, b) => {
+      if (sort === 'name') return (a.name || '').localeCompare(b.name || '');
+      if (sort === 'cost') return (a.cost ?? 999) - (b.cost ?? 999);
+      // default: pack
+      return (a.pack_code || '').localeCompare(b.pack_code || '') || (a.position || 0) - (b.position || 0);
+    });
+    return list;
+  }, [allCards, selectedPacks, sort]);
 
   function togglePack(code) {
     setSelectedPacks(prev =>
       prev.includes(code) ? prev.filter(c => c !== code) : [...prev, code]
     );
+  }
+
+  function selectAll() {
+    setSelectedPacks(packs.map(p => p.code));
+  }
+
+  function deselectAll() {
+    setSelectedPacks([]);
   }
 
   if (loading) {
@@ -281,12 +306,6 @@ function ChallengeTab() {
       <div className="stories-empty">No fm_theme packs with challenge cards found.</div>
     );
   }
-
-  // Challenge card count per pack (for the chip badge)
-  const countByPack = allCards.reduce((acc, c) => {
-    acc[c.pack_code] = (acc[c.pack_code] || 0) + 1;
-    return acc;
-  }, {});
 
   return (
     <div>
@@ -309,73 +328,37 @@ function ChallengeTab() {
             </button>
           );
         })}
+        {/* Select All / None */}
+        <button
+          className="challenge-pack-chip challenge-pack-chip--action"
+          onClick={selectedPacks.length === packs.length ? deselectAll : selectAll}
+          title={selectedPacks.length === packs.length ? 'Deselect all' : 'Select all'}
+        >
+          {selectedPacks.length === packs.length ? '✕ None' : '☰ All'}
+        </button>
       </div>
 
       {/* Card display */}
-      {selectedPacks.length > 0 && (
+      {selectedPacks.length > 0 ? (
         <div className="challenge-cards-wrapper">
           <div className="challenge-cards-header">
             <p className="challenge-cards-title">Challenge Cards</p>
             <span className="challenge-cards-count">{cards.length} card{cards.length !== 1 ? 's' : ''}</span>
           </div>
-
-          {cards.length === 0 ? (
-            <div className="stories-empty" style={{ minHeight: 120 }}>
-              No challenge cards found in selected pack{selectedPacks.length > 1 ? 's' : ''}.
-            </div>
-          ) : (
-            <div style={{ overflowX: 'auto' }}>
-              <table className="challenge-card-table">
-                <thead>
-                  <tr>
-                    <th>Name</th>
-                    <th>Text</th>
-                    <th>Pack</th>
-                    <th>#</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {cards.map(card => (
-                    <tr key={card.code}>
-                      <td>
-                        <a
-                          className="challenge-card-name-link"
-                          href={`/card/${card.code}`}
-                          onClick={e => {
-                            e.preventDefault();
-                            window.history.pushState({}, '', `/card/${card.code}`);
-                            window.dispatchEvent(new PopStateEvent('popstate'));
-                          }}
-                        >
-                          {card.is_unique ? (
-                            <span title="Unique" style={{ color: '#fbbf24', fontSize: '0.75rem' }}>◆</span>
-                          ) : null}
-                          {card.name}
-                        </a>
-                      </td>
-                      <td>
-                        <span className="challenge-card-text">
-                          {card.text
-                            ? card.text.replace(/<[^>]*>/g, '').slice(0, 120) + (card.text.length > 120 ? '…' : '')
-                            : '—'}
-                        </span>
-                      </td>
-                      <td>
-                        <span className="challenge-card-pack-badge">{card.pack_name || card.pack_code}</span>
-                      </td>
-                      <td style={{ color: 'var(--st-text-muted)', fontSize: '0.8rem' }}>
-                        {card.position}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
+          <div className="cardlist-mode-bar" style={{ padding: '10px 14px 0' }}>
+            {[{ key: 'checklist', icon: '☰', label: 'List' }, { key: 'grid', icon: '⊞', label: 'Image' }, { key: 'preview', icon: '◫', label: 'Preview' }].map(m => (
+              <button
+                key={m.key}
+                className={`cardlist-mode-btn${displayMode === m.key ? ' cardlist-mode-btn--active' : ''}`}
+                onClick={() => setDisplayMode(m.key)}
+              >
+                {m.icon} {m.label}
+              </button>
+            ))}
+          </div>
+          <CardListDisplay cards={cards} mode={displayMode} sort={sort} onSort={setSort} />
         </div>
-      )}
-
-      {selectedPacks.length === 0 && (
+      ) : (
         <div className="stories-empty" style={{ minHeight: 160 }}>
           Select one or more packs above to view their challenge cards.
         </div>
@@ -847,15 +830,17 @@ function ScenarioTab() {
   const filtered = useMemo(() => {
     let list = scenarios;
 
-    const q = searchText.trim().toLowerCase();
+    const q = searchText.trim();
     if (q) {
       list = list.filter(s => {
-        const title = (s.title || '').toLowerCase();
-        const text = (s.text || '').toLowerCase();
-        const villain = (s.villain_name || '').toLowerCase();
-        const creator = (s.creator || '').toLowerCase();
-        const modulars = Object.values(s.modular_names || {}).map(v => v.toLowerCase()).join(' ');
-        return title.includes(q) || text.includes(q) || villain.includes(q) || creator.includes(q) || modulars.includes(q);
+        const combined = [
+          s.title || '',
+          s.text || '',
+          s.villain_name || '',
+          s.creator || '',
+          ...Object.values(s.modular_names || {})
+        ].join(' ');
+        return evaluateQueryMatch(q, combined);
       });
     }
 
@@ -885,12 +870,11 @@ function ScenarioTab() {
         {/* Filter bar */}
         <div className="scenario-filterbar">
           <div className="scenario-search-container">
-            <input
+            <SmartSearchInput
               className="scenario-search-input"
-              type="text"
               placeholder="Search title, villain, creator or modular sets…"
               value={searchText}
-              onChange={e => setSearchText(e.target.value)}
+              onChange={setSearchText}
             />
             {searchText && (
               <button

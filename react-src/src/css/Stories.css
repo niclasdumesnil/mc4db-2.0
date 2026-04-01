@@ -158,6 +158,12 @@ html.dark {
   background: rgba(59, 130, 246, 0.3);
 }
 
+.challenge-pack-chip--action {
+  border-style: dashed;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+
 /* Challenge card table shares CardList styles + overrides */
 .challenge-cards-wrapper {
   background: var(--st-surface);
@@ -1231,6 +1237,7 @@ html.dark {
   right: 12px;
   top: 50%;
   transform: translateY(-50%);
+  z-index: 3;
   background: transparent;
   border: none;
   color: var(--st-text-muted);
