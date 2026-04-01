@@ -682,3 +682,107 @@ html.dark .deck-hero-badge { --hero-title-color: #fff; }
 .deck-filters__tag-btn { opacity: 0.8 !important; filter: grayscale(0) !important; }
 .deck-filters__tag-btn--active { opacity: 1 !important; transform: scale(1.1); box-shadow: 0 0 0 2px var(--st-accent); }
 .deck-tag-icon { opacity: 0.9 !important; }
+
+/* ── Collection & Sort Filter ── */
+.deck-scope-toggle {
+  display: flex;
+  gap: 0;
+  border: 1px solid var(--st-border);
+  border-radius: 8px;
+  overflow: visible;
+}
+
+.deck-scope-toggle > :first-child {
+  border-radius: 7px 0 0 7px;
+}
+.deck-scope-toggle > :last-child,
+.deck-scope-toggle > :last-child input {
+  border-radius: 0 7px 7px 0;
+}
+
+
+.deck-scope-btn {
+  padding: 6px 14px;
+  background: var(--st-surface-2);
+  border: none;
+  color: var(--st-text-muted);
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.18s, color 0.18s;
+}
+
+.deck-scope-btn:not(:last-child) {
+  border-right: 1px solid var(--st-border);
+}
+
+.deck-scope-btn--active {
+  background: #1a56db;
+  color: #fff;
+}
+
+.deck-scope-btn:hover:not(.deck-scope-btn--active) {
+  background: var(--st-border);
+  color: var(--st-title, #222);
+}
+
+.deck-name-filter-wrapper {
+  display: flex;
+  align-items: center;
+  background: var(--st-surface-2);
+}
+
+.deck-name-filter {
+  border: none;
+  background: transparent;
+  padding: 6px 12px;
+  font-size: 0.82rem;
+  color: var(--st-text);
+  width: 140px;
+  outline: none;
+  transition: width 0.2s;
+}
+
+.deck-name-filter::placeholder {
+  color: #94a3b8;
+}
+
+.deck-name-filter:focus {
+  width: 180px;
+}
+
+.deck-sort-group {
+  display: flex;
+  gap: 0;
+  border: 1px solid var(--st-border);
+  border-radius: 8px;
+  overflow: hidden;
+  margin-left: auto;
+}
+
+.deck-sort-btn {
+  padding: 5px 10px;
+  background: var(--st-surface-2);
+  border: none;
+  border-right: 1px solid var(--st-border);
+  color: var(--st-text-muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  white-space: nowrap;
+}
+
+.deck-sort-btn:last-child {
+  border-right: none;
+}
+
+.deck-sort-btn--active {
+  background: #1a56db;
+  color: #fff;
+}
+
+.deck-sort-btn:hover:not(.deck-sort-btn--active) {
+  background: var(--st-border);
+  color: var(--st-title);
+}

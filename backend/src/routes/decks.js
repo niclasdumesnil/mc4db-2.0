@@ -21,7 +21,7 @@ function formatLegacyDate(d) {
 /**
  * Applique les filtres communs (Héros, Aspects, Tags) aux listes de decks.
  */
-function applyCommonFilters(queryBuilder, reqQuery) {
+function applyCommonFilters(queryBuilder, reqQuery, isDecklist = true, collectionPacks = null) {
   const { hero, aspect, tag, published } = reqQuery;
   const aspects = aspect ? (Array.isArray(aspect) ? aspect : [aspect]) : [];
   const tags = tag ? (Array.isArray(tag) ? tag : [tag]) : [];
@@ -49,6 +49,30 @@ function applyCommonFilters(queryBuilder, reqQuery) {
   if (tags.length) {
     queryBuilder.where(function () {
       tags.forEach(t => this.orWhereRaw("FIND_IN_SET(?, d.tags)", [t]));
+    });
+  }
+
+  const slotTable = isDecklist ? 'decklistslot' : 'deckslot';
+  const fk = isDecklist ? 'decklist_id' : 'deck_id';
+
+  if (reqQuery.target_card) {
+    const term = `%${reqQuery.target_card.toLowerCase()}%`;
+    queryBuilder.whereExists(function() {
+      this.select(db.raw(1))
+        .from(`${slotTable} as dls`)
+        .join('card as cl', 'dls.card_id', 'cl.id')
+        .whereRaw(`dls.${fk} = d.id`)
+        .whereRaw('LOWER(cl.name) LIKE ?', [term]);
+    });
+  }
+
+  if (collectionPacks) {
+    queryBuilder.whereNotExists(function() {
+      this.select(db.raw(1))
+        .from(`${slotTable} as dls`)
+        .join('card as cl', 'dls.card_id', 'cl.id')
+        .whereRaw(`dls.${fk} = d.id`)
+        .whereNotIn('cl.pack_id', collectionPacks);
     });
   }
 }
@@ -349,13 +373,32 @@ router.get('/decks', async (req, res) => {
     const limit = parseInt(req.query.limit) || 20;
     const offset = (page - 1) * limit;
 
+    let collectionPacks = null;
+    if (req.query.collection_user_id) {
+      const user = await db('user').where('id', req.query.collection_user_id).first();
+      if (user && user.owned_packs) {
+        collectionPacks = user.owned_packs.split(',').map(Number).filter(Boolean);
+      } else {
+        collectionPacks = [];
+      }
+    }
+
+    const sortOrder = req.query.sort || 'date-desc';
+    let orderByColumn = 'd.date_creation';
+    let orderByDirection = 'desc';
+    if (sortOrder === 'alpha-asc') { orderByColumn = 'd.name'; orderByDirection = 'asc'; }
+    else if (sortOrder === 'alpha-desc') { orderByColumn = 'd.name'; orderByDirection = 'desc'; }
+    else if (sortOrder === 'date-asc') { orderByColumn = 'd.date_creation'; orderByDirection = 'asc'; }
+    else if (sortOrder === 'date-desc') { orderByColumn = 'd.date_creation'; orderByDirection = 'desc'; }
+    else if (sortOrder === 'likes-desc') { orderByColumn = 'd.nb_votes'; orderByDirection = 'desc'; }
+
     const baseQuery = () => db('decklist as d')
       .join('user as u', 'd.user_id', 'u.id')
       .join('card as c', 'd.card_id', 'c.id') // card_id pour les decklists publiques
       .leftJoin('faction as f', 'c.faction_id', 'f.id')
       .leftJoin('pack as p', 'c.pack_id', 'p.id')
       .whereNull('d.next_deck')
-      .modify(q => applyCommonFilters(q, req.query));
+      .modify(q => applyCommonFilters(q, req.query, true, collectionPacks));
 
       const query = baseQuery()
       .select(
@@ -367,7 +410,7 @@ router.get('/decks', async (req, res) => {
         'f.code as faction_code',
         'p.code as pack_code', 'p.creator as pack_creator', 'p.environment as pack_environment', 'p.status as pack_status'
       )
-      .orderBy('d.date_creation', 'desc')
+      .orderBy(orderByColumn, orderByDirection)
       .limit(limit)
       .offset(offset);
 
@@ -967,7 +1010,7 @@ router.get('/user/:id/decks', async (req, res) => {
       .leftJoin('pack as p', 'c.pack_id', 'p.id')
       .where('d.user_id', userId) // Sécurité : On s'assure que le deck appartient bien au joueur
       .whereNull('d.next_deck')
-      .modify(q => applyCommonFilters(q, req.query));
+      .modify(q => applyCommonFilters(q, req.query, false));
 
     const query = baseQuery()
       .select(

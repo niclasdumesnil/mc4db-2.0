@@ -1608,3 +1608,7 @@ auth debug startup 2026-04-01T08:10:13.152Z
 auth debug startup 2026-04-01T08:26:23.506Z
 auth debug startup 2026-04-01T08:27:06.785Z
 auth debug startup 2026-04-01T08:31:18.433Z
+auth debug startup 2026-04-01T14:59:15.862Z
+auth debug startup 2026-04-01T15:02:40.941Z
+[2026-04-01T15:13:34.413Z] LOGIN ATTEMPT user: merlin
+auth debug startup 2026-04-01T15:16:39.598Z

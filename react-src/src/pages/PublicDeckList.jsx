@@ -5,7 +5,7 @@ import { extractHeroes } from '@utils/dataUtils';
 import '@css/PublicDecks.css';
 
 const LIMIT = 10;
-const EMPTY_FILTERS = { hero: '', aspects: [], tags: [] };
+const EMPTY_FILTERS = { hero: '', aspects: [], tags: [], collection: 'all', target_card: '', sort: 'date-desc' };
 
 function Pagination({ page, totalPages, onPage }) {
   if (totalPages <= 1) return null;
@@ -38,10 +38,17 @@ function Pagination({ page, totalPages, onPage }) {
 export default function PublicDeckList() {
   const [decks, setDecks] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [page, setPage] = useState(1);
+  const [page, setPage] = useState(() => {
+    try { return Number(sessionStorage.getItem('public_decks_page')) || 1; } catch (e) { return 1; }
+  });
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
-  const [filters, setFilters] = useState(EMPTY_FILTERS);
+  const [filters, setFilters] = useState(() => {
+    try {
+      const saved = sessionStorage.getItem('public_decks_filters');
+      return saved ? { ...EMPTY_FILTERS, ...JSON.parse(saved) } : EMPTY_FILTERS;
+    } catch (e) { return EMPTY_FILTERS; }
+  });
   const [heroes, setHeroes] = useState({ ffg: [], fanmade: [] });
 
   // Charge tous les decks (sans limite) une seule fois pour construire la liste des héros
@@ -57,6 +64,16 @@ export default function PublicDeckList() {
     if (f.hero) params.set('hero', f.hero);
     if (f.aspects && f.aspects.length) f.aspects.forEach(a => params.append('aspect', a));
     if (f.tags && f.tags.length) f.tags.forEach(t => params.append('tag', t));
+
+    if (f.sort && f.sort !== 'date-desc') params.set('sort', f.sort);
+    if (f.collection === 'mine') {
+      try {
+        const u = JSON.parse(localStorage.getItem('mc_user'));
+        if (u && (u.id || u.userId)) params.set('collection_user_id', String(u.id || u.userId));
+      } catch (e) {}
+    }
+    if (f.target_card && f.target_card.trim()) params.set('target_card', f.target_card.trim());
+
     return `/api/public/decks?${params}`;
   }, []);
 
@@ -80,7 +97,13 @@ export default function PublicDeckList() {
   }, [buildUrl]);
 
   // Reload when page or filters change
-  useEffect(() => { loadPage(page, filters); }, [page, filters, loadPage]);
+  useEffect(() => {
+    try {
+      sessionStorage.setItem('public_decks_page', page);
+      sessionStorage.setItem('public_decks_filters', JSON.stringify(filters));
+    } catch(e) {}
+    loadPage(page, filters);
+  }, [page, filters, loadPage]);
 
   const handleFilters = (newFilters) => {
     setPage(1);
@@ -88,7 +111,7 @@ export default function PublicDeckList() {
   };
 
   // hasFilters for display
-  const hasFilters = filters.hero || filters.aspects.length > 0 || filters.tags.length > 0;
+  const hasFilters = filters.hero || filters.aspects.length > 0 || filters.tags.length > 0 || filters.collection !== 'all' || filters.target_card || filters.sort !== 'date-desc';
 
   return (
     <div className="decks-page-container page-wrapper">

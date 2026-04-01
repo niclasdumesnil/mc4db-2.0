@@ -15,10 +15,14 @@ const ASPECT_LABELS = {
   basic: 'Basic',
 };
 
-export default function DeckFilters({ filters, onChange, heroes, children }) {
+export default function DeckFilters({ filters, onChange, heroes, hideCollectionAndSort = false, children }) {
   const factionsMap = useFactions();
   const ffgHeroes = heroes?.ffg || [];
   const fanmadeHeroes = heroes?.fanmade || [];
+  
+  const userStr = localStorage.getItem('mc_user');
+  let userId = null;
+  try { if (userStr) { const u = JSON.parse(userStr); userId = u.id || u.userId; } } catch (e) {}
 
   const setHero = (code) => onChange({ ...filters, hero: code });
   const toggleAspect = (code) => {
@@ -35,8 +39,21 @@ export default function DeckFilters({ filters, onChange, heroes, children }) {
       : [...filters.tags, key];
     onChange({ ...filters, tags });
   };
-  const clearAll = () => onChange({ hero: '', aspects: [], tags: [] });
-  const hasFilters = filters.hero || (filters.aspects && filters.aspects.length > 0) || filters.tags.length > 0;
+  const clearAll = () => {
+    const empty = { hero: '', aspects: [], tags: [] };
+    if (!hideCollectionAndSort) {
+      empty.collection = 'all';
+      empty.target_card = '';
+      empty.sort = 'date-desc';
+    }
+    if (filters.publishedOnly !== undefined) {
+      empty.publishedOnly = false;
+    }
+    onChange(empty);
+  };
+  const hasFilters = filters.hero || (filters.aspects && filters.aspects.length > 0) || filters.tags.length > 0 || 
+    (!hideCollectionAndSort && (filters.collection === 'mine' || filters.target_card || (filters.sort && filters.sort !== 'date-desc'))) ||
+    (filters.publishedOnly === true);
 
   return (
     <aside className="deck-filters">
@@ -124,6 +141,66 @@ export default function DeckFilters({ filters, onChange, heroes, children }) {
           })}
         </div>
       </div>
+
+      {/* ── Collection & Sort ── */}
+      {!hideCollectionAndSort && (
+      <div className="deck-filters__section">
+        <label className="deck-filters__label">Collection</label>
+        <div className="deck-filters__collection-row" style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center', width: '100%' }}>
+          
+          <div className="deck-scope-toggle" style={{ flex: '1 1 auto' }}>
+            <button 
+              className={`deck-scope-btn${filters.collection === 'all' || !filters.collection ? ' deck-scope-btn--active' : ''}`}
+              onClick={() => onChange({ ...filters, collection: 'all' })}
+            >
+              All collection
+            </button>
+            <button
+              className={`deck-scope-btn${filters.collection === 'mine' ? ' deck-scope-btn--active' : ''}`}
+              onClick={() => onChange({ ...filters, collection: 'mine' })}
+              disabled={!userId}
+              title={!userId ? 'Log in to filter by your collection' : ''}
+            >
+              Your collection
+            </button>
+            <div className="deck-name-filter-wrapper dc-tooltip-wrap">
+              <input
+                type="text"
+                className="deck-name-filter"
+                placeholder="Find card..."
+                value={filters.target_card || ''}
+                onChange={(e) => onChange({ ...filters, target_card: e.target.value })}
+              />
+              <span className="dc-tooltip">Search includes hero signature cards, but excludes hero identities.</span>
+            </div>
+          </div>
+
+          <div className="deck-sort-group">
+            <button
+              className={`deck-sort-btn${(filters.sort || '').startsWith('alpha') ? ' deck-sort-btn--active' : ''}`}
+              onClick={() => onChange({ ...filters, sort: filters.sort === 'alpha-asc' ? 'alpha-desc' : 'alpha-asc' })} 
+              title={filters.sort === 'alpha-desc' ? "Z → A (Click to reverse)" : "A → Z (Click to reverse)"}
+            >
+              {filters.sort === 'alpha-desc' ? 'Z↓A' : 'A↓Z'}
+            </button>
+            <button
+              className={`deck-sort-btn${(filters.sort || 'date-desc').startsWith('date') ? ' deck-sort-btn--active' : ''}`}
+              onClick={() => onChange({ ...filters, sort: filters.sort === 'date-asc' ? 'date-desc' : 'date-asc' })} 
+              title={filters.sort === 'date-desc' ? "Newest first (Click to reverse)" : "Oldest first (Click to reverse)"}
+            >
+              📅 {filters.sort === 'date-desc' ? '↓' : '↑'}
+            </button>
+            <button
+              className={`deck-sort-btn${filters.sort === 'likes-desc' ? ' deck-sort-btn--active' : ''}`}
+              onClick={() => onChange({ ...filters, sort: 'likes-desc' })} 
+              title="Most liked"
+            >
+              ❤️
+            </button>
+          </div>
+        </div>
+      </div>
+      )}
 
       {/* ── Additional Actions / Children ── */}
       {children}

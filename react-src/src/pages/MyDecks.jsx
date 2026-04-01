@@ -238,7 +238,7 @@ export default function MyDecks() {
           </div>
         </header>
 
-        <DeckFilters filters={filters} onChange={handleFilters} heroes={heroes}>
+        <DeckFilters filters={filters} onChange={handleFilters} heroes={heroes} hideCollectionAndSort={true}>
           {/* Action Buttons inside Filters */}
           <div className="deck-filters__actions-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', flexWrap: 'wrap', gap: '10px' }}>
             
