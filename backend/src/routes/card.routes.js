@@ -17,7 +17,11 @@ const TRANS_FIELDS = ['name', 'subname', 'text', 'flavor', 'traits', 'errata'];
 
 async function applyTranslation(card, locale) {
   if (!locale || locale === 'en') return card;
-  const trans = await Card.findTranslation(card.code, locale);
+  let trans = await Card.findTranslation(card.code, locale);
+  // Fallback: if this is a duplicate and has no translation, try the source card's translation
+  if (!trans && card.duplicate_of_code) {
+    trans = await Card.findTranslation(card.duplicate_of_code, locale);
+  }
   if (trans) {
     for (const f of TRANS_FIELDS) {
       if (trans[f] != null && trans[f] !== '') card[f] = trans[f];
@@ -180,6 +184,7 @@ router.get('/cards/search', async (req, res, next) => {
     const finalCards = cards.map(c => ({
       ...c,
       imagesrc: resolveImage(c.code, c.pack_code, '', localeClean)
+        || (c.duplicate_of_code ? resolveImage(c.duplicate_of_code, c.duplicate_of_pack_code || c.pack_code, '', localeClean) : '')
     }));
 
     const totalItems = Number(statsRow?.total ?? 0);

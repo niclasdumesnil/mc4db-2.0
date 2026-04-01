@@ -100,10 +100,26 @@ function NumericField({ label, valKey, opKey, filters, onChange }) {
 }
 
 function Section({ label, defaultOpen = true, active = false, onReset, children }) {
-  const [open, setOpen] = useState(defaultOpen);
+  const storageKey = `mc4db_section_${label.replace(/\s+/g, '_').toLowerCase()}`;
+  const [open, setOpen] = useState(() => {
+    try {
+      const saved = sessionStorage.getItem(storageKey);
+      if (saved !== null) return JSON.parse(saved);
+    } catch {}
+    return defaultOpen;
+  });
+
+  const handleToggle = () => {
+    setOpen(prev => {
+      const next = !prev;
+      try { sessionStorage.setItem(storageKey, JSON.stringify(next)); } catch {}
+      return next;
+    });
+  };
+
   return (
     <div className="card-search__section">
-      <div className="card-search__section-toggle" onClick={() => setOpen(o => !o)}>
+      <div className="card-search__section-toggle" onClick={handleToggle}>
         <label className="card-search__label" style={{ marginBottom: 0 }}>{label}</label>
         <div className="card-search__section-toggle-right">
           {active && onReset && (

@@ -89,6 +89,7 @@ const BASE_CARD_COLUMNS = [
   'cst.code as card_set_type_name_code',
   'lt.code as linked_to_code', 'lt.name as linked_to_name',
   'dup.code as duplicate_of_code', 'dup.name as duplicate_of_name',
+  'dup_pack.code as duplicate_of_pack_code',
 ];
 
 const VALID_OPS = { '=': '=', 'lt': '<', 'lte': '<=', 'gt': '>', 'gte': '>=' };
@@ -104,6 +105,7 @@ function baseQuery() {
     .leftJoin('Cardsettype as cst', 'cs.cardset_type', 'cst.id')
     .leftJoin('card as lt', 'c.linked_id', 'lt.id')
     .leftJoin('card as dup', 'c.duplicate_id', 'dup.id')
+    .leftJoin('pack as dup_pack', 'dup.pack_id', 'dup_pack.id')
     .select(BASE_CARD_COLUMNS);
 }
 
@@ -246,9 +248,12 @@ async function searchCards(filters, pagination, donator) {
       .leftJoin('faction as f', 'c.faction_id', 'f.id')
       .leftJoin('faction as f2', 'c.faction2_id', 'f2.id')
       .leftJoin('Cardset as cs', 'c.set_id', 'cs.id')
+      .leftJoin('card as dup', 'c.duplicate_id', 'dup.id')
+      .leftJoin('pack as dup_pack', 'dup.pack_id', 'dup_pack.id')
       .select([
         'c.code', 'c.name', 'c.cost', 'c.position', 'c.hidden', 'c.is_unique',
         'c.traits', 'c.quantity', 'c.deck_limit', 'c.alt_art', 'c.octgn_id', db.raw('IF(c.duplicate_id IS NOT NULL, 1, 0) as is_duplicate'),
+        'dup.code as duplicate_of_code', 'dup_pack.code as duplicate_of_pack_code',
         'c.text', 'c.real_text',
         'c.resource_energy', 'c.resource_physical', 'c.resource_mental', 'c.resource_wild',
         'c.attack', 'c.thwart', 'c.defense', 'c.health', 'c.scheme', 'c.boost', 'c.boost_star',
@@ -448,9 +453,13 @@ async function searchCards(filters, pagination, donator) {
 
 async function fetchTranslationsForSearch(cards, localeClean) {
   if (localeClean === 'en' || cards.length === 0) return cards;
+  // Collect all codes + duplicate source codes for fallback translations
   const codes = cards.map(r => r.code);
+  const dupSourceCodes = cards.filter(r => r.duplicate_of_code).map(r => r.duplicate_of_code);
+  const allCodes = [...new Set([...codes, ...dupSourceCodes])];
+
   const transRows = await db('card_translation')
-    .whereIn('code', codes)
+    .whereIn('code', allCodes)
     .where('locale', localeClean)
     .select(['code', 'name', 'subname', 'text', 'flavor', 'traits', 'errata']);
   
@@ -465,7 +474,8 @@ async function fetchTranslationsForSearch(cards, localeClean) {
 
   return cards.map(r => {
     const updated = { ...r };
-    const t = transMap[r.code];
+    // Use card's own translation, or fallback to duplicate source's translation
+    const t = transMap[r.code] || (r.duplicate_of_code ? transMap[r.duplicate_of_code] : null);
     if (t) {
       for (const f of TRANS_FIELDS) {
         if (t[f] != null && t[f] !== '') updated[f] = t[f];
