@@ -695,11 +695,9 @@ html.dark .deck-hero-badge { --hero-title-color: #fff; }
 .deck-scope-toggle > :first-child {
   border-radius: 7px 0 0 7px;
 }
-.deck-scope-toggle > :last-child,
-.deck-scope-toggle > :last-child input {
+.deck-scope-toggle > :last-child {
   border-radius: 0 7px 7px 0;
 }
-
 
 .deck-scope-btn {
   padding: 6px 14px;
@@ -729,26 +727,25 @@ html.dark .deck-hero-badge { --hero-title-color: #fff; }
 .deck-name-filter-wrapper {
   display: flex;
   align-items: center;
-  background: var(--st-surface-2);
+  background: var(--st-surface);
+  flex: 1;
+  min-width: 140px;
 }
 
 .deck-name-filter {
   border: none;
-  background: transparent;
+  background: transparent !important;
   padding: 6px 12px;
   font-size: 0.82rem;
   color: var(--st-text);
-  width: 140px;
+  flex: 1;
+  width: 100%;
+  min-width: 0;
   outline: none;
-  transition: width 0.2s;
 }
 
 .deck-name-filter::placeholder {
   color: #94a3b8;
-}
-
-.deck-name-filter:focus {
-  width: 180px;
 }
 
 .deck-sort-group {
@@ -786,3 +783,4 @@ html.dark .deck-hero-badge { --hero-title-color: #fff; }
   background: var(--st-border);
   color: var(--st-title);
 }
+

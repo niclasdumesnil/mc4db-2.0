@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { getFactionColor, getFactionFgColor, DECK_TAGS } from '@utils/dataUtils';
 import { useFactions } from '../hooks/useFactions';
 
@@ -23,6 +23,22 @@ export default function DeckFilters({ filters, onChange, heroes, hideCollectionA
   const userStr = localStorage.getItem('mc_user');
   let userId = null;
   try { if (userStr) { const u = JSON.parse(userStr); userId = u.id || u.userId; } } catch (e) {}
+
+  const [localTargetCard, setLocalTargetCard] = useState(filters?.target_card || '');
+
+  useEffect(() => {
+    setLocalTargetCard(filters?.target_card || '');
+  }, [filters?.target_card]);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      if ((filters?.target_card || '') !== localTargetCard) {
+        onChange({ ...filters, target_card: localTargetCard });
+      }
+    }, 500);
+    return () => clearTimeout(handler);
+  }, [localTargetCard, filters?.target_card]); // Only depend on target_card to avoid endless loops 
+
 
   const setHero = (code) => onChange({ ...filters, hero: code });
   const toggleAspect = (code) => {
@@ -168,9 +184,31 @@ export default function DeckFilters({ filters, onChange, heroes, hideCollectionA
                 type="text"
                 className="deck-name-filter"
                 placeholder="Find card..."
-                value={filters.target_card || ''}
-                onChange={(e) => onChange({ ...filters, target_card: e.target.value })}
+                value={localTargetCard}
+                onChange={(e) => setLocalTargetCard(e.target.value)}
               />
+              {localTargetCard && (
+                <button
+                  type="button"
+                  onClick={() => setLocalTargetCard('')}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    background: 'transparent',
+                    border: 'none',
+                    color: '#94a3b8',
+                    cursor: 'pointer',
+                    padding: '0 8px 0 2px',
+                    fontSize: '1.2rem',
+                    lineHeight: 1
+                  }}
+                  title="Clear search"
+                  aria-label="Clear search"
+                >
+                  &times;
+                </button>
+              )}
               <span className="dc-tooltip">Search includes hero signature cards, but excludes hero identities.</span>
             </div>
           </div>
