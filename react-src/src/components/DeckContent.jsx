@@ -97,7 +97,7 @@ function FactionDot({ card }) {
   );
 }
 
-export default function DeckContent({ slots, mode = 'list', showBadges = true, heroSpecialCards = [], sideSlots = [], invalidCodes = null, onTransferToSide = null, onTransferToMain = null, onChangeQty = null, onChangeSideQty = null, heroSetCode = null }) {
+export default function DeckContent({ slots, mode = 'list', showBadges = true, heroSpecialCards = [], linkedDeckSections = [], sideSlots = [], invalidCodes = null, onTransferToSide = null, onTransferToMain = null, onChangeQty = null, onChangeSideQty = null, heroSetCode = null }) {
   // Flash animation: set of card codes currently flashing
   const [flashCodes, setFlashCodes] = useState(new Set());
 
@@ -201,7 +201,7 @@ export default function DeckContent({ slots, mode = 'list', showBadges = true, h
   const mainCodes = useMemo(() => new Set((slots || []).filter(s => s.quantity > 0).map(s => s.code)), [slots]);
   const sideCodes = useMemo(() => new Set((sideSlots || []).filter(s => s.quantity > 0).map(s => s.code)), [sideSlots]);
 
-  if (totalCards === 0 && permanentSlots.cards.length === 0 && heroSpecialCards.length === 0 && totalSideCards === 0) {
+  if (totalCards === 0 && permanentSlots.cards.length === 0 && heroSpecialCards.length === 0 && linkedDeckSections.length === 0 && totalSideCards === 0) {
     return <div className="deck-empty">No cards found in this deck.</div>;
   }
 
@@ -433,6 +433,50 @@ export default function DeckContent({ slots, mode = 'list', showBadges = true, h
                       className="dc-grid-link card-tip"
                       data-code={card.code}
                       style={{ '--hover-border-color': getFactionColor(card.faction_code) }}
+                    >
+                      {card.quantity > 1 && <span className="dc-grid-qty">{card.quantity}x</span>}
+                      <ImageWithWebp src={card.imagesrc} alt={card.name} className="dc-grid-img" locale={locale} langDir={langDir} card={card} />
+                    </a>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    )}
+
+    {/* -- Linked Deck Sections (dynamic, green) -- */}
+    {linkedDeckSections.length > 0 && (
+      <div className="linked-deck-container">
+        {linkedDeckSections.map(section => (
+          <div key={section.name} className="linked-deck-set">
+            <h5 className="linked-deck-title">
+              {section.name} <span className="slot-group-count">({section.cards.length})</span>
+            </h5>
+            {mode === 'list' && (
+              <ul className="slot-list">
+                {section.cards.map(card => (
+                  <li key={card.code} className="slot-item linked-deck-item">
+                    <div className="slot-main-info">
+                      <span className="slot-qty">{card.quantity || 1}x</span>
+                      <FactionDot card={card} />
+                      {!!card.is_unique && <span className="icon-unique cl-unique-icon" title="Unique" />}
+                      <span className="slot-name card-tip" data-code={card.code}>{card.name}</span>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+            {mode === 'grid' && (
+              <div className="dc-grid">
+                {section.cards.map(card => (
+                  <div key={card.code} className="dc-grid-item">
+                    <a
+                      href={`/card/${card.code}`}
+                      className="dc-grid-link card-tip"
+                      data-code={card.code}
+                      style={{ '--hover-border-color': '#22c55e' }}
                     >
                       {card.quantity > 1 && <span className="dc-grid-qty">{card.quantity}x</span>}
                       <ImageWithWebp src={card.imagesrc} alt={card.name} className="dc-grid-img" locale={locale} langDir={langDir} card={card} />

@@ -320,6 +320,36 @@
   background: rgba(147, 112, 219, 0.08);
 }
 
+/* ── Linked Deck Panel (green — dynamic set-aside cards) ─────── */
+.linked-deck-container {
+  margin-top: 24px;
+  column-width: 240px;
+  column-count: 2;
+  column-gap: 40px;
+}
+
+.linked-deck-set {
+  break-inside: avoid;
+  margin-bottom: 20px;
+}
+
+.linked-deck-title {
+  font-size: 1.05rem;
+  color: #4ade80;
+  margin: 0 0 8px 0;
+  font-weight: 700;
+  border-bottom: 1px solid rgba(34, 197, 94, 0.3);
+  padding-bottom: 6px;
+}
+
+.linked-deck-item .slot-name {
+  color: #86efac;
+}
+
+.linked-deck-item:hover {
+  background: rgba(34, 197, 94, 0.08);
+}
+
 /* ── Side Deck Panel ─────────────────────────────────────────────── */
 .side-deck-container {
   margin-top: 28px;
@@ -449,6 +479,10 @@ html.dark .hero-special-title {
   color: #c4b5fd !important;
 }
 
+html.dark .linked-deck-title {
+  color: #4ade80 !important;
+}
+
 html.dark .side-deck-container .side-deck-header {
   color: #fbbf24 !important;
 }
@@ -462,6 +496,7 @@ html.dark .side-deck-container .slot-group-title {
 @media (max-width: 600px) {
   .deck-slots-grid,
   .hero-special-container,
+  .linked-deck-container,
   .side-deck-slots-grid {
     columns: 1;
   }

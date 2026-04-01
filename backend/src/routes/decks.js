@@ -208,6 +208,136 @@ async function fetchHeroSpecialCards(heroCode, locale = 'en') {
 }
 
 
+/**
+ * Fetches linked cards for source cards present in a deck's slots.
+ * A linked card has "Linked (Source Name)" or "Liée (Source Name)" in its text.
+ * Returns an array of { name, cards[] } sections — one per source card found in the deck.
+ */
+async function fetchLinkedCards(slotCardCodes, locale = 'en') {
+  if (!slotCardCodes || slotCardCodes.length === 0) return [];
+
+  // 1. Resolve names of the cards in the deck (to match against linked sources)
+  const deckCards = await db('card')
+    .whereIn('code', slotCardCodes)
+    .select('code', 'name');
+  if (deckCards.length === 0) return [];
+
+  const deckNameSet = new Set(deckCards.map(c => c.name.toLowerCase()));
+
+  // 2. Find all cards whose text matches the Linked pattern
+  const linkedRows = await db('card as c')
+    .leftJoin('pack as p', 'c.pack_id', 'p.id')
+    .leftJoin('faction as f', 'c.faction_id', 'f.id')
+    .where(function () {
+      this.where('c.real_text', 'like', 'Linked (%')
+        .orWhere('c.real_text', 'like', 'Liée (%')
+        .orWhere('c.real_text', 'like', 'Liee (%');
+    })
+    .select(
+      'c.code', 'c.name', 'c.real_text', 'c.quantity', 'c.is_unique',
+      'c.octgn_id',
+      'f.code as faction_code', 'f.name as faction_name',
+      'p.code as pack_code', 'p.language as pack_language',
+      'p.environment as pack_environment'
+    );
+
+  if (linkedRows.length === 0) return [];
+
+  // 3. Parse the source name from each linked card's text, stripping type suffixes
+  const linkedRegex = /(?:linked|li[ée]+e)\s*\(([^)]+)\)/i;
+  const TYPE_SUFFIXES = [
+    // Multi-word types (check first — longer suffixes first to avoid partial matches)
+    'player side scheme', 'side scheme', 'main scheme', 'alter ego', 'player minion',
+    // Single-word English types
+    'upgrade', 'ally', 'event', 'support', 'resource', 'minion', 'attachment',
+    'obligation', 'treachery', 'villain', 'hero', 'environment', 'leader', 'challenge',
+    // French equivalents
+    'amélioration', 'allié', 'événement', 'soutien', 'ressource', 'sbire',
+    'obligation', 'traîtrise', 'méchant', 'héros', 'environnement',
+    'plan annexe', 'plan principal',
+  ];
+  const sectionsMap = {}; // keyed by deck card name (not the raw linked text)
+
+  for (const row of linkedRows) {
+    const match = (row.real_text || '').match(linkedRegex);
+    if (!match) continue;
+    const rawSource = match[1].trim();
+    const rawLower = rawSource.toLowerCase();
+
+    // Strip known type suffix to get the real card name
+    let strippedName = rawSource;
+    for (const suffix of TYPE_SUFFIXES) {
+      if (rawLower.endsWith(' ' + suffix)) {
+        strippedName = rawSource.slice(0, rawSource.length - suffix.length).trim();
+        break;
+      }
+    }
+
+    // Match the stripped name against deck card names
+    if (!deckNameSet.has(strippedName.toLowerCase())) continue;
+
+    // Use the actual deck card name as section key (preserves original casing)
+    const deckCard = deckCards.find(c => c.name.toLowerCase() === strippedName.toLowerCase());
+    const sectionKey = deckCard ? deckCard.name : strippedName;
+
+    if (!sectionsMap[sectionKey]) sectionsMap[sectionKey] = [];
+    sectionsMap[sectionKey].push(row);
+  }
+
+  if (Object.keys(sectionsMap).length === 0) return [];
+
+  // 4. Apply translations if needed
+  if (locale && locale !== 'en') {
+    const allLinkedCodes = Object.values(sectionsMap).flat().map(r => r.code);
+    const transRows = await db('card_translation')
+      .whereIn('code', allLinkedCodes)
+      .where('locale', locale.toLowerCase())
+      .select('code', 'name');
+    const transMap = Object.fromEntries(transRows.map(t => [t.code, t]));
+
+    const FactionModel = require('../models/faction.model');
+    const facMap = await FactionModel.getTranslationMap(locale.toLowerCase());
+
+    // Also translate the source card names for the section titles
+    const sourceCardCodes = deckCards
+      .filter(c => Object.keys(sectionsMap).some(s => s.toLowerCase() === c.name.toLowerCase()))
+      .map(c => c.code);
+    const sourceTransRows = await db('card_translation')
+      .whereIn('code', sourceCardCodes)
+      .where('locale', locale.toLowerCase())
+      .select('code', 'name');
+    const sourceTransMap = Object.fromEntries(sourceTransRows.map(t => [t.code, t]));
+
+    // Rebuild sections with translated names
+    const translatedSections = {};
+    for (const [sourceName, cards] of Object.entries(sectionsMap)) {
+      // Find the translated source name
+      const sourceCard = deckCards.find(c => c.name.toLowerCase() === sourceName.toLowerCase());
+      let translatedSourceName = sourceName;
+      if (sourceCard && sourceTransMap[sourceCard.code]?.name) {
+        translatedSourceName = sourceTransMap[sourceCard.code].name;
+      }
+      translatedSections[translatedSourceName] = cards.map(r => {
+        const t = transMap[r.code];
+        return {
+          ...r,
+          name: (t && t.name) ? t.name : r.name,
+          faction_name: facMap[r.faction_code] || r.faction_name,
+          imagesrc: resolveImage(r.code, r.pack_code, '', locale),
+        };
+      });
+    }
+
+    return Object.entries(translatedSections).map(([name, cards]) => ({ name, cards }));
+  }
+
+  return Object.entries(sectionsMap).map(([name, cards]) => ({
+    name,
+    cards: cards.map(r => ({ ...r, imagesrc: resolveImage(r.code, r.pack_code) }))
+  }));
+}
+
+
 // ==========================================
 // 🌍 1. DECKS PUBLICS (Decklists)
 // ==========================================
@@ -282,6 +412,8 @@ router.get('/decks/:id', async (req, res) => {
     const heroCode = deck.hero_code || '';
     const alterEgoCode = heroCode.endsWith('b') ? heroCode.slice(0, -1) + 'a' : heroCode.endsWith('a') ? heroCode.slice(0, -1) + 'b' : heroCode + 'b';
     const hero_special_cards = await fetchHeroSpecialCards(heroCode, locale);
+    const slotCodes = slots.map(s => s.code);
+    const linked_cards = await fetchLinkedCards(slotCodes, locale);
 
     // Derived From (precedent_decklist_id)
     let derivedFrom = null;
@@ -306,6 +438,7 @@ router.get('/decks/:id', async (req, res) => {
         side_slots,
         packs_required,
         hero_special_cards,
+        linked_cards,
         hero_imagesrc: resolveImage(heroCode, deck.pack_code),
         alter_ego_imagesrc: resolveImage(alterEgoCode, deck.pack_code),
         derived_from_deck: derivedFrom,
@@ -894,6 +1027,8 @@ router.get('/user/:userId/decks/:deckId', async (req, res) => {
     const heroCode = deck.hero_code || '';
     const alterEgoCode = heroCode.endsWith('b') ? heroCode.slice(0, -1) + 'a' : heroCode.endsWith('a') ? heroCode.slice(0, -1) + 'b' : heroCode + 'b';
     const hero_special_cards = await fetchHeroSpecialCards(heroCode, locale);
+    const slotCodes = slots.map(s => s.code);
+    const linked_cards = await fetchLinkedCards(slotCodes, locale);
 
     return res.json({
       ok: true, data: {
@@ -902,6 +1037,7 @@ router.get('/user/:userId/decks/:deckId', async (req, res) => {
         side_slots,
         packs_required,
         hero_special_cards,
+        linked_cards,
         hero_imagesrc: resolveImage(heroCode, deck.pack_code),
         alter_ego_imagesrc: resolveImage(alterEgoCode, deck.pack_code),
       }

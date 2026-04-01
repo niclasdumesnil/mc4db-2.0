@@ -44,6 +44,110 @@ export function isTeamUpCard(card) {
   return /(?:team[-\s]?up|en\s*équipe|en\s*equipe)\s*\(/i.test(text);
 }
 
+// ── Linked-card helpers ──────────────────────────────────────────────────────
+
+// Known card type suffixes that may appear inside Linked() to disambiguate cards.
+// Longer suffixes first to avoid partial matches (e.g. "player side scheme" before "side scheme").
+const LINKED_TYPE_SUFFIXES = [
+  // Multi-word types (check first)
+  'player side scheme', 'side scheme', 'main scheme', 'alter ego', 'player minion',
+  // Single-word English types
+  'upgrade', 'ally', 'event', 'support', 'resource', 'minion', 'attachment',
+  'obligation', 'treachery', 'villain', 'hero', 'environment', 'leader', 'challenge',
+  // French equivalents
+  'amélioration', 'allié', 'événement', 'soutien', 'ressource', 'sbire',
+  'obligation', 'traîtrise', 'méchant', 'héros', 'environnement',
+  'plan annexe', 'plan principal',
+];
+
+/**
+ * Extract the source card info from a Linked card text.
+ * Handles type qualifiers, e.g.:
+ *   "Linked (Specialized Training)."      → { name: "Specialized Training", typeHint: null }
+ *   "Linked (Captain America upgrade)."   → { name: "Captain America", typeHint: "upgrade" }
+ *   "Linked (Absorbing Man minion)."      → { name: "Absorbing Man", typeHint: "minion" }
+ *
+ * Returns { name, typeHint } or null if not a linked card.
+ */
+export function parseLinkedSource(text) {
+  if (!text) return null;
+  const match = text.match(/(?:linked|li[ée]+e)\s*\(([^)]+)\)/i);
+  if (!match) return null;
+  const raw = match[1].trim();
+
+  // Check if the last word(s) are a known type suffix
+  const rawLower = raw.toLowerCase();
+  for (const suffix of LINKED_TYPE_SUFFIXES) {
+    if (rawLower.endsWith(' ' + suffix)) {
+      const name = raw.slice(0, raw.length - suffix.length).trim();
+      return { name, typeHint: suffix };
+    }
+  }
+  return { name: raw, typeHint: null };
+}
+
+/**
+ * Returns true if the card text contains a Linked declaration.
+ */
+export function isLinkedCard(card) {
+  const text = card.real_text || card.text || '';
+  return /(?:linked|li[ée]+e)\s*\(/i.test(text);
+}
+
+/**
+ * Build a map of source card names (lowercased) → array of linked card objects.
+ * Handles type-qualified names like "Captain America upgrade" by indexing under
+ * the stripped name ("captain america").
+ *
+ * @param {Array} allCards - Full card list
+ * @returns {Map<string, Array<object>>} sourceNameLower → [linkedCard, ...]
+ */
+export function buildLinkedCardMap(allCards) {
+  const map = new Map();
+  for (const card of allCards) {
+    const parsed = parseLinkedSource(card.real_text || card.text || '');
+    if (!parsed) continue;
+    const key = parsed.name.toLowerCase();
+    if (!map.has(key)) map.set(key, []);
+    map.get(key).push(card);
+  }
+  return map;
+}
+
+/**
+ * Given the current deck slots and a linked-card map, compute which linked
+ * deck sections should be displayed.
+ *
+ * Returns an array of { name: string, cards: Card[] } — one per source card
+ * in the deck that has linked cards.
+ *
+ * @param {object}    slotsMap      - { cardCode → quantity } for the main deck
+ * @param {Array}     allCards      - Full card list (to resolve names)
+ * @param {Map}       linkedCardMap - from buildLinkedCardMap
+ * @returns {Array<{name: string, cards: object[]}>}
+ */
+export function getLinkedDeckSections(slotsMap, allCards, linkedCardMap) {
+  if (!linkedCardMap || linkedCardMap.size === 0) return [];
+  const cardMap = Object.fromEntries(allCards.map(c => [c.code, c]));
+  const sections = [];
+
+  for (const [code, qty] of Object.entries(slotsMap || {})) {
+    if (!qty) continue;
+    const card = cardMap[code];
+    if (!card) continue;
+    // Use real_name (English) for lookup in the map, but name (translated) for display
+    const lookupName = (card.real_name || card.name || '').trim();
+    const displayName = (card.name || card.real_name || '').trim();
+    if (!lookupName) continue;
+    const linked = linkedCardMap.get(lookupName.toLowerCase());
+    if (linked && linked.length > 0) {
+      sections.push({ name: displayName, cards: linked });
+    }
+  }
+  return sections;
+}
+
+
 // ── Deck-option checking ─────────────────────────────────────────────────────
 
 /**
@@ -237,6 +341,9 @@ export function canIncludeCard(
 ) {
   // 1. Always exclude hero-type cards (they live in heroSpecialCards)
   if (card.type_code === 'hero') return false;
+
+  // 1b. Always exclude linked cards (set-aside, shown via their source card)
+  if (isLinkedCard(card)) return false;
 
   // 2. Always exclude encounter cards
   if ((card.faction_code || '').toLowerCase() === 'encounter') return false;

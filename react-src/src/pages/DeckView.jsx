@@ -4,7 +4,7 @@ import DeckStatistics from '@components/DeckStatistics';
 import DeckHistory from '@components/DeckHistory';
 import DeckEditor from '@components/DeckEditor';
 import { getFactionColor, getFactionFgColor, DECK_TAGS } from '@utils/dataUtils';
-import { getDeckProblems, getSaveProblems, getInvalidCodes, inferDeckAspect } from '@utils/deckValidation';
+import { getDeckProblems, getSaveProblems, getInvalidCodes, inferDeckAspect, buildLinkedCardMap, getLinkedDeckSections } from '@utils/deckValidation';
 import MarkdownEditor from '@components/MarkdownEditor';
 import MarkdownViewer from '@components/MarkdownViewer';
 import PrintDeckButton from '@components/PrintDeckButton';
@@ -136,6 +136,23 @@ export default function DeckView() {
     const slotsMap = Object.fromEntries(currentSlots.filter(s => s.quantity > 0).map(s => [s.code, s.quantity]));
     return getInvalidCodes(slotsMap, heroCard, validationCards, deckAspect);
   }, [liveSlots, deck?.slots, heroCard, validationCards, deckAspect]);
+
+  // Build linked card map from all cards (editor mode only)
+  const linkedCardMap = useMemo(() => {
+    if (validationCards.length === 0) return new Map();
+    return buildLinkedCardMap(validationCards);
+  }, [validationCards]);
+
+  // Compute linked deck sections:
+  // - View mode: use backend-provided deck.linked_cards
+  // - Edit mode: re-compute dynamically from live slots so sections update in real-time
+  const linkedDeckSections = useMemo(() => {
+    if (showEditor && linkedCardMap.size > 0 && liveSlots) {
+      const slotsMap = Object.fromEntries(liveSlots.filter(s => s.quantity > 0).map(s => [s.code, s.quantity]));
+      return getLinkedDeckSections(slotsMap, validationCards, linkedCardMap);
+    }
+    return deck?.linked_cards ?? [];
+  }, [showEditor, liveSlots, deck?.linked_cards, validationCards, linkedCardMap]);
 
   // Compute deck validation problems
   const deckProblems = useMemo(() => {
@@ -713,6 +730,7 @@ export default function DeckView() {
             mode={displayMode}
             showBadges={showBadges}
             heroSpecialCards={deck.hero_special_cards ?? []}
+            linkedDeckSections={linkedDeckSections}
             invalidCodes={invalidCodes}
             heroSetCode={heroSetCode}
             onTransferToSide={showEditor ? (code) => editorRef.current?.transfer(code, 'toSide') : null}

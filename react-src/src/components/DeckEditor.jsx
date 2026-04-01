@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo, useCallback, useImperativeHandle, 
 import AvailableCardList from './AvailableCardList';
 import SmartSearchInput, { evaluateQueryMatch } from './SmartSearchInput';
 import { getFactionColor, getFactionFgColor } from '@utils/dataUtils';
-import { canIncludeCard } from '@utils/deckValidation';
+import { canIncludeCard, isLinkedCard } from '@utils/deckValidation';
 import { useFactions } from '../hooks/useFactions';
 import { useTypes } from '../hooks/useTypes';
 import '../css/DeckEditor.css';
@@ -428,6 +428,8 @@ export default forwardRef(function DeckEditor(
     return allCards.filter(card => {
       // Exclure les cartes rencontre
       if (!PLAYER_FACTIONS.has(card.faction_code?.toLowerCase())) return false;
+      // Exclure les cartes liées (set-aside, jamais directement ajoutables)
+      if (isLinkedCard(card)) return false;
       // Dédoublonnage : exclure les doublons sauf alt-art si activé
       if (card.duplicate_of_code) {
         if (!(filters.showAltArt && card.alt_art)) return false;
@@ -486,6 +488,8 @@ export default forwardRef(function DeckEditor(
     if (needle.length < 2) return [];
     return allCards.filter(card => {
       if (!SEARCH_FACTIONS.has(card.faction_code?.toLowerCase())) return false;
+      // Exclude linked cards (set-aside, never directly addable)
+      if (isLinkedCard(card)) return false;
       const isHeroFaction = card.faction_code === 'hero' || card.faction_code === 'campaign';
       // Exclure les cartes hero/campaign du set du héros actif (déjà dans le deck principal)
       if (isHeroFaction && heroCard?.card_set_code && card.card_set_code === heroCard.card_set_code) return false;
