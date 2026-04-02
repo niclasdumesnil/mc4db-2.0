@@ -43,7 +43,7 @@ async function fetchCardDetails(code) {
     .where('c.code', code)
     .select(
       'c.code', 'c.name', 'c.text', 'c.real_text', 'c.quantity',
-      'c.permanent', 'c.double_sided',
+      'c.permanent', 'c.double_sided', 'c.health',
       'p.code as pack_code',
       't.code as type_code',
       'f.code as faction_code',
@@ -74,8 +74,8 @@ async function fetchCardDetailsBatch(codes) {
     .leftJoin('pack as dup_pack', 'dup.pack_id', 'dup_pack.id')
     .whereIn('c.code', codes)
     .select(
-      'c.code', 'c.name', 'c.text', 'c.real_text', 'c.quantity',
-      'c.permanent', 'c.double_sided',
+       'c.code', 'c.name', 'c.text', 'c.real_text', 'c.quantity',
+      'c.permanent', 'c.double_sided', 'c.health',
       'p.code as pack_code',
       't.code as type_code',
       'f.code as faction_code',
@@ -585,6 +585,11 @@ async function buildHeroIdentityCard(heroCode, detailsMap, nextDeckId, lang, nic
     backURLOverride: backURL,
   });
 
+  // Add health to the hero card Description for TTS Lua access
+  if (heroCard.health) {
+    ttsObject.Description = String(heroCard.health);
+  }
+
   return { ttsObject, nextDeckId, identityCodes };
 }
 
@@ -843,7 +848,7 @@ router.get('/tts/pack/:code', async (req, res, next) => {
       .orderBy('c.position', 'asc')
       .select(
         'c.code', 'c.name', 'c.text', 'c.real_text', 'c.quantity',
-        'c.permanent', 'c.double_sided',
+        'c.permanent', 'c.double_sided', 'c.health',
         'p.code as pack_code',
         't.code as type_code',
         'f.code as faction_code',
