@@ -14,6 +14,7 @@ const adminRoutes = require('./admin');
 const scenariosRoutes = require('./scenarios');
 const reviewRoutes = require('./review.routes');
 const homeRoutes = require('./home.routes');
+const ttsRoutes = require('./tts.routes');
 
 const router = Router();
 
@@ -28,5 +29,6 @@ router.use(adminRoutes);
 router.use(scenariosRoutes);
 router.use('/reviews', reviewRoutes);
 router.use(homeRoutes);
+router.use(ttsRoutes);
 
 module.exports = router;
