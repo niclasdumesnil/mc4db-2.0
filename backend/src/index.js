@@ -863,7 +863,114 @@ app.use('/api/public', publicRoutes);
 // Also mount at root level so other API paths still work without prefix
 app.use('/', publicRoutes);
 
+// ── Dynamic Pack Cover Images (TTS) ──────────────────────────────────────────
+const { createCanvas, loadImage } = require('canvas');
+const PACKS_FRONT_DIR = path.join(bundlesStaticDir, 'TTS', 'packs_front');
+const GENERIC_COVER_PATH = path.join(PACKS_FRONT_DIR, 'generic.webp');
+
+function drawPackBanner(ctx, text, imgWidth, imgHeight) {
+  const fontSize = Math.round(imgWidth * 0.07);
+  ctx.font = `bold ${fontSize}px "Arial Black", "Impact", Arial, sans-serif`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'top';
+
+  // Word-wrap (max 2 lines)
+  const padding = Math.round(imgWidth * 0.08);
+  const maxTextWidth = imgWidth - padding * 2;
+  const words = text.split(' ');
+  const lines = [];
+  let currentLine = '';
+  for (const word of words) {
+    const testLine = currentLine ? `${currentLine} ${word}` : word;
+    const { width } = ctx.measureText(testLine);
+    if (width > maxTextWidth && currentLine) {
+      lines.push(currentLine);
+      currentLine = word;
+    } else {
+      currentLine = testLine;
+    }
+  }
+  if (currentLine) lines.push(currentLine);
+  const displayLines = lines.slice(0, 2);
+
+  // Banner dimensions
+  const lineHeight = fontSize * 1.35;
+  const bannerPadY = Math.round(fontSize * 0.5);
+  const bannerPadX = Math.round(imgWidth * 0.04);
+  const bannerHeight = displayLines.length * lineHeight + bannerPadY * 2;
+  const bannerY = Math.round(imgHeight * 0.02);
+  const bannerX = bannerPadX;
+  const bannerW = imgWidth - bannerPadX * 2;
+  const borderRadius = Math.round(fontSize * 0.3);
+
+  // Draw rounded semi-transparent black background
+  ctx.save();
+  ctx.beginPath();
+  ctx.moveTo(bannerX + borderRadius, bannerY);
+  ctx.lineTo(bannerX + bannerW - borderRadius, bannerY);
+  ctx.arcTo(bannerX + bannerW, bannerY, bannerX + bannerW, bannerY + borderRadius, borderRadius);
+  ctx.lineTo(bannerX + bannerW, bannerY + bannerHeight - borderRadius);
+  ctx.arcTo(bannerX + bannerW, bannerY + bannerHeight, bannerX + bannerW - borderRadius, bannerY + bannerHeight, borderRadius);
+  ctx.lineTo(bannerX + borderRadius, bannerY + bannerHeight);
+  ctx.arcTo(bannerX, bannerY + bannerHeight, bannerX, bannerY + bannerHeight - borderRadius, borderRadius);
+  ctx.lineTo(bannerX, bannerY + borderRadius);
+  ctx.arcTo(bannerX, bannerY, bannerX + borderRadius, bannerY, borderRadius);
+  ctx.closePath();
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.65)';
+  ctx.fill();
+  // Elegant border
+  ctx.lineWidth = 2;
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+  ctx.stroke();
+  ctx.restore();
+
+  // Draw text lines (white with dark outline)
+  const textStartY = bannerY + bannerPadY;
+  ctx.fillStyle = '#FFFFFF';
+  ctx.lineWidth = Math.round(fontSize * 0.12);
+  ctx.strokeStyle = 'rgba(0, 0, 0, 0.7)';
+  for (let i = 0; i < displayLines.length; i++) {
+    const y = textStartY + i * lineHeight;
+    ctx.strokeText(displayLines[i], imgWidth / 2, y);
+    ctx.fillText(displayLines[i], imgWidth / 2, y);
+  }
+}
+
+app.get('/bundles/TTS/packs_front/:packCode.webp', async (req, res) => {
+  try {
+    const packCode = req.params.packCode;
+    const coverPath = path.join(PACKS_FRONT_DIR, `${packCode}.webp`);
+    if (packCode !== 'generic' && fs.existsSync(coverPath)) {
+      return res.sendFile(coverPath);
+    }
+    if (packCode === 'generic') {
+      return res.sendFile(GENERIC_COVER_PATH);
+    }
+    const sharpLib = require('sharp');
+    const packRow = await db('pack').where('code', packCode).select('name').first();
+    const packName = packRow ? packRow.name.toUpperCase() : packCode.toUpperCase();
+    // Convert WebP → PNG buffer because canvas doesn't support WebP input
+    const pngBg = await sharpLib(GENERIC_COVER_PATH).png().toBuffer();
+    const bgImage = await loadImage(pngBg);
+    const canvas = createCanvas(bgImage.width, bgImage.height);
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(bgImage, 0, 0);
+    drawPackBanner(ctx, packName, bgImage.width, bgImage.height);
+    const pngBuffer = canvas.toBuffer('image/png');
+    const webpBuffer = await sharpLib(pngBuffer).webp({ quality: 85 }).toBuffer();
+    fs.writeFileSync(coverPath, webpBuffer);
+    res.set('Content-Type', 'image/webp');
+    res.set('Cache-Control', 'public, max-age=86400');
+    res.send(webpBuffer);
+  } catch (err) {
+    console.error('Dynamic pack cover error:', err.message);
+    if (fs.existsSync(GENERIC_COVER_PATH)) return res.sendFile(GENERIC_COVER_PATH);
+    res.status(500).send('Error generating pack cover');
+  }
+});
+
 // ── Static files (optional — serve card images from web/bundles) ──
+
 
 app.use('/bundles', express.static(path.resolve(bundlesStaticDir)));
 

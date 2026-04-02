@@ -38,6 +38,8 @@ async function fetchCardDetails(code) {
     .leftJoin('Cardset as cs', 'c.set_id', 'cs.id')
     .leftJoin('Cardsettype as cst', 'cs.cardset_type', 'cst.id')
     .leftJoin('card as lt', 'c.linked_id', 'lt.id')
+    .leftJoin('card as dup', 'c.duplicate_id', 'dup.id')
+    .leftJoin('pack as dup_pack', 'dup.pack_id', 'dup_pack.id')
     .where('c.code', code)
     .select(
       'c.code', 'c.name', 'c.text', 'c.real_text', 'c.quantity',
@@ -48,7 +50,9 @@ async function fetchCardDetails(code) {
       'cs.code as card_set_code',
       'cs.parent_code as card_set_parent_code',
       'cst.code as card_set_type_code',
-      'lt.code as back_link'
+      'lt.code as back_link',
+      'dup.code as duplicate_of_code',
+      'dup_pack.code as duplicate_of_pack_code'
     )
     .first();
 }
@@ -66,6 +70,8 @@ async function fetchCardDetailsBatch(codes) {
     .leftJoin('Cardset as cs', 'c.set_id', 'cs.id')
     .leftJoin('Cardsettype as cst', 'cs.cardset_type', 'cst.id')
     .leftJoin('card as lt', 'c.linked_id', 'lt.id')
+    .leftJoin('card as dup', 'c.duplicate_id', 'dup.id')
+    .leftJoin('pack as dup_pack', 'dup.pack_id', 'dup_pack.id')
     .whereIn('c.code', codes)
     .select(
       'c.code', 'c.name', 'c.text', 'c.real_text', 'c.quantity',
@@ -76,7 +82,9 @@ async function fetchCardDetailsBatch(codes) {
       'cs.code as card_set_code',
       'cs.parent_code as card_set_parent_code',
       'cst.code as card_set_type_code',
-      'lt.code as back_link'
+      'lt.code as back_link',
+      'dup.code as duplicate_of_code',
+      'dup_pack.code as duplicate_of_pack_code'
     );
   return new Map(rows.map(r => [r.code, r]));
 }
@@ -112,19 +120,21 @@ async function fetchNicknameMap(codes, lang) {
  *   6. Standard Player        → player_back.webp
  */
 function resolveBackURL(card, lang) {
-  const permanentSetupRegex = /permanent|setup/i;
   const text = card.text || card.real_text || '';
 
   // 1. Double-sided / Linked
   if (card.back_link) {
-    return `${CARDS_BASE_URL}/${lang}/${card.pack_code}/${card.back_link}.webp`;
+    const directURL = `${CARDS_BASE_URL}/${lang}/${card.pack_code}/${card.back_link}.webp`;
+    // Landscape cards (schemes) → back face also needs rotation
+    const endpoint = LANDSCAPE_TYPES.has(card.type_code) ? 'rotate-image' : 'card-image';
+    return `${API_BASE_URL}/api/public/tts/${endpoint}?url=${encodeURIComponent(directURL)}&lang=${lang}&pack=${card.pack_code}&code=${card.back_link}`;
   }
   // Check if code ends with 'a' and a 'b' variant would be the back
   if (card.code.endsWith('a')) {
     const bCode = card.code.slice(0, -1) + 'b';
-    // We'll optimistically resolve to the b image — the caller can verify existence
-    // but for TTS export this is the expected convention.
-    return `${CARDS_BASE_URL}/${lang}/${card.pack_code}/${bCode}.webp`;
+    const directURL = `${CARDS_BASE_URL}/${lang}/${card.pack_code}/${bCode}.webp`;
+    const endpoint = LANDSCAPE_TYPES.has(card.type_code) ? 'rotate-image' : 'card-image';
+    return `${API_BASE_URL}/api/public/tts/${endpoint}?url=${encodeURIComponent(directURL)}&lang=${lang}&pack=${card.pack_code}&code=${bCode}`;
   }
 
   // 2. Villain
@@ -132,8 +142,8 @@ function resolveBackURL(card, lang) {
     return `${BACKS_BASE_URL}/villain_back.webp`;
   }
 
-  // 3. Permanent Encounter
-  if (card.faction_code === 'encounter' && permanentSetupRegex.test(text)) {
+  // 3. Permanent Encounter (use DB field, not regex)
+  if (card.faction_code === 'encounter' && card.permanent) {
     return `${BACKS_BASE_URL}/encounter_permanent.webp`;
   }
 
@@ -142,8 +152,8 @@ function resolveBackURL(card, lang) {
     return `${BACKS_BASE_URL}/encounter_back.webp`;
   }
 
-  // 5. Permanent Player
-  if (permanentSetupRegex.test(text)) {
+  // 5. Permanent Player (use DB field)
+  if (card.permanent) {
     return `${BACKS_BASE_URL}/setup_player_card.webp`;
   }
 
@@ -166,14 +176,18 @@ function resolveBackURL(card, lang) {
 function buildTTSCard(card, deckId, lang, opts = {}) {
   const { states = null, nicknameMap = null, backURLOverride = null } = opts;
 
-  // FaceURL through the fallback proxy (tries lang, falls back to EN)
+  // FaceURL through the fallback proxy (tries lang, falls back to EN, then original card for duplicates)
   const directFaceURL = `${CARDS_BASE_URL}/${lang}/${card.pack_code}/${card.code}.webp`;
-  let faceURL = `${API_BASE_URL}/api/public/tts/card-image?url=${encodeURIComponent(directFaceURL)}&lang=${lang}&pack=${card.pack_code}&code=${card.code}`;
+  // If this card is a duplicate, pass the original card info so the proxy can fall back to it
+  const dupParams = card.duplicate_of_code
+    ? `&dup_code=${card.duplicate_of_code}&dup_pack=${card.duplicate_of_pack_code || card.pack_code}`
+    : '';
+  let faceURL = `${API_BASE_URL}/api/public/tts/card-image?url=${encodeURIComponent(directFaceURL)}&lang=${lang}&pack=${card.pack_code}&code=${card.code}${dupParams}`;
   const backURL = backURLOverride || resolveBackURL(card, lang);
 
   // Landscape cards (schemes) → rotate via our endpoint (which itself uses fallback)
   if (LANDSCAPE_TYPES.has(card.type_code)) {
-    faceURL = `${API_BASE_URL}/api/public/tts/rotate-image?url=${encodeURIComponent(directFaceURL)}&lang=${lang}&pack=${card.pack_code}&code=${card.code}`;
+    faceURL = `${API_BASE_URL}/api/public/tts/rotate-image?url=${encodeURIComponent(directFaceURL)}&lang=${lang}&pack=${card.pack_code}&code=${card.code}${dupParams}`;
   }
 
   // Resolve nickname: prefer translation, fallback to DB name, then code
@@ -326,6 +340,7 @@ function buildTTSPile(slots, detailsMap, nextDeckId, lang, nicknameMap = null) {
  */
 function applyTransform(ttsObj, pos) {
   if (!ttsObj) return ttsObj;
+  const s = pos.scaleXZ ?? 1;
   ttsObj.Transform = {
     posX: pos.posX ?? 0,
     posY: pos.posY ?? 2,
@@ -333,9 +348,9 @@ function applyTransform(ttsObj, pos) {
     rotX: 0,
     rotY: pos.rotY ?? 180,
     rotZ: pos.rotZ ?? 180,
-    scaleX: 1,
+    scaleX: s,
     scaleY: 1,
-    scaleZ: 1,
+    scaleZ: s,
   };
   return ttsObj;
 }
@@ -539,11 +554,15 @@ async function buildHeroIdentityCard(heroCode, detailsMap, nextDeckId, lang, nic
     }
   }
 
-  // Determine the back side (alter-ego)
+  // Determine the back side (alter-ego) — routed through proxy for FR→EN fallback
   const backCode = heroCard.back_link || (heroCode.endsWith('b') ? baseCode + 'a' : null);
-  const backURL = backCode
-    ? `${CARDS_BASE_URL}/${lang}/${heroCard.pack_code}/${backCode}.webp`
-    : resolveBackURL(heroCard, lang);
+  let backURL;
+  if (backCode) {
+    const directURL = `${CARDS_BASE_URL}/${lang}/${heroCard.pack_code}/${backCode}.webp`;
+    backURL = `${API_BASE_URL}/api/public/tts/card-image?url=${encodeURIComponent(directURL)}&lang=${lang}&pack=${heroCard.pack_code}&code=${backCode}`;
+  } else {
+    backURL = resolveBackURL(heroCard, lang);
+  }
 
   // Build States for additional forms (c, d, e)
   const states = {};
@@ -719,7 +738,7 @@ async function buildDeckTTSResponse(deck, mainSlots, sideSlots, lang) {
 
   // Hero identity card
   if (heroResult.ttsObject) {
-    result.hero = applyTransform(heroResult.ttsObject, { posX: 0, posY: 2, posZ: 0, rotY: 180, rotZ: 180 });
+    result.hero = applyTransform(heroResult.ttsObject, { posX: 0, posY: 2, posZ: 0, rotY: 180, rotZ: 180, scaleXZ: 1.65 });
   }
 
   // Main deck (non-permanents)
@@ -741,7 +760,7 @@ async function buildDeckTTSResponse(deck, mainSlots, sideSlots, lang) {
     const sideResult = buildTTSPile(filteredSideSlots, detailsMap, nextDeckId, lang, nicknameMap);
     nextDeckId = sideResult.nextDeckId;
     if (sideResult.ttsObject) {
-      result.sideDeck = applyTransform(sideResult.ttsObject, { posX: -3, posY: 2, posZ: -3, rotY: 180, rotZ: 180 });
+      result.sideDeck = applyTransform(sideResult.ttsObject, { posX: -3, posY: 2, posZ: -3, rotY: 180, rotZ: 180, scaleXZ: 1.0 });
     }
   }
 
@@ -750,7 +769,7 @@ async function buildDeckTTSResponse(deck, mainSlots, sideSlots, lang) {
     const nemResult = buildTTSPile(nemesisSlots, detailsMap, nextDeckId, lang, nicknameMap);
     nextDeckId = nemResult.nextDeckId;
     if (nemResult.ttsObject) {
-      result.nemesis = applyTransform(nemResult.ttsObject, { posX: 3, posY: 2, posZ: 3, rotY: 180, rotZ: 180 });
+      result.nemesis = applyTransform(nemResult.ttsObject, { posX: 3, posY: 2, posZ: 3, rotY: 180, rotZ: 180, scaleXZ: 1.88 });
     }
   }
 
@@ -818,6 +837,8 @@ router.get('/tts/pack/:code', async (req, res, next) => {
       .leftJoin('Cardset as cs', 'c.set_id', 'cs.id')
       .leftJoin('Cardsettype as cst', 'cs.cardset_type', 'cst.id')
       .leftJoin('card as lt', 'c.linked_id', 'lt.id')
+      .leftJoin('card as dup', 'c.duplicate_id', 'dup.id')
+      .leftJoin('pack as dup_pack', 'dup.pack_id', 'dup_pack.id')
       .where('p.code', packCode)
       .orderBy('c.position', 'asc')
       .select(
@@ -829,7 +850,9 @@ router.get('/tts/pack/:code', async (req, res, next) => {
         'cs.code as card_set_code',
         'cs.parent_code as card_set_parent_code',
         'cst.code as card_set_type_code',
-        'lt.code as back_link'
+        'lt.code as back_link',
+        'dup.code as duplicate_of_code',
+        'dup_pack.code as duplicate_of_pack_code'
       );
 
     if (rows.length === 0) {
@@ -843,9 +866,13 @@ router.get('/tts/pack/:code', async (req, res, next) => {
 
     // Categorise cards
     const heroCodes = [];
-    const scenarioCodes = [];
+    const villainCodes = [];
+    const mainSchemeCodes = [];
     const playerCardCodes = [];
+    const permanentCodes = [];
     const encounterBySet = {}; // { set_code: [slots] }
+    const encounterPermanentCodes = [];
+    const specialBySet = {};   // { set_code: { name, slots } } for hero_special
 
     // Track codes that are 'b' variants of an 'a' (used as backs) to skip them
     const bBackCodes = new Set();
@@ -872,15 +899,31 @@ router.get('/tts/pack/:code', async (req, res, next) => {
 
       if (card.type_code === 'hero' || card.type_code === 'alter_ego') {
         heroCodes.push(slot);
-      } else if (card.type_code === 'villain' || card.type_code === 'main_scheme') {
-        scenarioCodes.push(slot);
+      } else if (card.type_code === 'villain') {
+        villainCodes.push(slot);
+      } else if (card.type_code === 'main_scheme') {
+        mainSchemeCodes.push(slot);
+      } else if (card.card_set_type_code === 'hero_special') {
+        // Special deck — group by card_set_code
+        const setCode = card.card_set_code || 'special';
+        if (!specialBySet[setCode]) specialBySet[setCode] = { name: card.card_set_code || setCode, slots: [] };
+        specialBySet[setCode].slots.push(slot);
       } else if (card.faction_code !== 'encounter') {
-        playerCardCodes.push(slot);
+        // Split player cards: permanent vs normal (use DB field)
+        if (card.permanent) {
+          permanentCodes.push(slot);
+        } else {
+          playerCardCodes.push(slot);
+        }
       } else {
-        // Encounter card — group by set_code
-        const setCode = card.card_set_code || 'uncategorized';
-        if (!encounterBySet[setCode]) encounterBySet[setCode] = [];
-        encounterBySet[setCode].push(slot);
+        // Encounter card — separate permanents (use DB field)
+        if (card.permanent) {
+          encounterPermanentCodes.push(slot);
+        } else {
+          const setCode = card.card_set_code || 'uncategorized';
+          if (!encounterBySet[setCode]) encounterBySet[setCode] = [];
+          encounterBySet[setCode].push(slot);
+        }
       }
     }
 
@@ -891,25 +934,60 @@ router.get('/tts/pack/:code', async (req, res, next) => {
       const heroResult = buildTTSPile(heroCodes, detailsMap, nextDeckId, lang, nicknameMap);
       nextDeckId = heroResult.nextDeckId;
       if (heroResult.ttsObject) {
-        result.heroes = applyTransform(heroResult.ttsObject, { posX: -5, posY: 2, posZ: 5 });
+        result.hero = applyTransform(heroResult.ttsObject, { posX: -5, posY: 2, posZ: 5, scaleXZ: 1.65 });
       }
     }
 
-    // Scenarios (villains + main schemes)
-    if (scenarioCodes.length > 0) {
-      const scenResult = buildTTSPile(scenarioCodes, detailsMap, nextDeckId, lang, nicknameMap);
-      nextDeckId = scenResult.nextDeckId;
-      if (scenResult.ttsObject) {
-        result.scenarios = applyTransform(scenResult.ttsObject, { posX: 0, posY: 2, posZ: 5 });
+    // Villains
+    if (villainCodes.length > 0) {
+      const villResult = buildTTSPile(villainCodes, detailsMap, nextDeckId, lang, nicknameMap);
+      nextDeckId = villResult.nextDeckId;
+      if (villResult.ttsObject) {
+        result.villains = applyTransform(villResult.ttsObject, { posX: 0, posY: 2, posZ: 5, scaleXZ: 1.65 });
       }
     }
 
-    // Player Cards
+    // Main Schemes
+    if (mainSchemeCodes.length > 0) {
+      const schemeResult = buildTTSPile(mainSchemeCodes, detailsMap, nextDeckId, lang, nicknameMap);
+      nextDeckId = schemeResult.nextDeckId;
+      if (schemeResult.ttsObject) {
+        result.mainSchemes = applyTransform(schemeResult.ttsObject, { posX: 0, posY: 2, posZ: 2, scaleXZ: 1.88 });
+      }
+    }
+
+    // Main Deck (non-permanents)
     if (playerCardCodes.length > 0) {
       const playerResult = buildTTSPile(playerCardCodes, detailsMap, nextDeckId, lang, nicknameMap);
       nextDeckId = playerResult.nextDeckId;
       if (playerResult.ttsObject) {
-        result.playerCards = applyTransform(playerResult.ttsObject, { posX: -5, posY: 2, posZ: 0 });
+        result.mainDeck = applyTransform(playerResult.ttsObject, { posX: -5, posY: 2, posZ: 0 });
+      }
+    }
+
+    // Permanents
+    if (permanentCodes.length > 0) {
+      const permResult = buildTTSPile(permanentCodes, detailsMap, nextDeckId, lang, nicknameMap);
+      nextDeckId = permResult.nextDeckId;
+      if (permResult.ttsObject) {
+        result.permanents = applyTransform(permResult.ttsObject, { posX: -5, posY: 2, posZ: -3 });
+      }
+    }
+
+    // Special Decks — each set gets its own pile
+    const specialSetKeys = Object.keys(specialBySet);
+    if (specialSetKeys.length > 0) {
+      result.specialDecks = {};
+      let specPosZ = -5;
+      for (const setCode of specialSetKeys) {
+        const { name, slots } = specialBySet[setCode];
+        const specResult = buildTTSPile(slots, detailsMap, nextDeckId, lang, nicknameMap);
+        nextDeckId = specResult.nextDeckId;
+        if (specResult.ttsObject) {
+          specResult.ttsObject.Nickname = name;
+          result.specialDecks[setCode] = applyTransform(specResult.ttsObject, { posX: -5, posY: 2, posZ: specPosZ });
+          specPosZ -= 3;
+        }
       }
     }
 
@@ -923,9 +1001,18 @@ router.get('/tts/pack/:code', async (req, res, next) => {
         const setResult = buildTTSPile(setSlots, detailsMap, nextDeckId, lang, nicknameMap);
         nextDeckId = setResult.nextDeckId;
         if (setResult.ttsObject) {
-          result.encounterSets[setCode] = applyTransform(setResult.ttsObject, { posX: 5, posY: 2, posZ });
+          result.encounterSets[setCode] = applyTransform(setResult.ttsObject, { posX: 5, posY: 2, posZ, scaleXZ: 1.88 });
           posZ -= 3;
         }
+      }
+    }
+
+    // Encounter Permanents
+    if (encounterPermanentCodes.length > 0) {
+      const encPermResult = buildTTSPile(encounterPermanentCodes, detailsMap, nextDeckId, lang, nicknameMap);
+      nextDeckId = encPermResult.nextDeckId;
+      if (encPermResult.ttsObject) {
+        result.encounterPermanents = applyTransform(encPermResult.ttsObject, { posX: 5, posY: 2, posZ: -5, scaleXZ: 1.88 });
       }
     }
 
@@ -941,43 +1028,92 @@ router.get('/tts/pack/:code', async (req, res, next) => {
 
 // ─── Image Endpoints ─────────────────────────────────────────────────────────
 
-/**
- * Helper: download an image, trying the requested lang first, then EN fallback.
- * Returns the image buffer or null.
- */
-async function fetchImageWithFallback(url, lang, pack, code) {
-  // Try the original URL first
-  try {
-    const resp = await axios({ url, responseType: 'arraybuffer', timeout: 10000 });
-    if (resp.status === 200 && resp.data && resp.data.length > 0) return resp.data;
-  } catch (_) { /* fall through */ }
+/** Default placeholder image URL — used when both FR and EN images are missing */
+const PLACEHOLDER_IMAGE_URL = `${BACKS_BASE_URL}/player_back.webp`;
 
-  // Fallback to EN if lang wasn't already EN
+/**
+ * Try to download an image. Returns the buffer only if the response is a
+ * genuine image (status 200 + image/* content-type). Returns null otherwise,
+ * including when the server returns a 404 HTML page with a 200 status.
+ */
+async function tryFetchImage(url) {
+  try {
+    const resp = await axios({
+      url,
+      responseType: 'arraybuffer',
+      timeout: 10000,
+      validateStatus: (s) => s === 200, // only accept 200
+    });
+    // Guard: some servers return 200 with HTML for missing images
+    const ct = (resp.headers['content-type'] || '').toLowerCase();
+    if (!ct.startsWith('image/')) return null;
+    if (!resp.data || resp.data.length === 0) return null;
+    return resp.data;
+  } catch (_) {
+    return null;
+  }
+}
+
+/**
+ * Download an image with graceful fallback chain:
+ *   1. Original URL (requested language)
+ *   2. EN fallback (if lang ≠ EN)
+ *   3. Placeholder (player_back.webp) — guarantees TTS never gets HTML
+ *
+ * Always returns a valid image buffer.
+ */
+async function fetchImageWithFallback(url, lang, pack, code, dupCode, dupPack) {
+  // 1. Try the original URL
+  const primary = await tryFetchImage(url);
+  if (primary) return primary;
+
+  // 2. Fallback to EN if language wasn't already EN
   if (lang && lang.toUpperCase() !== 'EN' && pack && code) {
-    const fallbackURL = `${CARDS_BASE_URL}/EN/${pack}/${code}.webp`;
-    try {
-      const resp = await axios({ url: fallbackURL, responseType: 'arraybuffer', timeout: 10000 });
-      if (resp.status === 200 && resp.data && resp.data.length > 0) return resp.data;
-    } catch (_) { /* fall through */ }
+    const enURL = `${CARDS_BASE_URL}/EN/${pack}/${code}.webp`;
+    const enBuffer = await tryFetchImage(enURL);
+    if (enBuffer) return enBuffer;
   }
 
-  return null;
+  // 3. Also try replacing /FR/ (or any lang) with /EN/ directly in the URL
+  if (url && /\/[A-Z]{2}\//i.test(url)) {
+    const altURL = url.replace(/\/[A-Z]{2}\//i, '/EN/');
+    if (altURL !== url) {
+      const altBuffer = await tryFetchImage(altURL);
+      if (altBuffer) return altBuffer;
+    }
+  }
+
+  // 4. Duplicate fallback: try the original card's image (FR then EN)
+  if (dupCode && dupPack) {
+    const dupFrURL = `${CARDS_BASE_URL}/${lang || 'FR'}/${dupPack}/${dupCode}.webp`;
+    const dupFr = await tryFetchImage(dupFrURL);
+    if (dupFr) return dupFr;
+
+    const dupEnURL = `${CARDS_BASE_URL}/EN/${dupPack}/${dupCode}.webp`;
+    const dupEn = await tryFetchImage(dupEnURL);
+    if (dupEn) return dupEn;
+  }
+
+  // 5. Return placeholder so TTS never receives HTML or an error
+  const placeholder = await tryFetchImage(PLACEHOLDER_IMAGE_URL);
+  return placeholder; // may still be null in extreme cases
 }
 
 /**
  * GET /api/public/tts/card-image?url=<encoded_url>&lang=FR&pack=core&code=01001a
  *
- * Image proxy with language fallback. Tries the given URL first; if the image
- * is missing (404/error), falls back to the EN version.
- * Streams back WebP with 24h cache.
+ * Image proxy with language fallback + placeholder guarantee.
+ * TTS always receives a valid image/webp response.
  */
 router.get('/tts/card-image', async (req, res) => {
   try {
-    const { url, lang, pack, code } = req.query;
+    const { url, lang, pack, code, dup_code, dup_pack } = req.query;
     if (!url) return res.status(400).send('URL missing');
 
-    const buffer = await fetchImageWithFallback(url, lang, pack, code);
-    if (!buffer) return res.status(404).send('Image not found');
+    const buffer = await fetchImageWithFallback(url, lang, pack, code, dup_code, dup_pack);
+    if (!buffer) {
+      return res.status(404).send('Image not found');
+    }
 
     res.set('Content-Type', 'image/webp');
     res.set('Cache-Control', 'public, max-age=86400');
@@ -991,16 +1127,17 @@ router.get('/tts/card-image', async (req, res) => {
 /**
  * GET /api/public/tts/rotate-image?url=<encoded_url>&lang=FR&pack=core&code=01001a
  *
- * Downloads the image (with language fallback), rotates it 90° clockwise using
- * Sharp, and streams back the result as WebP.
+ * Image proxy with rotation (90° CW) + language fallback + placeholder guarantee.
  */
 router.get('/tts/rotate-image', async (req, res) => {
   try {
-    const { url, lang, pack, code } = req.query;
+    const { url, lang, pack, code, dup_code, dup_pack } = req.query;
     if (!url) return res.status(400).send('URL missing');
 
-    const buffer = await fetchImageWithFallback(url, lang, pack, code);
-    if (!buffer) return res.status(404).send('Image not found');
+    const buffer = await fetchImageWithFallback(url, lang, pack, code, dup_code, dup_pack);
+    if (!buffer) {
+      return res.status(404).send('Image not found');
+    }
 
     const rotatedBuffer = await sharp(Buffer.from(buffer))
       .rotate(90)
