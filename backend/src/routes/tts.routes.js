@@ -602,7 +602,8 @@ async function buildHeroIdentityCard(heroCode, detailsMap, nextDeckId, lang, nic
   if (backCode) {
     const directURL = `${CARDS_BASE_URL}/${lang}/${heroCard.pack_code}/${backCode}.webp`;
     const heroBackVersion = getImageVersion(lang, heroCard.pack_code, backCode);
-    backURL = `${API_BASE_URL}/api/public/tts/card-image?url=${encodeURIComponent(directURL)}&lang=${lang}&pack=${heroCard.pack_code}&code=${backCode}${heroBackVersion}`;
+    const variantParam = (variant && VALID_VARIANTS[variant]) ? `&variant=${variant}` : '';
+    backURL = `${API_BASE_URL}/api/public/tts/card-image?url=${encodeURIComponent(directURL)}&lang=${lang}&pack=${heroCard.pack_code}&code=${backCode}${heroBackVersion}${variantParam}`;
   } else {
     backURL = resolveBackURL(heroCard, lang);
   }
@@ -666,7 +667,7 @@ router.get('/tts/deck/public/:id', async (req, res, next) => {
       .select('c.code', 's.quantity');
 
     // 3. Build the TTS response
-    const result = await buildDeckTTSResponse(deck, mainSlots, sideSlots, lang);
+    const result = await buildDeckTTSResponse(deck, mainSlots, sideSlots, lang, variant);
     res.json(result);
   } catch (err) {
     console.error('GET /tts/deck/public/:id error:', err);
@@ -706,7 +707,7 @@ router.get('/tts/deck/private/:id', async (req, res, next) => {
       .select('c.code', 's.quantity');
 
     // Build the TTS response
-    const result = await buildDeckTTSResponse(deck, mainSlots, sideSlots, lang);
+    const result = await buildDeckTTSResponse(deck, mainSlots, sideSlots, lang, variant);
     res.json(result);
   } catch (err) {
     console.error('GET /tts/deck/private/:id error:', err);
@@ -717,7 +718,7 @@ router.get('/tts/deck/private/:id', async (req, res, next) => {
 /**
  * Shared logic for building TTS JSON from a deck's data.
  */
-async function buildDeckTTSResponse(deck, mainSlots, sideSlots, lang) {
+async function buildDeckTTSResponse(deck, mainSlots, sideSlots, lang, variant) {
   const permanentSetupRegex = /permanent|setup/i;
   let nextDeckId = 1;
 
