@@ -1304,3 +1304,54 @@ html.dark .scenario-shuffle-btn:hover { background: #047857; color: #ffffff; }
   flex: none !important;
   min-height: auto !important;
 }
+
+/* ── Scenario UUID row ──────────────────────────── */
+
+.scenario-uuid-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 8px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.15s;
+  user-select: none;
+}
+
+.scenario-uuid-row:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+html:not(.dark) .scenario-uuid-row:hover {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+.scenario-uuid-label {
+  font-size: 0.68rem;
+  color: var(--st-text-muted);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.scenario-uuid-code {
+  font-size: 0.72rem;
+  font-family: 'Courier New', 'Fira Code', monospace;
+  font-weight: 700;
+  color: var(--st-accent, #60a5fa);
+  letter-spacing: 0.06em;
+}
+
+.scenario-uuid-feedback {
+  font-size: 0.65rem;
+  color: var(--st-text-muted);
+  opacity: 0.6;
+  transition: opacity 0.2s, color 0.2s;
+}
+
+.scenario-uuid-feedback--visible {
+  color: #10b981;
+  opacity: 1;
+  font-weight: 700;
+}

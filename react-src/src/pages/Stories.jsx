@@ -38,6 +38,31 @@ function isOfficialCreator(creator) {
   return !creator || creator.toLowerCase() === 'ffg' || creator.toLowerCase() === 'default';
 }
 
+/**
+ * Generate a deterministic 12-char hex UUID from sorted set codes.
+ * Uses dual FNV-1a 32-bit hashes (different seeds) to produce 48 bits.
+ * Same sets → same UUID, regardless of order.
+ */
+function generateScenarioUUID(setCodes) {
+  const sorted = [...setCodes].sort();
+  const str = sorted.join('|');
+  // Hash 1
+  let h1 = 0x811c9dc5;
+  for (let i = 0; i < str.length; i++) {
+    h1 ^= str.charCodeAt(i);
+    h1 = Math.imul(h1, 0x01000193);
+  }
+  // Hash 2 (different seed)
+  let h2 = 0x050c5d1f;
+  for (let i = 0; i < str.length; i++) {
+    h2 ^= str.charCodeAt(i);
+    h2 = Math.imul(h2, 0x01000193);
+  }
+  const part1 = (h1 >>> 0).toString(16).padStart(8, '0');
+  const part2 = (h2 >>> 0).toString(16).padStart(8, '0').slice(0, 4);
+  return part1 + part2;
+}
+
 /* ══════════════════════════════════════════════════════════════
    SET STATISTICS UTILITY
    ══════════════════════════════════════════════════════════════ */
@@ -418,6 +443,44 @@ function MainSchemeRow({ card }) {
   );
 }
 
+/**
+ * Displays the scenario UUID code below the difficulty badges.
+ * Click to copy. Auto-persists to backend if new.
+ */
+function ScenarioUUIDRow({ uuid, sets }) {
+  const [copied, setCopied] = useState(false);
+  const persistedRef = useRef(new Set());
+
+  // Auto-persist UUID to backend (once per UUID)
+  useEffect(() => {
+    if (!uuid || !sets || sets.length === 0) return;
+    if (persistedRef.current.has(uuid)) return;
+    persistedRef.current.add(uuid);
+    fetch('/api/public/tts/scenario', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ uuid, sets }),
+    }).catch(() => {}); // fire-and-forget
+  }, [uuid, sets]);
+
+  const handleCopy = useCallback(() => {
+    navigator.clipboard.writeText(uuid).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    }).catch(() => {});
+  }, [uuid]);
+
+  return (
+    <div className="scenario-uuid-row" onClick={handleCopy} title="Click to copy scenario code">
+      <span className="scenario-uuid-label">code:</span>
+      <span className="scenario-uuid-code">{uuid}</span>
+      <span className={`scenario-uuid-feedback${copied ? ' scenario-uuid-feedback--visible' : ''}`}>
+        {copied ? '✓ Copied!' : '📋'}
+      </span>
+    </div>
+  );
+}
+
 function ScenarioStatsSidebar({ scenario, onDeselect }) {
   const locale = useLocale();
   // Standard/Expert available sets (loaded once on mount)
@@ -621,6 +684,15 @@ function ScenarioStatsSidebar({ scenario, onDeselect }) {
               <span className="mc-badge mc-badge-private" title="Donor exclusive">🔒</span>
             )}
           </div>
+          {/* Scenario UUID — click to copy */}
+          {(() => {
+            const setCodes = sets.map(s => s.code);
+            if (setCodes.length === 0) return null;
+            const uuid = generateScenarioUUID(setCodes);
+            return (
+              <ScenarioUUIDRow uuid={uuid} sets={setCodes} />
+            );
+          })()}
         </div>
         <button className="scenario-stats-close-btn" onClick={onDeselect} aria-label="Close">×</button>
       </div>

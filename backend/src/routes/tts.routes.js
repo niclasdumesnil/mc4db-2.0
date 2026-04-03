@@ -25,6 +25,40 @@ const API_BASE_URL = process.env.BASE_URL || 'http://127.0.0.1:4000';
 /** Card types that are printed landscape and need rotation for TTS vertical decks. */
 const LANDSCAPE_TYPES = new Set(['main_scheme', 'side_scheme', 'player_side_scheme']);
 
+// ─── Image version cache-busting ─────────────────────────────────────────────
+const path = require('path');
+const fs = require('fs');
+
+const IMAGE_VERSIONS_PATH = path.join(__dirname, '../../../bundles/cards/image_versions.json');
+let imageVersions = {};
+
+function loadImageVersions() {
+  try {
+    if (fs.existsSync(IMAGE_VERSIONS_PATH)) {
+      imageVersions = JSON.parse(fs.readFileSync(IMAGE_VERSIONS_PATH, 'utf8'));
+      console.log(`[TTS] Image versions loaded: ${Object.keys(imageVersions).length} entries`);
+    }
+  } catch (e) {
+    console.warn('[TTS] Could not load image_versions.json:', e.message);
+    imageVersions = {};
+  }
+}
+
+loadImageVersions();
+const reloadHours = parseInt(process.env.IMAGE_VERSIONS_RELOAD_HOURS) || 24;
+setInterval(loadImageVersions, reloadHours * 3600 * 1000);
+
+/**
+ * Get the version suffix for a card image URL.
+ * Returns '' for version 0 (new files), '&v=N' for updated files.
+ * Key format in JSON: "FR/pack_code/card_code.webp"
+ */
+function getImageVersion(lang, packCode, code) {
+  const key = `${lang}/${packCode}/${code}.webp`;
+  const v = imageVersions[key];
+  return (v && v > 0) ? `&v=${v}` : '';
+}
+
 // ─── Shared Helpers ──────────────────────────────────────────────────────────
 
 /**
@@ -125,16 +159,17 @@ function resolveBackURL(card, lang) {
   // 1. Double-sided / Linked
   if (card.back_link) {
     const directURL = `${CARDS_BASE_URL}/${lang}/${card.pack_code}/${card.back_link}.webp`;
-    // Landscape cards (schemes) → back face also needs rotation
+    const backVersion = getImageVersion(lang, card.pack_code, card.back_link);
     const endpoint = LANDSCAPE_TYPES.has(card.type_code) ? 'rotate-image' : 'card-image';
-    return `${API_BASE_URL}/api/public/tts/${endpoint}?url=${encodeURIComponent(directURL)}&lang=${lang}&pack=${card.pack_code}&code=${card.back_link}`;
+    return `${API_BASE_URL}/api/public/tts/${endpoint}?url=${encodeURIComponent(directURL)}&lang=${lang}&pack=${card.pack_code}&code=${card.back_link}${backVersion}`;
   }
   // Check if code ends with 'a' and a 'b' variant would be the back
   if (card.code.endsWith('a')) {
     const bCode = card.code.slice(0, -1) + 'b';
     const directURL = `${CARDS_BASE_URL}/${lang}/${card.pack_code}/${bCode}.webp`;
+    const backVersion = getImageVersion(lang, card.pack_code, bCode);
     const endpoint = LANDSCAPE_TYPES.has(card.type_code) ? 'rotate-image' : 'card-image';
-    return `${API_BASE_URL}/api/public/tts/${endpoint}?url=${encodeURIComponent(directURL)}&lang=${lang}&pack=${card.pack_code}&code=${bCode}`;
+    return `${API_BASE_URL}/api/public/tts/${endpoint}?url=${encodeURIComponent(directURL)}&lang=${lang}&pack=${card.pack_code}&code=${bCode}${backVersion}`;
   }
 
   // 2. Villain
@@ -174,20 +209,22 @@ function resolveBackURL(card, lang) {
  * @returns {object} TTS card object
  */
 function buildTTSCard(card, deckId, lang, opts = {}) {
-  const { states = null, nicknameMap = null, backURLOverride = null } = opts;
+  const { states = null, nicknameMap = null, backURLOverride = null, variant = null } = opts;
 
   // FaceURL through the fallback proxy (tries lang, falls back to EN, then original card for duplicates)
   const directFaceURL = `${CARDS_BASE_URL}/${lang}/${card.pack_code}/${card.code}.webp`;
+  const versionParam = getImageVersion(lang, card.pack_code, card.code);
   // If this card is a duplicate, pass the original card info so the proxy can fall back to it
   const dupParams = card.duplicate_of_code
     ? `&dup_code=${card.duplicate_of_code}&dup_pack=${card.duplicate_of_pack_code || card.pack_code}`
     : '';
-  let faceURL = `${API_BASE_URL}/api/public/tts/card-image?url=${encodeURIComponent(directFaceURL)}&lang=${lang}&pack=${card.pack_code}&code=${card.code}${dupParams}`;
+  const variantParam = (variant && VALID_VARIANTS[variant]) ? `&variant=${variant}` : '';
+  let faceURL = `${API_BASE_URL}/api/public/tts/card-image?url=${encodeURIComponent(directFaceURL)}&lang=${lang}&pack=${card.pack_code}&code=${card.code}${dupParams}${versionParam}${variantParam}`;
   const backURL = backURLOverride || resolveBackURL(card, lang);
 
   // Landscape cards (schemes) → rotate via our endpoint (which itself uses fallback)
   if (LANDSCAPE_TYPES.has(card.type_code)) {
-    faceURL = `${API_BASE_URL}/api/public/tts/rotate-image?url=${encodeURIComponent(directFaceURL)}&lang=${lang}&pack=${card.pack_code}&code=${card.code}${dupParams}`;
+    faceURL = `${API_BASE_URL}/api/public/tts/rotate-image?url=${encodeURIComponent(directFaceURL)}&lang=${lang}&pack=${card.pack_code}&code=${card.code}${dupParams}${versionParam}${variantParam}`;
   }
 
   // Resolve nickname: prefer translation, fallback to DB name, then code
@@ -213,6 +250,10 @@ function buildTTSCard(card, deckId, lang, opts = {}) {
       scaleX: 1, scaleY: 1, scaleZ: 1,
     },
   };
+
+  // Optional metadata fields (set by scenario route)
+  if (card._description) obj.Description = card._description;
+  if (card._memo) obj.Memo = card._memo;
 
   // Landscape cards: rotated FaceURL + SidewaysCard for correct ALT-zoom
   if (LANDSCAPE_TYPES.has(card.type_code)) {
@@ -240,7 +281,7 @@ function buildTTSCard(card, deckId, lang, opts = {}) {
  * @param {Map}    [nicknameMap] - Map<code, translatedName>
  * @returns {{ ttsObject: object|null, nextDeckId: number }}
  */
-function buildTTSPile(slots, detailsMap, nextDeckId, lang, nicknameMap = null) {
+function buildTTSPile(slots, detailsMap, nextDeckId, lang, nicknameMap = null, variant = null) {
   if (!slots || slots.length === 0) return { ttsObject: null, nextDeckId };
 
   // Collect unique base codes already processed (to skip 'b' backs and attach c/d states)
@@ -275,7 +316,7 @@ function buildTTSPile(slots, detailsMap, nextDeckId, lang, nicknameMap = null) {
       const varCard = detailsMap.get(varCode);
       if (varCard) {
         const stateId = nextDeckId++;
-        states[String(stateIndex)] = buildTTSCard(varCard, stateId, lang, { nicknameMap });
+        states[String(stateIndex)] = buildTTSCard(varCard, stateId, lang, { nicknameMap, variant });
         stateIndex++;
       }
     }
@@ -285,6 +326,7 @@ function buildTTSPile(slots, detailsMap, nextDeckId, lang, nicknameMap = null) {
     const ttsCard = buildTTSCard(card, mainDeckId, lang, {
       states: Object.keys(states).length > 0 ? states : null,
       nicknameMap,
+      variant,
     });
     cards.push({ ttsCard, quantity: qty });
     processedBases.add(baseCode);
@@ -538,7 +580,7 @@ async function fetchLinkedCardSlots(slotCardCodes) {
  *   - identityCodes: Set of all codes belonging to the identity card
  *     (to be excluded from the main deck slots).
  */
-async function buildHeroIdentityCard(heroCode, detailsMap, nextDeckId, lang, nicknameMap) {
+async function buildHeroIdentityCard(heroCode, detailsMap, nextDeckId, lang, nicknameMap, variant = null) {
   if (!heroCode) return { ttsObject: null, nextDeckId, identityCodes: new Set() };
 
   const heroCard = detailsMap.get(heroCode);
@@ -559,7 +601,8 @@ async function buildHeroIdentityCard(heroCode, detailsMap, nextDeckId, lang, nic
   let backURL;
   if (backCode) {
     const directURL = `${CARDS_BASE_URL}/${lang}/${heroCard.pack_code}/${backCode}.webp`;
-    backURL = `${API_BASE_URL}/api/public/tts/card-image?url=${encodeURIComponent(directURL)}&lang=${lang}&pack=${heroCard.pack_code}&code=${backCode}`;
+    const heroBackVersion = getImageVersion(lang, heroCard.pack_code, backCode);
+    backURL = `${API_BASE_URL}/api/public/tts/card-image?url=${encodeURIComponent(directURL)}&lang=${lang}&pack=${heroCard.pack_code}&code=${backCode}${heroBackVersion}`;
   } else {
     backURL = resolveBackURL(heroCard, lang);
   }
@@ -573,7 +616,7 @@ async function buildHeroIdentityCard(heroCode, detailsMap, nextDeckId, lang, nic
     const varCard = detailsMap.get(varCode);
     if (varCard && (varCard.type_code === 'hero' || varCard.type_code === 'alter_ego')) {
       const stateId = nextDeckId++;
-      states[String(stateIndex)] = buildTTSCard(varCard, stateId, lang, { nicknameMap });
+      states[String(stateIndex)] = buildTTSCard(varCard, stateId, lang, { nicknameMap, variant });
       stateIndex++;
     }
   }
@@ -583,6 +626,7 @@ async function buildHeroIdentityCard(heroCode, detailsMap, nextDeckId, lang, nic
     states: Object.keys(states).length > 0 ? states : null,
     nicknameMap,
     backURLOverride: backURL,
+    variant,
   });
 
   // Add health to the hero card Description for TTS Lua access
@@ -599,6 +643,7 @@ router.get('/tts/deck/public/:id', async (req, res, next) => {
   try {
     const id = parseInt(req.params.id, 10);
     const lang = (req.query.lang || 'fr').toUpperCase();
+    const variant = req.query.variant || null;
 
     // 1. Fetch the public decklist
     const deck = await db('decklist as d')
@@ -635,6 +680,7 @@ router.get('/tts/deck/private/:id', async (req, res, next) => {
   try {
     const id = parseInt(req.params.id, 10);
     const lang = (req.query.lang || 'fr').toUpperCase();
+    const variant = req.query.variant || null;
 
     // Fetch private deck (only if user shares decks)
     const deck = await db('deck as d')
@@ -712,7 +758,7 @@ async function buildDeckTTSResponse(deck, mainSlots, sideSlots, lang) {
   const nicknameMap = await fetchNicknameMap([...allCodes], lang);
 
   // 4. Build the hero identity card (single double-sided card)
-  const heroResult = await buildHeroIdentityCard(deck.hero_code, detailsMap, nextDeckId, lang, nicknameMap);
+  const heroResult = await buildHeroIdentityCard(deck.hero_code, detailsMap, nextDeckId, lang, nicknameMap, variant);
   nextDeckId = heroResult.nextDeckId;
   const identityCodes = heroResult.identityCodes; // codes to exclude from slots
 
@@ -747,14 +793,14 @@ async function buildDeckTTSResponse(deck, mainSlots, sideSlots, lang) {
   }
 
   // Main deck (non-permanents)
-  const mainResult = buildTTSPile(nonPermanentCodes, detailsMap, nextDeckId, lang, nicknameMap);
+  const mainResult = buildTTSPile(nonPermanentCodes, detailsMap, nextDeckId, lang, nicknameMap, variant);
   nextDeckId = mainResult.nextDeckId;
   if (mainResult.ttsObject) {
     result.mainDeck = applyTransform(mainResult.ttsObject, { posX: 0, posY: 2, posZ: -3, rotY: 180, rotZ: 180 });
   }
 
   // Permanents
-  const permResult = buildTTSPile(permanentCodes, detailsMap, nextDeckId, lang, nicknameMap);
+  const permResult = buildTTSPile(permanentCodes, detailsMap, nextDeckId, lang, nicknameMap, variant);
   nextDeckId = permResult.nextDeckId;
   if (permResult.ttsObject) {
     result.permanents = applyTransform(permResult.ttsObject, { posX: 0, posY: 2, posZ: 3, rotY: 180, rotZ: 180 });
@@ -762,7 +808,7 @@ async function buildDeckTTSResponse(deck, mainSlots, sideSlots, lang) {
 
   // Side deck
   if (filteredSideSlots.length > 0) {
-    const sideResult = buildTTSPile(filteredSideSlots, detailsMap, nextDeckId, lang, nicknameMap);
+    const sideResult = buildTTSPile(filteredSideSlots, detailsMap, nextDeckId, lang, nicknameMap, variant);
     nextDeckId = sideResult.nextDeckId;
     if (sideResult.ttsObject) {
       result.sideDeck = applyTransform(sideResult.ttsObject, { posX: -3, posY: 2, posZ: -3, rotY: 180, rotZ: 180, scaleXZ: 1.0 });
@@ -771,7 +817,7 @@ async function buildDeckTTSResponse(deck, mainSlots, sideSlots, lang) {
 
   // Nemesis
   if (nemesisSlots.length > 0) {
-    const nemResult = buildTTSPile(nemesisSlots, detailsMap, nextDeckId, lang, nicknameMap);
+    const nemResult = buildTTSPile(nemesisSlots, detailsMap, nextDeckId, lang, nicknameMap, variant);
     nextDeckId = nemResult.nextDeckId;
     if (nemResult.ttsObject) {
       result.nemesis = applyTransform(nemResult.ttsObject, { posX: 3, posY: 2, posZ: 3, rotY: 180, rotZ: 180, scaleXZ: 1.88 });
@@ -785,7 +831,7 @@ async function buildDeckTTSResponse(deck, mainSlots, sideSlots, lang) {
     let specPosZ = 0;
     for (const setCode of specialSetKeys) {
       const { name, slots } = specialSlotsMap[setCode];
-      const specResult = buildTTSPile(slots, detailsMap, nextDeckId, lang, nicknameMap);
+      const specResult = buildTTSPile(slots, detailsMap, nextDeckId, lang, nicknameMap, variant);
       nextDeckId = specResult.nextDeckId;
       if (specResult.ttsObject) {
         // Tag the pile with the deck name for identification
@@ -810,7 +856,7 @@ async function buildDeckTTSResponse(deck, mainSlots, sideSlots, lang) {
           for (const [k, v] of extra) detailsMap.set(k, v);
         }
       }
-      const linkedResult = buildTTSPile(slots, detailsMap, nextDeckId, lang, nicknameMap);
+      const linkedResult = buildTTSPile(slots, detailsMap, nextDeckId, lang, nicknameMap, variant);
       nextDeckId = linkedResult.nextDeckId;
       if (linkedResult.ttsObject) {
         linkedResult.ttsObject.Nickname = sourceName;
@@ -936,7 +982,7 @@ router.get('/tts/pack/:code', async (req, res, next) => {
 
     // Heroes
     if (heroCodes.length > 0) {
-      const heroResult = buildTTSPile(heroCodes, detailsMap, nextDeckId, lang, nicknameMap);
+      const heroResult = buildTTSPile(heroCodes, detailsMap, nextDeckId, lang, nicknameMap, variant);
       nextDeckId = heroResult.nextDeckId;
       if (heroResult.ttsObject) {
         result.hero = applyTransform(heroResult.ttsObject, { posX: -5, posY: 2, posZ: 5, scaleXZ: 1.65 });
@@ -945,7 +991,7 @@ router.get('/tts/pack/:code', async (req, res, next) => {
 
     // Villains
     if (villainCodes.length > 0) {
-      const villResult = buildTTSPile(villainCodes, detailsMap, nextDeckId, lang, nicknameMap);
+      const villResult = buildTTSPile(villainCodes, detailsMap, nextDeckId, lang, nicknameMap, variant);
       nextDeckId = villResult.nextDeckId;
       if (villResult.ttsObject) {
         result.villains = applyTransform(villResult.ttsObject, { posX: 0, posY: 2, posZ: 5, scaleXZ: 1.65 });
@@ -954,7 +1000,7 @@ router.get('/tts/pack/:code', async (req, res, next) => {
 
     // Main Schemes
     if (mainSchemeCodes.length > 0) {
-      const schemeResult = buildTTSPile(mainSchemeCodes, detailsMap, nextDeckId, lang, nicknameMap);
+      const schemeResult = buildTTSPile(mainSchemeCodes, detailsMap, nextDeckId, lang, nicknameMap, variant);
       nextDeckId = schemeResult.nextDeckId;
       if (schemeResult.ttsObject) {
         result.mainSchemes = applyTransform(schemeResult.ttsObject, { posX: 0, posY: 2, posZ: 2, scaleXZ: 1.88 });
@@ -963,7 +1009,7 @@ router.get('/tts/pack/:code', async (req, res, next) => {
 
     // Main Deck (non-permanents)
     if (playerCardCodes.length > 0) {
-      const playerResult = buildTTSPile(playerCardCodes, detailsMap, nextDeckId, lang, nicknameMap);
+      const playerResult = buildTTSPile(playerCardCodes, detailsMap, nextDeckId, lang, nicknameMap, variant);
       nextDeckId = playerResult.nextDeckId;
       if (playerResult.ttsObject) {
         result.mainDeck = applyTransform(playerResult.ttsObject, { posX: -5, posY: 2, posZ: 0 });
@@ -972,7 +1018,7 @@ router.get('/tts/pack/:code', async (req, res, next) => {
 
     // Permanents
     if (permanentCodes.length > 0) {
-      const permResult = buildTTSPile(permanentCodes, detailsMap, nextDeckId, lang, nicknameMap);
+      const permResult = buildTTSPile(permanentCodes, detailsMap, nextDeckId, lang, nicknameMap, variant);
       nextDeckId = permResult.nextDeckId;
       if (permResult.ttsObject) {
         result.permanents = applyTransform(permResult.ttsObject, { posX: -5, posY: 2, posZ: -3 });
@@ -986,7 +1032,7 @@ router.get('/tts/pack/:code', async (req, res, next) => {
       let specPosZ = -5;
       for (const setCode of specialSetKeys) {
         const { name, slots } = specialBySet[setCode];
-        const specResult = buildTTSPile(slots, detailsMap, nextDeckId, lang, nicknameMap);
+        const specResult = buildTTSPile(slots, detailsMap, nextDeckId, lang, nicknameMap, variant);
         nextDeckId = specResult.nextDeckId;
         if (specResult.ttsObject) {
           specResult.ttsObject.Nickname = name;
@@ -1003,7 +1049,7 @@ router.get('/tts/pack/:code', async (req, res, next) => {
       let posZ = 5;
       for (const setCode of encounterSetKeys) {
         const setSlots = encounterBySet[setCode];
-        const setResult = buildTTSPile(setSlots, detailsMap, nextDeckId, lang, nicknameMap);
+        const setResult = buildTTSPile(setSlots, detailsMap, nextDeckId, lang, nicknameMap, variant);
         nextDeckId = setResult.nextDeckId;
         if (setResult.ttsObject) {
           result.encounterSets[setCode] = applyTransform(setResult.ttsObject, { posX: 5, posY: 2, posZ, scaleXZ: 1.88 });
@@ -1014,7 +1060,7 @@ router.get('/tts/pack/:code', async (req, res, next) => {
 
     // Encounter Permanents
     if (encounterPermanentCodes.length > 0) {
-      const encPermResult = buildTTSPile(encounterPermanentCodes, detailsMap, nextDeckId, lang, nicknameMap);
+      const encPermResult = buildTTSPile(encounterPermanentCodes, detailsMap, nextDeckId, lang, nicknameMap, variant);
       nextDeckId = encPermResult.nextDeckId;
       if (encPermResult.ttsObject) {
         result.encounterPermanents = applyTransform(encPermResult.ttsObject, { posX: 5, posY: 2, posZ: -5, scaleXZ: 1.88 });
@@ -1028,6 +1074,228 @@ router.get('/tts/pack/:code', async (req, res, next) => {
   } catch (err) {
     console.error('GET /tts/pack/:code error:', err);
     next(err);
+  }
+});
+
+// ─── Scenario Endpoints ──────────────────────────────────────────────────────
+
+const SCENARIOS_PATH = path.join(__dirname, '../../../bundles/TTS/scenarios_uuid.json');
+let scenariosMap = {};
+
+function loadScenarios() {
+  try {
+    if (fs.existsSync(SCENARIOS_PATH)) {
+      scenariosMap = JSON.parse(fs.readFileSync(SCENARIOS_PATH, 'utf8'));
+      console.log(`[TTS] Scenarios loaded: ${Object.keys(scenariosMap).length} entries`);
+    }
+  } catch (e) {
+    console.warn('[TTS] Could not load scenarios.json:', e.message);
+    scenariosMap = {};
+  }
+}
+loadScenarios();
+
+/**
+ * GET /api/public/tts/scenario/:uuid?lang=fr&variant=promo
+ *
+ * Resolve a scenario UUID to its encounter sets, fetch all cards, and
+ * return TTS JSON with piles: villains, mainSchemes, encounterSets, encounterPermanents.
+ */
+router.get('/tts/scenario/:uuid', async (req, res, next) => {
+  try {
+    const uuid = req.params.uuid;
+    const lang = (req.query.lang || 'fr').toUpperCase();
+    const variant = req.query.variant || null;
+
+    const entry = scenariosMap[uuid];
+    if (!entry || !entry.sets || !Array.isArray(entry.sets) || entry.sets.length === 0) {
+      return res.status(404).json({ error: `Scenario UUID "${uuid}" not found` });
+    }
+
+    const setCodes = entry.sets;
+
+    // Fetch all cards belonging to the requested sets
+    const rows = await db('card as c')
+      .leftJoin('pack as p', 'c.pack_id', 'p.id')
+      .leftJoin('type as t', 'c.type_id', 't.id')
+      .leftJoin('faction as f', 'c.faction_id', 'f.id')
+      .leftJoin('Cardset as cs', 'c.set_id', 'cs.id')
+      .leftJoin('Cardsettype as cst', 'cs.cardset_type', 'cst.id')
+      .leftJoin('card as lt', 'c.linked_id', 'lt.id')
+      .leftJoin('card as dup', 'c.duplicate_id', 'dup.id')
+      .leftJoin('pack as dup_pack', 'dup.pack_id', 'dup_pack.id')
+      .whereIn('cs.code', setCodes)
+      .orderBy('c.position', 'asc')
+      .select(
+        'c.code', 'c.name', 'c.text', 'c.real_text', 'c.quantity',
+        'c.permanent', 'c.double_sided', 'c.health', 'c.health_per_hero',
+        'c.stage', 'c.base_threat', 'c.base_threat_fixed',
+        'p.code as pack_code',
+        't.code as type_code',
+        'f.code as faction_code',
+        'cs.code as card_set_code',
+        'cs.parent_code as card_set_parent_code',
+        'cst.code as card_set_type_code',
+        'lt.code as back_link',
+        'lt.base_threat as linked_base_threat',
+        'lt.base_threat_fixed as linked_base_threat_fixed',
+        'dup.code as duplicate_of_code',
+        'dup_pack.code as duplicate_of_pack_code'
+      );
+
+    if (rows.length === 0) {
+      return res.status(404).json({ error: `No cards found for scenario sets: ${setCodes.join(', ')}` });
+    }
+
+    const detailsMap = new Map(rows.map(r => [r.code, r]));
+    const allCodes = rows.map(r => r.code);
+    const nicknameMap = await fetchNicknameMap(allCodes, lang);
+
+    // Categorize cards into piles
+    let nextDeckId = 1;
+    const villainCodes = [];
+    const mainSchemeCodes = [];
+    const encounterPermanentCodes = [];
+    const encounterBySet = {}; // set_code → [slots]
+
+    for (const card of rows) {
+      // Skip 'b' variants (used as back faces)
+      if (card.code.endsWith('b')) {
+        const aCode = card.code.slice(0, -1) + 'a';
+        if (detailsMap.has(aCode)) continue;
+      }
+
+      const slot = { code: card.code, quantity: card.quantity || 1 };
+
+      if (card.type_code === 'villain') {
+        villainCodes.push(slot);
+      } else if (card.type_code === 'main_scheme') {
+        mainSchemeCodes.push(slot);
+      } else if (card.permanent) {
+        encounterPermanentCodes.push(slot);
+      } else {
+        const setCode = card.card_set_code || 'uncategorized';
+        if (!encounterBySet[setCode]) encounterBySet[setCode] = [];
+        encounterBySet[setCode].push(slot);
+      }
+    }
+
+    // Inject metadata for Lua access
+    // Villains: stage → Memo, HP → Description
+    for (const slot of villainCodes) {
+      const card = detailsMap.get(slot.code);
+      if (!card) continue;
+      if (card.stage) card._memo = String(card.stage);
+      const descParts = [];
+      if (card.health != null) descParts.push(`HP:${card.health}`);
+      if (card.health_per_hero) descParts.push('per_hero:true');
+      if (descParts.length > 0) card._description = descParts.join('|');
+    }
+    // Main Schemes: stage → Memo, starting threat (b-side) → Description
+    for (const slot of mainSchemeCodes) {
+      const card = detailsMap.get(slot.code);
+      if (!card) continue;
+      if (card.stage) card._memo = String(card.stage);
+      const threat = card.linked_base_threat != null ? card.linked_base_threat : card.base_threat;
+      const fixed = card.linked_base_threat != null ? card.linked_base_threat_fixed : card.base_threat_fixed;
+      const descParts = [];
+      if (threat != null) descParts.push(`Threat:${threat}`);
+      if (fixed != null) descParts.push(`fixed:${fixed ? 'true' : 'false'}`);
+      if (descParts.length > 0) card._description = descParts.join('|');
+    }
+
+    // Build piles (reverse villains & schemes so stage 1 is on top)
+    villainCodes.reverse();
+    mainSchemeCodes.reverse();
+    const result = {};
+
+    // Villains
+    if (villainCodes.length > 0) {
+      const villResult = buildTTSPile(villainCodes, detailsMap, nextDeckId, lang, nicknameMap, variant);
+      nextDeckId = villResult.nextDeckId;
+      if (villResult.ttsObject) {
+        result.villains = applyTransform(villResult.ttsObject, { posX: 0, posY: 2, posZ: 5, scaleXZ: 1.65 });
+      }
+    }
+
+    // Main Schemes
+    if (mainSchemeCodes.length > 0) {
+      const schemeResult = buildTTSPile(mainSchemeCodes, detailsMap, nextDeckId, lang, nicknameMap, variant);
+      nextDeckId = schemeResult.nextDeckId;
+      if (schemeResult.ttsObject) {
+        result.mainSchemes = applyTransform(schemeResult.ttsObject, { posX: 0, posY: 2, posZ: 2, scaleXZ: 1.88 });
+      }
+    }
+
+    // Encounter sets (grouped by set code)
+    const encounterSetKeys = Object.keys(encounterBySet);
+    if (encounterSetKeys.length > 0) {
+      result.encounterSets = {};
+      let posZ = 5;
+      for (const setCode of encounterSetKeys) {
+        const setSlots = encounterBySet[setCode];
+        const setResult = buildTTSPile(setSlots, detailsMap, nextDeckId, lang, nicknameMap, variant);
+        nextDeckId = setResult.nextDeckId;
+        if (setResult.ttsObject) {
+          result.encounterSets[setCode] = applyTransform(setResult.ttsObject, { posX: 5, posY: 2, posZ, scaleXZ: 1.88 });
+          posZ -= 3;
+        }
+      }
+    }
+
+    // Encounter Permanents
+    if (encounterPermanentCodes.length > 0) {
+      const encPermResult = buildTTSPile(encounterPermanentCodes, detailsMap, nextDeckId, lang, nicknameMap, variant);
+      nextDeckId = encPermResult.nextDeckId;
+      if (encPermResult.ttsObject) {
+        result.encounterPermanents = applyTransform(encPermResult.ttsObject, { posX: 5, posY: 2, posZ: -5, scaleXZ: 1.88 });
+      }
+    }
+
+    // Extract villain name for Lua handler
+    const firstVillain = rows.find(r => r.type_code === 'villain');
+    const villainName = (firstVillain && firstVillain.name) ? firstVillain.name : 'Scenario';
+
+    res.json({
+      uuid,
+      name: villainName,
+      sets: setCodes,
+      piles: result,
+    });
+  } catch (err) {
+    console.error('GET /tts/scenario/:uuid error:', err);
+    next(err);
+  }
+});
+
+/**
+ * POST /api/public/tts/scenario
+ * Body: { uuid: "a3f7b2c1", sets: ["villain_set", "modular_1", "standard"] }
+ *
+ * Persist a new scenario UUID → sets mapping.
+ */
+router.post('/tts/scenario', async (req, res) => {
+  try {
+    const { uuid, sets } = req.body;
+    if (!uuid || !sets || !Array.isArray(sets) || sets.length === 0) {
+      return res.status(400).json({ error: 'uuid and sets[] are required' });
+    }
+
+    // Only add if UUID doesn't exist yet
+    if (!scenariosMap[uuid]) {
+      scenariosMap[uuid] = { sets };
+      // Write to disk
+      try {
+        fs.writeFileSync(SCENARIOS_PATH, JSON.stringify(scenariosMap, null, 2), 'utf8');
+      } catch (e) {
+        console.error('[TTS] Failed to write scenarios.json:', e.message);
+      }
+    }
+
+    res.json({ ok: true, uuid, sets: scenariosMap[uuid].sets });
+  } catch (err) {
+    console.error('POST /tts/scenario error:', err);
+    res.status(500).json({ error: 'Internal error' });
   }
 });
 
@@ -1059,27 +1327,67 @@ async function tryFetchImage(url) {
   }
 }
 
+/** Valid variant directory prefixes (non-cumulative) */
+const VALID_VARIANTS = { 'promo': 'promo', 'errata': 'errata', 'alt-ffg': 'alt-FFG' };
+
+/**
+ * Get the variant directory name for a given variant and language.
+ * E.g. variantDir('promo', 'FR') → 'promo-FR'
+ */
+function variantDir(variant, lang) {
+  const prefix = VALID_VARIANTS[variant];
+  return prefix ? `${prefix}-${lang}` : null;
+}
+
 /**
  * Download an image with graceful fallback chain:
- *   1. Original URL (requested language)
- *   2. EN fallback (if lang ≠ EN)
- *   3. Placeholder (player_back.webp) — guarantees TTS never gets HTML
+ *   If variant is set (e.g. 'promo'):
+ *     1. promo-FR/{pack}/{code}.webp (variant + requested lang)
+ *     2. FR/{pack}/{code}.webp       (standard lang)
+ *     3. promo-EN/{pack}/{code}.webp (variant + EN)
+ *     4. EN/{pack}/{code}.webp       (standard EN)
+ *   Otherwise:
+ *     1. FR/{pack}/{code}.webp
+ *     2. EN/{pack}/{code}.webp
+ *   Then:
+ *     - Duplicate original fallback (if applicable)
+ *     - Placeholder
  *
  * Always returns a valid image buffer.
  */
-async function fetchImageWithFallback(url, lang, pack, code, dupCode, dupPack) {
-  // 1. Try the original URL
+async function fetchImageWithFallback(url, lang, pack, code, dupCode, dupPack, variant) {
+  const upperLang = (lang || 'FR').toUpperCase();
+  const vDir = variant ? variantDir(variant, upperLang) : null;
+
+  // 1. Try variant directory first (e.g. promo-FR)
+  if (vDir && pack && code) {
+    const varURL = `${CARDS_BASE_URL}/${vDir}/${pack}/${code}.webp`;
+    const varBuffer = await tryFetchImage(varURL);
+    if (varBuffer) return varBuffer;
+  }
+
+  // 2. Try standard lang directory (original URL)
   const primary = await tryFetchImage(url);
   if (primary) return primary;
 
-  // 2. Fallback to EN if language wasn't already EN
-  if (lang && lang.toUpperCase() !== 'EN' && pack && code) {
+  // 3. Try variant EN directory (e.g. promo-EN)
+  if (vDir && upperLang !== 'EN' && pack && code) {
+    const vEnDir = variantDir(variant, 'EN');
+    if (vEnDir) {
+      const varEnURL = `${CARDS_BASE_URL}/${vEnDir}/${pack}/${code}.webp`;
+      const varEnBuffer = await tryFetchImage(varEnURL);
+      if (varEnBuffer) return varEnBuffer;
+    }
+  }
+
+  // 4. Fallback to standard EN
+  if (upperLang !== 'EN' && pack && code) {
     const enURL = `${CARDS_BASE_URL}/EN/${pack}/${code}.webp`;
     const enBuffer = await tryFetchImage(enURL);
     if (enBuffer) return enBuffer;
   }
 
-  // 3. Also try replacing /FR/ (or any lang) with /EN/ directly in the URL
+  // 5. Also try replacing lang code directly in the URL
   if (url && /\/[A-Z]{2}\//i.test(url)) {
     const altURL = url.replace(/\/[A-Z]{2}\//i, '/EN/');
     if (altURL !== url) {
@@ -1088,9 +1396,9 @@ async function fetchImageWithFallback(url, lang, pack, code, dupCode, dupPack) {
     }
   }
 
-  // 4. Duplicate fallback: try the original card's image (FR then EN)
+  // 6. Duplicate fallback: try the original card's image (lang then EN)
   if (dupCode && dupPack) {
-    const dupFrURL = `${CARDS_BASE_URL}/${lang || 'FR'}/${dupPack}/${dupCode}.webp`;
+    const dupFrURL = `${CARDS_BASE_URL}/${upperLang}/${dupPack}/${dupCode}.webp`;
     const dupFr = await tryFetchImage(dupFrURL);
     if (dupFr) return dupFr;
 
@@ -1099,7 +1407,7 @@ async function fetchImageWithFallback(url, lang, pack, code, dupCode, dupPack) {
     if (dupEn) return dupEn;
   }
 
-  // 5. Return placeholder so TTS never receives HTML or an error
+  // 7. Return placeholder so TTS never receives HTML or an error
   const placeholder = await tryFetchImage(PLACEHOLDER_IMAGE_URL);
   return placeholder; // may still be null in extreme cases
 }
@@ -1112,10 +1420,10 @@ async function fetchImageWithFallback(url, lang, pack, code, dupCode, dupPack) {
  */
 router.get('/tts/card-image', async (req, res) => {
   try {
-    const { url, lang, pack, code, dup_code, dup_pack } = req.query;
+    const { url, lang, pack, code, dup_code, dup_pack, variant } = req.query;
     if (!url) return res.status(400).send('URL missing');
 
-    const buffer = await fetchImageWithFallback(url, lang, pack, code, dup_code, dup_pack);
+    const buffer = await fetchImageWithFallback(url, lang, pack, code, dup_code, dup_pack, variant);
     if (!buffer) {
       return res.status(404).send('Image not found');
     }
@@ -1136,10 +1444,10 @@ router.get('/tts/card-image', async (req, res) => {
  */
 router.get('/tts/rotate-image', async (req, res) => {
   try {
-    const { url, lang, pack, code, dup_code, dup_pack } = req.query;
+    const { url, lang, pack, code, dup_code, dup_pack, variant } = req.query;
     if (!url) return res.status(400).send('URL missing');
 
-    const buffer = await fetchImageWithFallback(url, lang, pack, code, dup_code, dup_pack);
+    const buffer = await fetchImageWithFallback(url, lang, pack, code, dup_code, dup_pack, variant);
     if (!buffer) {
       return res.status(404).send('Image not found');
     }
