@@ -49,6 +49,28 @@ function RepBadge({ reputation }) {
   );
 }
 
+// ── Online status indicator ────────────────────────────────────────────────
+
+function OnlineStatus({ lastActiveAt }) {
+  if (!lastActiveAt) return <span className="online-dot online-dot--offline" title="Never connected" />;
+  const diffMs = Date.now() - new Date(lastActiveAt).getTime();
+  const diffMin = diffMs / 60000;
+  let cls, title;
+  if (diffMin < 5) {
+    cls = 'online-dot--online';
+    title = 'Online';
+  } else if (diffMin < 30) {
+    cls = 'online-dot--recent';
+    title = `Active ${Math.round(diffMin)} min ago`;
+  } else {
+    cls = 'online-dot--offline';
+    const hours = Math.floor(diffMin / 60);
+    const days = Math.floor(hours / 24);
+    title = days > 0 ? `Last seen ${days}d ago` : hours > 0 ? `Last seen ${hours}h ago` : `Last seen ${Math.round(diffMin)}m ago`;
+  }
+  return <span className={`online-dot ${cls}`} title={title} />;
+}
+
 // ── Sub-components ─────────────────────────────────────────────────────────
 
 function StatCard({ label, value, accent }) {
@@ -476,7 +498,7 @@ export default function AdminPanel({ onUserUpdate }) {
                   return (
                     <tr key={u.id} className={!u.enabled ? 'admin-row--disabled' : ''}>
                       <td className="admin-td-id">{u.id}</td>
-                      <td className="admin-td-name">{u.username}</td>
+                      <td className="admin-td-name"><OnlineStatus lastActiveAt={u.last_active_at} />{u.username}</td>
                       <td className="admin-td-email">{u.email}</td>
                       <td>
                         <ReputationCell 

@@ -404,6 +404,18 @@ router.get('/home', async (req, res) => {
       }
     }
 
+    // 6. Latest updates from changelog
+    let latest_updates = [];
+    try {
+      const updatesPath = path.join(__dirname, '../../../bundles/updates/updates.json');
+      if (fs.existsSync(updatesPath)) {
+        const allUpdates = JSON.parse(fs.readFileSync(updatesPath, 'utf8'));
+        latest_updates = allUpdates
+          .sort((a, b) => new Date(b.date) - new Date(a.date))
+          .slice(0, 3);
+      }
+    } catch (e) { /* ignore */ }
+
     return res.json({
       ok: true,
       total_decks,
@@ -415,6 +427,7 @@ router.get('/home', async (req, res) => {
       card_of_the_day: cardOfTheDay,
       card_of_the_day_deck: cotdDeck,
       deck_of_the_week: deckOfTheWeek,
+      latest_updates,
       last_release: lastPack ? {
         pack_code: lastPack.code,
         pack_name: lastPackName,

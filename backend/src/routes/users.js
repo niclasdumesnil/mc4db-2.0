@@ -174,6 +174,12 @@ router.get('/user/:id', async (req, res) => {
     }
     completeUser.show_theme = showThemeObj || {};
 
+    // Parse visual_options JSON field
+    let visualOpts = { enhanced_decklistview: 0 };
+    try {
+      if (row.visual_options) visualOpts = { ...visualOpts, ...JSON.parse(row.visual_options) };
+    } catch (e) { /* ignore */ }
+    completeUser.visual_options = visualOpts;
 
     return res.json({ ok: true, user: completeUser });
   } catch (err) {
@@ -218,6 +224,15 @@ router.put('/user/:id/settings', requireAuth, async (req, res) => {
     if (data.print_tag !== undefined) updateData.print_tag = data.print_tag ? 1 : 0;
     if (data.print_side !== undefined) updateData.print_side = data.print_side ? 1 : 0;
     if (data.show_theme !== undefined) updateData.show_theme = JSON.stringify(data.show_theme);
+
+    // Handle visual_options (JSON text field)
+    if (data.enhanced_decklistview !== undefined) {
+      const currentRow = await db('user').where('id', id).select('visual_options').first();
+      let opts = { enhanced_decklistview: 0 };
+      try { if (currentRow?.visual_options) opts = { ...opts, ...JSON.parse(currentRow.visual_options) }; } catch(e) {}
+      opts.enhanced_decklistview = data.enhanced_decklistview ? 1 : 0;
+      updateData.visual_options = JSON.stringify(opts);
+    }
 
 
     // Mise à jour de la date de modification

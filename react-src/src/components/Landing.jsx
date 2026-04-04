@@ -359,7 +359,28 @@ export default function Landing() {
                  </div>
               </div>
               )}
-              
+
+              {/* Row 4: Recent Updates */}
+              {data.latest_updates?.length > 0 && (
+              <div style={{ flex: '1 1 100%' }}>
+                 <div style={panelStyle}>
+                    <h2 style={titleStyle}>🔄 Recent Updates</h2>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                       {data.latest_updates.map((u, i) => (
+                          <div key={i} className="update-entry">
+                             <div className="update-entry-header">
+                                <span className={`update-type-badge update-type-badge--${u.type}`}>
+                                   {u.type === 'patch' ? '🔧' : '✨'} {u.type} {u.version}
+                                </span>
+                                <span className="update-date">{u.date}</span>
+                             </div>
+                             <p className="update-description">{u.description}</p>
+                          </div>
+                       ))}
+                    </div>
+                 </div>
+              </div>
+              )}
            </div>
         ) : null}
       </div>

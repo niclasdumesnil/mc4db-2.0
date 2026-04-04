@@ -80,8 +80,16 @@ export default function DeckCard({
 
   const tags = deck.tags ? deck.tags.split(',').map(t => t.trim()).filter(Boolean) : [];
 
+  // Check enhanced_decklistview from localStorage
+  let enhancedView = false;
+  try {
+    const u = JSON.parse(localStorage.getItem('mc_user'));
+    enhancedView = !!(u?.visual_options?.enhanced_decklistview);
+  } catch (_) {}
+
   return (
     <div className="deck-card" onClick={onClick} style={{ cursor: 'pointer' }}>
+      {enhancedView && <div className="deck-ribbon" style={{ background: headerColor }} />}
       <div className="deck-header" style={{ backgroundColor: 'white', backgroundImage: `linear-gradient(${headerFaint}, ${headerFaint})` }}>
         <div className="deck-header-content">
           <h3 className="deck-name" style={{ color: '#111' }} title={deck.name}>{deck.name}</h3>

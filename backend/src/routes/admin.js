@@ -106,7 +106,7 @@ router.get('/admin/stats', async (req, res) => {
 router.get('/admin/users', async (req, res) => {
   try {
     const users = await db('user')
-      .select('id', 'username', 'email', 'enabled', 'donation', 'is_admin', 'reputation', 'date_creation')
+      .select('id', 'username', 'email', 'enabled', 'donation', 'is_admin', 'reputation', 'date_creation', 'last_active_at')
       .orderBy('id', 'asc');
 
     const userIds = users.map(u => u.id);
@@ -146,6 +146,7 @@ router.get('/admin/users', async (req, res) => {
         is_supporter:  u.donation > 0,
         donation:      u.donation,
         date_creation: u.date_creation,
+        last_active_at: u.last_active_at || null,
         // UI uses reputation for total, and boost for editing
         reputation:    totalRepMap[u.id] || 0,
         boost:         boostMap[u.id] || 0,

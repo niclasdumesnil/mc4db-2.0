@@ -24,6 +24,7 @@ export default function Parameters({ user }) {
     show_legacy_sch_order: false,
     show_tag_default: true,
     show_current_only_default: false,
+    enhanced_decklistview: false,
     print_faction: true,
     print_type: true,
     print_tag: true,
@@ -60,6 +61,7 @@ export default function Parameters({ user }) {
         print_type: u.print_type === undefined ? true : (u.print_type === 1 || u.print_type === true),
         print_tag: u.print_tag === undefined ? true : (u.print_tag === 1 || u.print_tag === true),
         print_side: u.print_side === 1 || u.print_side === true,
+        enhanced_decklistview: !!(u.visual_options?.enhanced_decklistview),
       });
     }
   }, [user, localUser]);
@@ -151,6 +153,9 @@ export default function Parameters({ user }) {
           const u = JSON.parse(localStorage.getItem('mc_user'));
           if (u) {
             u[key] = newValue ? 1 : 0;
+            if (key === 'enhanced_decklistview') {
+              u.visual_options = { ...(u.visual_options || {}), enhanced_decklistview: newValue ? 1 : 0 };
+            }
             localStorage.setItem('mc_user', JSON.stringify(u));
           }
           if (key === 'show_current_only_default') {
@@ -310,6 +315,16 @@ export default function Parameters({ user }) {
             </p>
           </div>
           <ToggleButton settingKey="show_legacy_sch_order" />
+        </div>
+
+        <div className="setting-item">
+          <div className="setting-text-block">
+            <span className="setting-label">Enhanced deck list view</span>
+            <p className="setting-description">
+              Adds an aspect-colored ribbon at the top of each deck card for better visual distinction.
+            </p>
+          </div>
+          <ToggleButton settingKey="enhanced_decklistview" />
         </div>
       </div>
 
