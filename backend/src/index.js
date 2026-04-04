@@ -95,6 +95,9 @@ app.use('/react', express.static(path.resolve(reactStaticDir)));
 // Serve site CSS used by Symfony templates so Node pages match Symfony styling
 app.use('/css', express.static(path.resolve(cssStaticDir)));
 
+// Legacy /set/:packCode redirect to card-list with pack filter pre-selected
+app.get('/set/:packCode', (req, res) => res.redirect(301, `/card-list?pack=${encodeURIComponent(req.params.packCode)}`));
+
 // /card/ and /card with no code → redirect to the card list page
 app.get(['/card', '/card/'], (req, res) => res.redirect(301, '/card-list'));
 
@@ -123,7 +126,14 @@ app.get(['/card/:code.html', '/card/:code'], async (req, res, next) => {
       }
     }
 
-    const duplicatedBy = await Card.findDuplicateCodes(row.id);
+    // Resolve duplicated_by (same sibling logic as API route)
+    let duplicatedBy;
+    if (row.duplicate_id) {
+      // This card is a duplicate: get ALL duplicates of the ORIGINAL (including self)
+      duplicatedBy = await Card.findDuplicateCodes(row.duplicate_id);
+    } else {
+      duplicatedBy = await Card.findDuplicateCodes(row.id);
+    }
     const card = serializeCard(row, { api: true, linkedCard, duplicatedBy });
     // ensure card id is present for client-side features (promo buttons reference `card.id`)
     card.id = row.id;

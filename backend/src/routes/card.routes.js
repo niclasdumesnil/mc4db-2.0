@@ -233,8 +233,16 @@ router.get(['/card/:code.json', '/card/:code'], async (req, res, next) => {
       }
     }
 
-    // Resolve duplicated_by
-    const duplicatedBy = await Card.findDuplicateCodes(row.id);
+    // Resolve duplicated_by (reprints & alt arts)
+    // If this card IS a duplicate, get siblings from the original card
+    // If this card IS the original, get its duplicates directly
+    let duplicatedBy;
+    if (row.duplicate_id) {
+      // This card is a duplicate → get ALL duplicates of the ORIGINAL (including self)
+      duplicatedBy = await Card.findDuplicateCodes(row.duplicate_id);
+    } else {
+      duplicatedBy = await Card.findDuplicateCodes(row.id);
+    }
 
     const card = serializeCard(row, { api: true, linkedCard, duplicatedBy, locale });
     await applyTranslation(card, locale);

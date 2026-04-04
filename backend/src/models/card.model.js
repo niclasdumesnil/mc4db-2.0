@@ -75,7 +75,7 @@ const BASE_CARD_COLUMNS = [
   'c.traits', 'c.real_traits', 'c.meta', 'c.deck_requirements', 'c.deck_options',
   'c.restrictions', 'c.flavor', 'c.illustrator', 'c.is_unique', 'c.hidden', 'c.permanent',
   'c.double_sided', 'c.back_text', 'c.back_flavor', 'c.back_name', 'c.octgn_id', 'c.errata',
-  'c.expansions_needed', 'c.alt_art', 'c.date_creation', 'c.date_update',
+  'c.expansions_needed', 'c.alt_art', 'c.duplicate_id', 'c.date_creation', 'c.date_update',
   // Joined fields
   'p.code as pack_code', 'p.name as pack_name', 'p.date_release as pack_date_release',
   db.raw('COALESCE(cs.status, p.status) as pack_status'), db.raw('COALESCE(c.creator, cs.creator, p.creator) as pack_creator'), 'p.theme as pack_theme',
@@ -89,7 +89,7 @@ const BASE_CARD_COLUMNS = [
   'cst.code as card_set_type_name_code',
   'lt.code as linked_to_code', 'lt.name as linked_to_name',
   'dup.code as duplicate_of_code', 'dup.name as duplicate_of_name',
-  'dup_pack.code as duplicate_of_pack_code',
+  'dup_pack.code as duplicate_of_pack_code', 'dup_pack.name as duplicate_of_pack_name',
 ];
 
 const VALID_OPS = { '=': '=', 'lt': '<', 'lte': '<=', 'gt': '>', 'gte': '>=' };
@@ -135,8 +135,17 @@ async function findByPackCode(packCode) {
 }
 
 async function findDuplicateCodes(cardId) {
-  const rows = await db('card').select('code').where('duplicate_id', cardId);
-  return rows.map((r) => r.code);
+  const rows = await db('card as c')
+    .leftJoin('pack as p', 'c.pack_id', 'p.id')
+    .where('c.duplicate_id', cardId)
+    .select('c.code', 'c.alt_art', 'c.quantity', 'p.name as pack_name', 'p.code as pack_code');
+  return rows.map(r => ({
+    code: r.code,
+    pack_name: r.pack_name,
+    pack_code: r.pack_code,
+    alt_art: !!r.alt_art,
+    quantity: r.quantity || 1,
+  }));
 }
 
 async function findTranslation(code, locale) {

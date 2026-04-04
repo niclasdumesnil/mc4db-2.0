@@ -115,6 +115,8 @@ function serializeCard(row, opts = {}) {
     linked_to_name: row.linked_to_name || null,
     duplicate_of_code: row.duplicate_of_code || null,
     duplicate_of_name: row.duplicate_of_name || null,
+    duplicate_of_pack_code: row.duplicate_of_pack_code || null,
+    duplicate_of_pack_name: row.duplicate_of_pack_name || null,
     position: row.position,
     set_position: row.set_position ?? null,
     code: row.code,

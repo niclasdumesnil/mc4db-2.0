@@ -411,8 +411,8 @@ router.get('/home', async (req, res) => {
       if (fs.existsSync(updatesPath)) {
         const allUpdates = JSON.parse(fs.readFileSync(updatesPath, 'utf8'));
         latest_updates = allUpdates
-          .sort((a, b) => new Date(b.date) - new Date(a.date))
-          .slice(0, 3);
+          .sort((a, b) => new Date(b.date) - new Date(a.date) || (b.version || 0) - (a.version || 0))
+          .slice(0, 5);
       }
     } catch (e) { /* ignore */ }
 

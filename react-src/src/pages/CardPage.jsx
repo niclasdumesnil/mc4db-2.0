@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import CardFront from '../CardFront';
 import PackNav from '../components/PackNav';
 import ReviewPanel from '../components/ReviewPanel';
+import ReprintsPanel from '../components/ReprintsPanel';
 import '../css/CardPage.css';
 
 // Extract card code from URL: /card/12345 or /card/12345.html
@@ -145,6 +146,7 @@ export default function CardPage() {
               langDir={opts.langDir}
               preferWebpOnly={opts.preferWebpOnly}
             />
+            <ReprintsPanel card={card} />
             <ReviewPanel cardId={card.id} />
           </div>
         </>
