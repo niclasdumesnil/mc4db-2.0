@@ -109,7 +109,7 @@ export function buildLinkedCardMap(allCards) {
     if (!parsed) continue;
     const key = parsed.name.toLowerCase();
     if (!map.has(key)) map.set(key, []);
-    map.get(key).push(card);
+    map.get(key).push({ card, typeHint: parsed.typeHint });
   }
   return map;
 }
@@ -139,9 +139,16 @@ export function getLinkedDeckSections(slotsMap, allCards, linkedCardMap) {
     const lookupName = (card.real_name || card.name || '').trim();
     const displayName = (card.name || card.real_name || '').trim();
     if (!lookupName) continue;
-    const linked = linkedCardMap.get(lookupName.toLowerCase());
-    if (linked && linked.length > 0) {
-      sections.push({ name: displayName, cards: linked });
+    const entries = linkedCardMap.get(lookupName.toLowerCase());
+    if (entries && entries.length > 0) {
+      // Filter by typeHint: if a linked card specifies a type (e.g. "upgrade"),
+      // only match deck cards whose type_code matches that type.
+      const matchingCards = entries
+        .filter(e => !e.typeHint || (card.type_code || '').toLowerCase() === e.typeHint.toLowerCase())
+        .map(e => e.card);
+      if (matchingCards.length > 0) {
+        sections.push({ name: displayName, cards: matchingCards });
+      }
     }
   }
   return sections;
