@@ -58,6 +58,15 @@ async function applyTranslation(card, locale) {
     card.card_set_name = cardsetsMap[card.card_set_code];
   }
 
+  // Translate pack names inside duplicated_by array
+  if (card.duplicated_by && Array.isArray(card.duplicated_by)) {
+    for (const dup of card.duplicated_by) {
+      if (dup.pack_code && packsMap[dup.pack_code]) {
+        dup.pack_name = packsMap[dup.pack_code];
+      }
+    }
+  }
+
   return card;
 }
 

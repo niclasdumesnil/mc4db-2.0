@@ -87,7 +87,7 @@ function HeroBadge({ hero, rank }) {
   return (
     <div className="admin-hero-badge">
       <span className="admin-hero-rank" style={{ color: colors[rank] }}>#{rank + 1}</span>
-      <span className="admin-hero-name">{hero.name}</span>
+      <a href={`/card/${hero.code}`} className="admin-hero-name card-tip" data-code={hero.code} style={{ color: 'var(--panel-title)', textDecoration: 'none' }}>{hero.name}</a>
       <span className="admin-hero-count">{hero.count} decks</span>
     </div>
   );
@@ -339,16 +339,50 @@ export default function AdminPanel({ onUserUpdate }) {
   const [roleLoading, setRoleLoading] = useState({});
   const [page, setPage]               = useState(1);
   const [searchQuery, setSearchQuery] = useState('');
+  const [connectedOnly, setConnectedOnly] = useState(false);
+  const [sortBy, setSortBy]           = useState(null);
+  const [sortOrder, setSortOrder]     = useState('asc');
 
   const PAGE_SIZE = 10;
 
   // ID of the currently logged-in admin — blocks self-revocation
   const selfId = currentUserId();
 
-  const filteredUsers = users.filter(u => 
-    u.username.toLowerCase().includes(searchQuery.toLowerCase()) || 
-    (u.email && u.email.toLowerCase().includes(searchQuery.toLowerCase()))
-  );
+  function handleSort(col) {
+    if (sortBy === col) {
+      setSortOrder(o => o === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortBy(col);
+      setSortOrder(col === 'reputation' || col === 'private_decks' || col === 'public_decks' ? 'desc' : 'asc');
+    }
+    setPage(1);
+  }
+
+  const filteredUsers = users
+    .filter(u => {
+      const matchesSearch = u.username.toLowerCase().includes(searchQuery.toLowerCase())
+        || (u.email && u.email.toLowerCase().includes(searchQuery.toLowerCase()));
+      if (!matchesSearch) return false;
+      if (connectedOnly) {
+        if (!u.last_active_at) return false;
+        const diffMin = (Date.now() - new Date(u.last_active_at).getTime()) / 60000;
+        if (diffMin >= 5) return false;
+      }
+      return true;
+    })
+    .sort((a, b) => {
+      if (!sortBy) return 0;
+      let va, vb;
+      switch (sortBy) {
+        case 'username':     va = (a.username || '').toLowerCase(); vb = (b.username || '').toLowerCase(); break;
+        case 'reputation':   va = a.reputation || 0; vb = b.reputation || 0; break;
+        case 'private_decks': va = a.private_decks || 0; vb = b.private_decks || 0; break;
+        case 'public_decks': va = a.public_decks || 0; vb = b.public_decks || 0; break;
+        default: return 0;
+      }
+      const cmp = typeof va === 'string' ? va.localeCompare(vb) : va - vb;
+      return sortOrder === 'asc' ? cmp : -cmp;
+    });
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -441,7 +475,7 @@ export default function AdminPanel({ onUserUpdate }) {
           </div>
 
           {/* ── Top 3 heroes ── */}
-          {(stats.top_heroes?.length > 0 || stats.top_public_heroes?.length > 0) && (
+          {(stats.top_heroes?.length > 0 || stats.top_cards?.length > 0) && (
             <div className="admin-heroes-section">
               <div className="admin-heroes-columns">
                 {stats.top_heroes?.length > 0 && (
@@ -452,11 +486,17 @@ export default function AdminPanel({ onUserUpdate }) {
                     </div>
                   </div>
                 )}
-                {stats.top_public_heroes?.length > 0 && (
+                {stats.top_cards?.length > 0 && (
                   <div className="admin-heroes-group">
-                    <div className="admin-section-title">🌐 Top 3 heroes (published decks)</div>
+                    <div className="admin-section-title">🃏 Top 3 cards (private decks)</div>
                     <div className="admin-heroes-row">
-                      {stats.top_public_heroes.map((h, i) => <HeroBadge key={h.code} hero={h} rank={i} />)}
+                      {stats.top_cards.map((c, i) => (
+                        <div key={c.code} className="admin-hero-badge">
+                          <span className="admin-hero-rank" style={{ color: ['#ffd700', '#c0c0c0', '#cd7f32'][i] }}>#{i + 1}</span>
+                          <a href={`/card/${c.code}`} className="admin-hero-name card-tip" data-code={c.code} style={{ color: 'var(--panel-title)', textDecoration: 'none' }}>{c.name}</a>
+                          <span className="admin-hero-count">{c.total} copies · {c.decks} decks</span>
+                        </div>
+                      ))}
                     </div>
                   </div>
                 )}
@@ -465,8 +505,18 @@ export default function AdminPanel({ onUserUpdate }) {
           )}
 
           {/* ── Users table ── */}
-          <div className="admin-section-title" style={{ marginTop: 24, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span>👥 Users ({filteredUsers.length})</span>
+          <div className="admin-section-title" style={{ marginTop: 24, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 8 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span>👥 Users ({filteredUsers.length})</span>
+              <button
+                className={`admin-btn admin-btn--xs ${connectedOnly ? 'admin-btn--success' : 'admin-btn--ghost'}`}
+                onClick={() => { setConnectedOnly(v => !v); setPage(1); }}
+                title={connectedOnly ? 'Show all users' : 'Show only connected users'}
+                style={{ whiteSpace: 'nowrap' }}
+              >
+                🟢 Connected only
+              </button>
+            </div>
             <input 
               type="text" 
               placeholder="Filter users..." 
@@ -481,12 +531,20 @@ export default function AdminPanel({ onUserUpdate }) {
               <thead>
                 <tr>
                   <th>ID</th>
-                  <th>Username</th>
+                  <th className="admin-th-sortable" onClick={() => handleSort('username')} title="Sort by username">
+                    Username {sortBy === 'username' ? (sortOrder === 'asc' ? '↑' : '↓') : ''}
+                  </th>
                   <th>Email</th>
-                  <th>Reputation</th>
+                  <th className="admin-th-sortable" onClick={() => handleSort('reputation')} title="Sort by reputation">
+                    Reputation {sortBy === 'reputation' ? (sortOrder === 'asc' ? '↑' : '↓') : ''}
+                  </th>
                   <th>Badges</th>
-                  <th style={{ textAlign: 'center' }}>Private</th>
-                  <th style={{ textAlign: 'center' }}>Published</th>
+                  <th className="admin-th-sortable" onClick={() => handleSort('private_decks')} title="Sort by private decks" style={{ textAlign: 'center' }}>
+                    Private {sortBy === 'private_decks' ? (sortOrder === 'asc' ? '↑' : '↓') : ''}
+                  </th>
+                  <th className="admin-th-sortable" onClick={() => handleSort('public_decks')} title="Sort by published decks" style={{ textAlign: 'center' }}>
+                    Published {sortBy === 'public_decks' ? (sortOrder === 'asc' ? '↑' : '↓') : ''}
+                  </th>
                   <th>Admin</th>
                   <th>Supporter</th>
                   <th>Actions</th>

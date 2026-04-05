@@ -61,7 +61,7 @@ router.get('/admin/stats', async (req, res) => {
     const [{ total_private }] = await db('deck').whereNull('next_deck').count('* as total_private');
     const [{ total_public }]  = await db('decklist').whereNull('next_deck').count('* as total_public');
 
-    const [topHeroes, topPublicHeroes] = await Promise.all([
+    const [topHeroes, topCards] = await Promise.all([
       db('deck as d')
         .join('card as c', 'd.character_id', 'c.id')
         .whereNull('d.next_deck')
@@ -70,13 +70,15 @@ router.get('/admin/stats', async (req, res) => {
         .groupBy('c.id', 'c.name', 'c.code')
         .orderBy('cnt', 'desc')
         .limit(3),
-      db('decklist as d')
-        .join('card as c', 'd.card_id', 'c.id')
-        .whereNull('d.next_deck')
-        .select('c.name as hero_name', 'c.code as hero_code')
-        .count('* as cnt')
+      db('deckslot as s')
+        .join('card as c', 's.card_id', 'c.id')
+        .join('faction as f', 'c.faction_id', 'f.id')
+        .whereNotIn('f.code', ['hero', 'campaign', 'encounter'])
+        .select('c.name as card_name', 'c.code as card_code')
+        .sum('s.quantity as total_qty')
+        .count('* as deck_count')
         .groupBy('c.id', 'c.name', 'c.code')
-        .orderBy('cnt', 'desc')
+        .orderBy('total_qty', 'desc')
         .limit(3),
     ]);
 
@@ -89,8 +91,8 @@ router.get('/admin/stats', async (req, res) => {
         top_heroes: topHeroes.map(r => ({
           name: r.hero_name, code: r.hero_code, count: Number(r.cnt),
         })),
-        top_public_heroes: topPublicHeroes.map(r => ({
-          name: r.hero_name, code: r.hero_code, count: Number(r.cnt),
+        top_cards: topCards.map(r => ({
+          name: r.card_name, code: r.card_code, total: Number(r.total_qty), decks: Number(r.deck_count),
         })),
       },
     });

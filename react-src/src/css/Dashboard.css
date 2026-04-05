@@ -288,19 +288,24 @@ html.dark {
 
 /* Top heroes */
 .admin-heroes-section { margin-bottom: 8px; margin-top: 16px; }
-.admin-heroes-columns { display: flex; gap: 28px; flex-wrap: wrap; }
+.admin-heroes-columns { display: flex; gap: 12px; flex-wrap: wrap; }
+@media (max-width: 768px) { .admin-heroes-columns { flex-direction: column; } }
 .admin-heroes-group { flex: 1; min-width: 240px; }
 .admin-section-title { font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; font-weight: 700; margin-bottom: 10px; }
-.admin-heroes-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 6px; }
+.admin-heroes-row { display: flex; gap: 4px; flex-direction: column; margin-top: 6px; }
 .admin-hero-badge { display: flex; align-items: center; gap: 8px; background: var(--alpha-04); border: 1px solid var(--alpha-08); border-radius: 8px; padding: 8px 14px; }
-.admin-hero-rank { font-size: 1rem; font-weight: 800; }
-.admin-hero-name { font-size: 0.9rem; color: var(--panel-title); }
-.admin-hero-count { font-size: 0.78rem; color: var(--text-muted); }
+.admin-hero-rank { font-size: 1.1rem; font-weight: 800; }
+.admin-hero-name { font-size: 1rem; color: var(--panel-title); font-weight: 600; }
+.admin-hero-count { font-size: 0.9rem; color: var(--text-muted); margin-left: auto; }
 
 /* Table */
 .admin-table-wrap { overflow-x: auto; margin-top: 8px; }
 .admin-table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
 .admin-table th { color: var(--text-muted); text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.05em; padding: 8px 10px; border-bottom: 1px solid var(--alpha-08); text-align: left; white-space: nowrap; }
+.admin-th-sortable { cursor: pointer; user-select: none; transition: color 0.15s; }
+.admin-th-sortable:hover { color: var(--panel-title, #e2e8f0); }
+.admin-btn--success { background: rgba(16, 185, 129, 0.2); border-color: rgba(16, 185, 129, 0.5); color: #10b981; }
+.admin-btn--success:hover { background: rgba(16, 185, 129, 0.3); }
 .admin-table td { padding: 9px 10px; border-bottom: 1px solid var(--alpha-04); color: var(--panel-text); vertical-align: middle; }
 .admin-table tbody tr:hover { background: var(--alpha-03); }
 .admin-row--disabled { opacity: 0.45; }

@@ -85,13 +85,15 @@ router.get('/home', async (req, res) => {
       .orderBy('cnt', 'desc')
       .limit(3);
 
-    // 2. Top Cards (excluding resources)
+    // 2. Top Cards (excluding resources, hero, campaign, encounter)
     const topCards = await db('decklistslot as s')
       .join('decklist as d', 's.decklist_id', 'd.id')
       .join('card as c', 's.card_id', 'c.id')
       .join('type as t', 'c.type_id', 't.id')
+      .join('faction as f', 'c.faction_id', 'f.id')
       .whereNull('d.next_deck')
       .andWhere('t.code', '!=', 'resource')
+      .whereNotIn('f.code', ['hero', 'campaign', 'encounter'])
       .select('c.name as card_name', 'c.code as card_code')
       .countDistinct('d.id as cnt')
       .groupBy('c.id', 'c.name', 'c.code')
