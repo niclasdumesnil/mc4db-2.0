@@ -244,6 +244,7 @@ export default function DeckContent({ slots, mode = 'list', showBadges = true, h
                         <FactionDot card={card} />
                         {!!card.is_unique && <span className="icon-unique cl-unique-icon" title="Unique" />}
                         <span className="slot-name card-tip" data-code={card.code}>{card.name}</span>
+                        {card.subname && card.type_code === 'ally' && <span className="cl-card-subname">{card.subname}</span>}
                         {isInvalid && <span className="slot-invalid-badge" title="This card does not comply with deck rules">⚠</span>}
                         {showBadges && card.pack_environment === 'current' && (
                           <span className="dc-tooltip-wrap">
@@ -339,6 +340,7 @@ export default function DeckContent({ slots, mode = 'list', showBadges = true, h
                         <FactionDot card={card} />
                         {!!card.is_unique && <span className="icon-unique cl-unique-icon" title="Unique" />}
                         <span className="slot-name card-tip" data-code={card.code}>{card.name}</span>
+                        {card.subname && card.type_code === 'ally' && <span className="cl-card-subname">{card.subname}</span>}
                         {isInvalid && <span className="slot-invalid-badge" title="This card does not comply with deck rules">⚠</span>}
                         {showBadges && card.pack_environment === 'current' && (
                           <span className="dc-tooltip-wrap">
@@ -419,6 +421,7 @@ export default function DeckContent({ slots, mode = 'list', showBadges = true, h
                       <FactionDot card={card} />
                       {!!card.is_unique && <span className="icon-unique cl-unique-icon" title="Unique" />}
                       <span className="slot-name card-tip" data-code={card.code}>{card.name}</span>
+                      {card.subname && card.type_code === 'ally' && <span className="cl-card-subname">{card.subname}</span>}
                     </div>
                   </li>
                 ))}
@@ -463,6 +466,7 @@ export default function DeckContent({ slots, mode = 'list', showBadges = true, h
                       <FactionDot card={card} />
                       {!!card.is_unique && <span className="icon-unique cl-unique-icon" title="Unique" />}
                       <span className="slot-name card-tip" data-code={card.code}>{card.name}</span>
+                      {card.subname && card.type_code === 'ally' && <span className="cl-card-subname">{card.subname}</span>}
                     </div>
                   </li>
                 ))}
@@ -525,6 +529,7 @@ export default function DeckContent({ slots, mode = 'list', showBadges = true, h
                         <FactionDot card={card} />
                         {!!card.is_unique && <span className="icon-unique cl-unique-icon" title="Unique" />}
                         <span className="slot-name card-tip" data-code={card.code}>{card.name}</span>
+                        {card.subname && card.type_code === 'ally' && <span className="cl-card-subname">{card.subname}</span>}
                         {isInvalid && <span className="slot-invalid-badge" title="This card does not comply with deck rules">⚠</span>}
                         {showBadges && card.pack_environment === 'current' && (
                           <span className="dc-tooltip-wrap">

@@ -139,11 +139,12 @@ async function findDuplicateCodes(cardId) {
   const rows = await db('card as c')
     .leftJoin('pack as p', 'c.pack_id', 'p.id')
     .where('c.duplicate_id', cardId)
-    .select('c.code', 'c.alt_art', 'c.quantity', 'p.name as pack_name', 'p.code as pack_code');
+    .select('c.code', 'c.alt_art', 'c.quantity', 'p.name as pack_name', 'p.code as pack_code', 'p.creator as pack_creator');
   return rows.map(r => ({
     code: r.code,
     pack_name: r.pack_name,
     pack_code: r.pack_code,
+    pack_creator: r.pack_creator || null,
     alt_art: !!r.alt_art,
     quantity: r.quantity || 1,
   }));
@@ -261,7 +262,7 @@ async function searchCards(filters, pagination, donator) {
       .leftJoin('card as dup', 'c.duplicate_id', 'dup.id')
       .leftJoin('pack as dup_pack', 'dup.pack_id', 'dup_pack.id')
       .select([
-        'c.code', 'c.name', 'c.cost', 'c.position', 'c.hidden', 'c.is_unique',
+        'c.code', 'c.name', 'c.subname', 'c.cost', 'c.position', 'c.hidden', 'c.is_unique',
         'c.traits', 'c.quantity', 'c.deck_limit', 'c.alt_art', 'c.octgn_id', db.raw('IF(c.duplicate_id IS NOT NULL, 1, 0) as is_duplicate'),
         'dup.code as duplicate_of_code', 'dup_pack.code as duplicate_of_pack_code',
         'c.text', 'c.real_text',

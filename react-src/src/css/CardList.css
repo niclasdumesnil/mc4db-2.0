@@ -620,6 +620,15 @@ html:not(.dark) .cl-checklist td {
   margin-left: 2px;
 }
 
+.cl-card-subname {
+  font-size: 0.78rem;
+  color: var(--st-text-muted, #94a3b8);
+  font-style: italic;
+  font-weight: 400;
+  opacity: 0.75;
+  margin-left: 2px;
+}
+
 /* Faction/class column */
 .cl-faction {
   font-weight: 600;

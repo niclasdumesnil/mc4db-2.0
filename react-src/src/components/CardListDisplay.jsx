@@ -153,6 +153,7 @@ export default function CardListDisplay({ cards, mode = 'checklist', sort, onSor
                       {onCardNameClick
                         ? <button className="cl-card-name-btn" onClick={() => onCardNameClick(card)}>{card.name}</button>
                         : <a href={`/card/${card.code}`} className="card-tip" data-code={card.code}>{card.name}</a>}
+                      {card.subname && card.type_code === 'ally' && <span className="cl-card-subname">{card.subname}</span>}
                       {(!card.is_unique && card.quantity > 0) ? <span className="cl-qty">(x{card.quantity})</span> : null}
                       {card.pack_environment === 'current' ? (
                         <span className="dc-tooltip-wrap">

@@ -166,6 +166,11 @@ export default function CardFront({ card, showSpoilers, locale, langDir, preferW
 							card={card}
 						/>
 					</div>
+					{card.duplicate_of_code && (
+						<p className="card-frame__reprint-caption">
+							{card.has_own_image ? 'Reprint.' : 'Image from Original Print.'}
+						</p>
+					)}
 					<div className="card-frame__promo">
 						<CardPromo card={card} locale={locale} />
 					</div>

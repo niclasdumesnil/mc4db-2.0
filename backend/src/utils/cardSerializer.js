@@ -190,6 +190,7 @@ function serializeCard(row, opts = {}) {
     url: `${BASE_URL}/card/${row.code}`,
     imagesrc: resolveImage(row.code, row.pack_code, '', imageLang)
       || (row.duplicate_of_code ? resolveImage(row.duplicate_of_code, row.duplicate_of_pack_code || row.pack_code, '', imageLang) : ''),
+    has_own_image: !!resolveImage(row.code, row.pack_code, '', imageLang),
     backimagesrc: row.double_sided ? resolveImage(row.code, row.pack_code, 'b', imageLang) : '',
     spoiler:
       row.card_set_code &&

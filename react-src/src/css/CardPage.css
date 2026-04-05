@@ -147,6 +147,7 @@ button.pack-nav-btn:hover {
 .card-frame__header-right  { display: flex; align-items: center; gap: 10px; }
 .card-frame__header-creator{ font-size: 13px; font-family: monospace; text-transform: uppercase; letter-spacing: .1em; }
 .card-frame__header-code   { padding: 2px 8px; background: var(--st-surface-2, #1e293b); border-radius: 4px; font-size: 13px; font-family: monospace; color: var(--st-text-muted, #94a3b8); }
+.card-frame__reprint-caption { margin: 2px 0 0; font-size: 0.78rem; font-style: italic; color: var(--st-text-muted, #64748b); opacity: 0.8; }
 
 /* Body columns */
 .card-frame__body {
