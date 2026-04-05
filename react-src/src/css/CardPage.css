@@ -98,12 +98,12 @@ button.pack-nav-btn:hover {
 /* ── Card frame — font alignment with card list ── */
 /* Reduce description text size to match card list density */
 .card-frame .mc-card-text,
-.card-frame .mc-card-text p  { font-size: 13px !important; line-height: 1.65; }
+.card-frame .mc-card-text p  { font-size: 15px !important; line-height: 1.65; }
 /* Section box base size */
-.card-frame .card-frame__section-box { font-size: 13px; }
+.card-frame .card-frame__section-box { font-size: 15px; }
 /* Props / traits / cost match card list */
-.card-frame .mc-card-props   { font-size: 13px !important; }
-.card-frame .mc-card-traits  { font-size: 12px !important; }
+.card-frame .mc-card-props   { font-size: 15px !important; }
+.card-frame .mc-card-traits  { font-size: 13px !important; }
 
 /* Card names are always white in the card page */
 .card-page .card-name,
@@ -142,6 +142,8 @@ button.pack-nav-btn:hover {
 .card-frame__header-left   { display: flex; align-items: center; gap: 8px; }
 .card-frame__header-dot    { width: 8px; height: 8px; border-radius: 50%; }
 .card-frame__header-system { font-size: 13px; font-family: monospace; font-weight: 700; text-transform: uppercase; letter-spacing: .12em; }
+.card-frame__header-source { display: inline-flex; align-items: center; gap: 4px; font-size: 13px; font-family: monospace; font-weight: 700; text-transform: uppercase; letter-spacing: .12em; opacity: 0.85; }
+@media (max-width: 767px) { .card-frame__header-set-info { display: none; } }
 .card-frame__header-right  { display: flex; align-items: center; gap: 10px; }
 .card-frame__header-creator{ font-size: 13px; font-family: monospace; text-transform: uppercase; letter-spacing: .1em; }
 .card-frame__header-code   { padding: 2px 8px; background: var(--st-surface-2, #1e293b); border-radius: 4px; font-size: 13px; font-family: monospace; color: var(--st-text-muted, #94a3b8); }

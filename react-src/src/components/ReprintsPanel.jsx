@@ -3,7 +3,7 @@ import '../css/ReprintsPanel.css';
 
 /**
  * Shows reprint / alternate art info for a card.
- * Identical content regardless of which print is being viewed.
+ * Displayed on ALL cards — shows "No reprint" when there are no duplicates.
  */
 export default function ReprintsPanel({ card }) {
   if (!card) return null;
@@ -15,12 +15,18 @@ export default function ReprintsPanel({ card }) {
   const reprints = duplicatedBy.filter(d => !d.alt_art);
   const altArts  = duplicatedBy.filter(d => d.alt_art);
 
-  // Nothing to show
-  if (!isDuplicate && reprints.length === 0 && altArts.length === 0) return null;
+  const hasReprints = isDuplicate || duplicatedBy.length > 0;
 
-  // Original card code (for link)
+  // Original card info
   const originalCardCode = isDuplicate ? card.duplicate_of_code : card.code;
   const originalPackName = isDuplicate ? (card.duplicate_of_pack_name || card.duplicate_of_pack_code) : card.pack_name;
+  const originalQty = card.quantity || 1;
+
+  // Total packs count (all duplicates, including alt-art)
+  const totalPacks = duplicatedBy.length;
+
+  // Total cards in collection = original qty + sum of all duplicate quantities
+  const totalCards = (isDuplicate ? 0 : originalQty) + duplicatedBy.reduce((sum, d) => sum + (d.quantity || 1), 0);
 
   const PackLink = ({ cardCode, name, quantity }) => (
     <>
@@ -40,20 +46,24 @@ export default function ReprintsPanel({ card }) {
     </span>
   );
 
-  // Build subtitle: "Reprint 2, Alt art 1"
+  // Subtitle: "Reprint in X packs — Cards in collection: Y"
   const subtitleParts = [];
-  if (reprints.length > 0) subtitleParts.push(`Reprint ${reprints.length}`);
-  if (altArts.length > 0) subtitleParts.push(`Alt art ${altArts.length}`);
-  const subtitle = subtitleParts.length > 0 ? ` — ${subtitleParts.join(', ')}` : '';
+  if (hasReprints) {
+    subtitleParts.push(`Reprint in ${totalPacks} pack${totalPacks > 1 ? 's' : ''}`);
+  } else {
+    subtitleParts.push('No reprint');
+  }
+  subtitleParts.push(`Cards in collection: ${totalCards}`);
+  const subtitle = ` — ${subtitleParts.join(' · ')}`;
 
   return (
     <div className="reprints-panel">
-      <h3 className="reprints-title">🔄 Prints & Variants{subtitle && <span className="reprints-subtitle">{subtitle}</span>}</h3>
+      <h3 className="reprints-title">🔄 Prints & Variants<span className="reprints-subtitle">{subtitle}</span></h3>
 
       {/* Original print (always) */}
       <div className="reprints-row">
         <span className="reprints-label">Original print:</span>
-        <PackLink cardCode={originalCardCode} name={originalPackName} quantity={0} />
+        <PackLink cardCode={originalCardCode} name={originalPackName} quantity={originalQty} />
       </div>
 
       {/* Reprints */}
@@ -67,10 +77,11 @@ export default function ReprintsPanel({ card }) {
       {/* Alt arts */}
       {altArts.length > 0 && (
         <div className="reprints-row">
-          <span className="reprints-label">Alternative art:</span>
+          <span className="reprints-label">First alternative art:</span>
           <InlineList items={altArts} />
         </div>
       )}
+
     </div>
   );
 }

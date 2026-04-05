@@ -407,7 +407,11 @@ router.get('/home', async (req, res) => {
     // 6. Latest updates from changelog
     let latest_updates = [];
     try {
-      const updatesPath = path.join(__dirname, '../../../bundles/updates/updates.json');
+      const projectRoot = path.resolve(__dirname, '../../../');
+      const bundlesDir = fs.existsSync(path.join(projectRoot, 'web', 'bundles'))
+        ? path.join(projectRoot, 'web', 'bundles')
+        : path.join(projectRoot, 'bundles');
+      const updatesPath = path.join(bundlesDir, 'updates', 'updates.json');
       if (fs.existsSync(updatesPath)) {
         const allUpdates = JSON.parse(fs.readFileSync(updatesPath, 'utf8'));
         latest_updates = allUpdates

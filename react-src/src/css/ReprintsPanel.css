@@ -73,3 +73,14 @@
   font-style: italic;
   margin-left: 6px;
 }
+
+.reprints-no-reprint {
+  opacity: 0.6;
+}
+
+.reprints-label-muted {
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--st-text-muted, #64748b);
+  font-style: italic;
+}

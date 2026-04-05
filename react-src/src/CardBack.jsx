@@ -6,9 +6,9 @@ import CardFlavor from './components/CardFlavor';
 import CardName from './components/CardName';
 import CardInfo from './components/CardInfo';
 import CardIllustrator from './components/CardIllustrator';
-import CardPack from './components/CardPack';
+
 import CardPromo from './components/CardPromo';
-import { Terminal, FileText, Package, Paintbrush, AlertCircle, Fingerprint } from 'lucide-react';
+import { Terminal, FileText, Paintbrush, AlertCircle, Fingerprint } from 'lucide-react';
 
 export default function CardBack({ card, showSpoilers, preferWebpOnly, locale, inline=false }) {
   console.log('[mc4db] CardBack render', card, 'inline=', inline);
@@ -104,13 +104,6 @@ export default function CardBack({ card, showSpoilers, preferWebpOnly, locale, i
                 </div>
               </>
             )}
-            <div className="card-frame__section-label">
-              <Package size={13} />
-              <h3>Source Module</h3>
-            </div>
-            <div className="card-frame__section-box">
-              <CardPack card={card} />
-            </div>
           </section>
 
           {card.errata && (

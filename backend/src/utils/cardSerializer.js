@@ -119,6 +119,7 @@ function serializeCard(row, opts = {}) {
     duplicate_of_pack_name: row.duplicate_of_pack_name || null,
     position: row.position,
     set_position: row.set_position ?? null,
+    card_set_size: row.card_set_size ?? null,
     code: row.code,
     name: row.name,
     real_name: row.real_name,

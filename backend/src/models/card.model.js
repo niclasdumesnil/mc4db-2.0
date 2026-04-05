@@ -90,6 +90,7 @@ const BASE_CARD_COLUMNS = [
   'lt.code as linked_to_code', 'lt.name as linked_to_name',
   'dup.code as duplicate_of_code', 'dup.name as duplicate_of_name',
   'dup_pack.code as duplicate_of_pack_code', 'dup_pack.name as duplicate_of_pack_name',
+  db.raw('(SELECT MAX(c2.set_position + c2.quantity - 1) FROM card c2 WHERE c2.set_id = c.set_id AND c.set_id IS NOT NULL) as card_set_size'),
 ];
 
 const VALID_OPS = { '=': '=', 'lt': '<', 'lte': '<=', 'gt': '>', 'gte': '>=' };

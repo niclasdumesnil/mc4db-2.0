@@ -15,7 +15,7 @@ import CardInfo from './components/CardInfo';
 import CardText from './components/CardText';
 import CardFlavor from './components/CardFlavor';
 import CardIllustrator from './components/CardIllustrator';
-import CardPack from './components/CardPack';
+
 import CardPromo from './components/CardPromo';
 import ImageWithWebp from './components/ImageWithWebp';
 import CardBack from './CardBack';
@@ -45,7 +45,18 @@ export default function CardFront({ card, showSpoilers, locale, langDir, preferW
 				<div className="card-frame__header-left">
 					<div className="card-frame__header-dot" style={{ backgroundColor: headerTextColor }} />
 					<span className="card-frame__header-system">
-						{'System.'}{((card.faction_name || card.faction_code || 'basic').toUpperCase())}{' // Online'}
+						{'System.'}{((card.faction_name || card.faction_code || 'basic').toUpperCase())}
+					</span>
+					<span className="card-frame__header-source">
+						<Package size={12} />
+						{'Source.'}{card.pack_name || card.pack_code}
+						{card.position ? ` #${card.position}` : ''}
+						{card.set_position ? <span className="card-frame__header-set-info">{(() => {
+						const qty = card.quantity || 1;
+						const endPos = card.set_position + qty - 1;
+						const posStr = qty > 1 ? `${card.set_position}-${endPos}` : `${card.set_position}`;
+						return ` [${posStr}${card.card_set_size ? '/' + card.card_set_size : ''}]`;
+					})()}</span> : ''}
 					</span>
 				</div>
 				<div className="card-frame__header-right">
@@ -125,13 +136,7 @@ export default function CardFront({ card, showSpoilers, locale, langDir, preferW
 									</div>
 								</>
 							)}
-							<div className="card-frame__section-label">
-								<Package size={16} />
-								<h3>Source Module</h3>
-							</div>
-							<div className="card-frame__section-box">
-								<CardPack card={card} />
-							</div>
+
 						</section>
 
 						{card.errata && (
